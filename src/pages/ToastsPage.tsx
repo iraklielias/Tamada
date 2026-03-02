@@ -23,8 +23,12 @@ const occasions = [
   { value: "wedding", label: "ქორწილი" },
   { value: "birthday", label: "დაბადების დღე" },
   { value: "memorial", label: "პანაშვიდი" },
+  { value: "christening", label: "ნათლობა" },
+  { value: "guest_reception", label: "სტუმრის მიღება" },
   { value: "holiday", label: "დღესასწაული" },
   { value: "business", label: "საქმიანი" },
+  { value: "friendly_gathering", label: "მეგობრული შეკრება" },
+  { value: "other", label: "სხვა" },
 ];
 
 const formalities = [
@@ -107,6 +111,8 @@ const ToastsPage = () => {
   const occasionLabel: Record<string, string> = {
     wedding: "ქორწილი", birthday: "დაბადების დღე", supra: "სუფრა",
     memorial: "პანაშვიდი", holiday: "დღესასწაული", business: "საქმიანი",
+    christening: "ნათლობა", guest_reception: "სტუმრის მიღება",
+    friendly_gathering: "მეგობრული შეკრება", other: "სხვა",
   };
 
   return (

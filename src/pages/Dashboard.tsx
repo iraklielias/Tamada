@@ -75,6 +75,9 @@ const Dashboard: React.FC = () => {
     memorial: "პანაშვიდი",
     business: "საქმიანი",
     holiday: "დღესასწაული",
+    christening: "ნათლობა",
+    guest_reception: "სტუმრის მიღება",
+    friendly_gathering: "მეგობრული შეკრება",
     other: "სხვა",
   };
 
@@ -89,7 +92,7 @@ const Dashboard: React.FC = () => {
       icon: <Plus className="h-5 w-5" />,
       label: "ახალი სუფრა",
       desc: "შექმენი ახალი წვეულება",
-      onClick: () => navigate("/toasts"),
+      onClick: () => navigate("/feasts/new"),
       color: "wine-gradient text-primary-foreground",
     },
     {
@@ -211,7 +214,7 @@ const Dashboard: React.FC = () => {
             title="ჯერ არ გაქვთ წვეულება"
             description="შექმენით პირველი სუფრა და მოამზადეთ სადღეგრძელოების თანმიმდევრობა"
             actionLabel="ახალი სუფრა"
-            onAction={() => navigate("/toasts")}
+            onAction={() => navigate("/feasts/new")}
           />
         )}
       </section>
