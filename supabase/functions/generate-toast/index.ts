@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -11,11 +12,54 @@ serve(async (req) => {
   }
 
   try {
-    const { occasion_type, formality_level, topic, language } = await req.json();
+    const { occasion_type, formality_level, topic } = await req.json();
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY not configured");
+    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
+
+    // Auth check + rate limiting
+    const authHeader = req.headers.get("Authorization");
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    let userId: string | null = null;
+    if (authHeader) {
+      const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+      const userClient = createClient(supabaseUrl, anonKey, {
+        global: { headers: { Authorization: authHeader } },
+      });
+      const { data: { user } } = await userClient.auth.getUser();
+      userId = user?.id || null;
+    }
+
+    if (userId) {
+      // Check daily count
+      const { data: count } = await supabase.rpc("get_daily_ai_count", { p_user_id: userId });
+      
+      // Check if pro
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("is_pro, pro_expires_at")
+        .eq("id", userId)
+        .single();
+
+      const isPro = profile?.is_pro && (!profile.pro_expires_at || new Date(profile.pro_expires_at) > new Date());
+      const limit = isPro ? 100 : 5;
+
+      if ((count ?? 0) >= limit) {
+        return new Response(
+          JSON.stringify({ error: "დღიური ლიმიტი ამოიწურა. განაახლეთ PRO-ზე!" }),
+          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Log the generation
+      await supabase.from("ai_generation_log").insert({
+        user_id: userId,
+        generation_type: "toast",
+        input_params: { occasion_type, formality_level, topic },
+      });
     }
 
     const formalityMap: Record<string, string> = {
@@ -25,12 +69,10 @@ serve(async (req) => {
     };
 
     const occasionMap: Record<string, string> = {
-      wedding: "ქორწილი",
-      birthday: "დაბადების დღე",
-      supra: "სუფრა",
-      memorial: "პანაშვიდი",
-      holiday: "დღესასწაული",
-      business: "საქმიანი შეხვედრა",
+      wedding: "ქორწილი", birthday: "დაბადების დღე", supra: "სუფრა",
+      memorial: "პანაშვიდი", holiday: "დღესასწაული", business: "საქმიანი შეხვედრა",
+      christening: "ნათლობა", guest_reception: "სტუმრის მიღება",
+      friendly_gathering: "მეგობრული შეკრება",
     };
 
     const prompt = `შექმენი ქართული სადღეგრძელო შემდეგი პარამეტრებით:
@@ -73,20 +115,23 @@ ${topic ? `- თემა/სურვილი: ${topic}` : ""}
     const result = await response.json();
     const content = result.choices?.[0]?.message?.content || "";
 
-    // Parse JSON from response (handle markdown code blocks)
     let parsed;
     try {
-      const jsonMatch = content.match(/```json\s*([\s\S]*?)\s*```/) || 
+      const jsonMatch = content.match(/```json\s*([\s\S]*?)\s*```/) ||
                          content.match(/```\s*([\s\S]*?)\s*```/);
       const jsonStr = jsonMatch ? jsonMatch[1] : content;
       parsed = JSON.parse(jsonStr.trim());
     } catch {
-      parsed = {
-        title_ka: "სადღეგრძელო",
-        body_ka: content,
-        title_en: "Toast",
-        body_en: content,
-      };
+      parsed = { title_ka: "სადღეგრძელო", body_ka: content, title_en: "Toast", body_en: content };
+    }
+
+    // Update log with output
+    if (userId) {
+      await supabase.from("ai_generation_log")
+        .update({ output_text: parsed.body_ka, model_used: "google/gemini-2.5-flash" })
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(1);
     }
 
     return new Response(JSON.stringify(parsed), {
