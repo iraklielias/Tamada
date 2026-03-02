@@ -14,13 +14,603 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      ai_generation_log: {
+        Row: {
+          created_at: string | null
+          generation_type: string
+          id: string
+          input_params: Json
+          model_used: string | null
+          output_text: string | null
+          tokens_used: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          generation_type: string
+          id?: string
+          input_params: Json
+          model_used?: string | null
+          output_text?: string | null
+          tokens_used?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          generation_type?: string
+          id?: string
+          input_params?: Json
+          model_used?: string | null
+          output_text?: string | null
+          tokens_used?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_generation_log_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      custom_toasts: {
+        Row: {
+          ai_generation_params: Json | null
+          body_en: string | null
+          body_ka: string
+          created_at: string | null
+          id: string
+          is_ai_generated: boolean | null
+          occasion_type: string | null
+          tags: string[] | null
+          title_en: string | null
+          title_ka: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          ai_generation_params?: Json | null
+          body_en?: string | null
+          body_ka: string
+          created_at?: string | null
+          id?: string
+          is_ai_generated?: boolean | null
+          occasion_type?: string | null
+          tags?: string[] | null
+          title_en?: string | null
+          title_ka?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          ai_generation_params?: Json | null
+          body_en?: string | null
+          body_ka?: string
+          created_at?: string | null
+          id?: string
+          is_ai_generated?: boolean | null
+          occasion_type?: string | null
+          tags?: string[] | null
+          title_en?: string | null
+          title_ka?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "custom_toasts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      feast_collaborators: {
+        Row: {
+          feast_id: string
+          id: string
+          joined_at: string | null
+          role: string | null
+          user_id: string
+        }
+        Insert: {
+          feast_id: string
+          id?: string
+          joined_at?: string | null
+          role?: string | null
+          user_id: string
+        }
+        Update: {
+          feast_id?: string
+          id?: string
+          joined_at?: string | null
+          role?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feast_collaborators_feast_id_fkey"
+            columns: ["feast_id"]
+            isOneToOne: false
+            referencedRelation: "feasts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "feast_collaborators_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      feast_guests: {
+        Row: {
+          alaverdi_count: number | null
+          created_at: string | null
+          feast_id: string
+          id: string
+          name: string
+          notes: string | null
+          role: string | null
+          seat_position: number | null
+        }
+        Insert: {
+          alaverdi_count?: number | null
+          created_at?: string | null
+          feast_id: string
+          id?: string
+          name: string
+          notes?: string | null
+          role?: string | null
+          seat_position?: number | null
+        }
+        Update: {
+          alaverdi_count?: number | null
+          created_at?: string | null
+          feast_id?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          role?: string | null
+          seat_position?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feast_guests_feast_id_fkey"
+            columns: ["feast_id"]
+            isOneToOne: false
+            referencedRelation: "feasts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      feast_toasts: {
+        Row: {
+          actual_time: string | null
+          alaverdi_assigned_to: string | null
+          assigned_custom_toast_id: string | null
+          assigned_toast_id: string | null
+          created_at: string | null
+          description_en: string | null
+          description_ka: string | null
+          duration_minutes: number | null
+          feast_id: string
+          id: string
+          notes: string | null
+          position: number
+          scheduled_time_offset_minutes: number | null
+          status: string | null
+          title_en: string | null
+          title_ka: string
+          toast_type: string
+        }
+        Insert: {
+          actual_time?: string | null
+          alaverdi_assigned_to?: string | null
+          assigned_custom_toast_id?: string | null
+          assigned_toast_id?: string | null
+          created_at?: string | null
+          description_en?: string | null
+          description_ka?: string | null
+          duration_minutes?: number | null
+          feast_id: string
+          id?: string
+          notes?: string | null
+          position: number
+          scheduled_time_offset_minutes?: number | null
+          status?: string | null
+          title_en?: string | null
+          title_ka: string
+          toast_type: string
+        }
+        Update: {
+          actual_time?: string | null
+          alaverdi_assigned_to?: string | null
+          assigned_custom_toast_id?: string | null
+          assigned_toast_id?: string | null
+          created_at?: string | null
+          description_en?: string | null
+          description_ka?: string | null
+          duration_minutes?: number | null
+          feast_id?: string
+          id?: string
+          notes?: string | null
+          position?: number
+          scheduled_time_offset_minutes?: number | null
+          status?: string | null
+          title_en?: string | null
+          title_ka?: string
+          toast_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feast_toasts_assigned_custom_toast_id_fkey"
+            columns: ["assigned_custom_toast_id"]
+            isOneToOne: false
+            referencedRelation: "custom_toasts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "feast_toasts_assigned_toast_id_fkey"
+            columns: ["assigned_toast_id"]
+            isOneToOne: false
+            referencedRelation: "toasts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "feast_toasts_feast_id_fkey"
+            columns: ["feast_id"]
+            isOneToOne: false
+            referencedRelation: "feasts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      feasts: {
+        Row: {
+          actual_end_time: string | null
+          actual_start_time: string | null
+          created_at: string | null
+          estimated_duration_minutes: number
+          formality_level: string | null
+          guest_count: number | null
+          host_id: string
+          id: string
+          notes: string | null
+          occasion_type: string
+          region: string | null
+          share_code: string | null
+          status: string | null
+          template_id: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          actual_end_time?: string | null
+          actual_start_time?: string | null
+          created_at?: string | null
+          estimated_duration_minutes: number
+          formality_level?: string | null
+          guest_count?: number | null
+          host_id: string
+          id?: string
+          notes?: string | null
+          occasion_type: string
+          region?: string | null
+          share_code?: string | null
+          status?: string | null
+          template_id?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          actual_end_time?: string | null
+          actual_start_time?: string | null
+          created_at?: string | null
+          estimated_duration_minutes?: number
+          formality_level?: string | null
+          guest_count?: number | null
+          host_id?: string
+          id?: string
+          notes?: string | null
+          occasion_type?: string
+          region?: string | null
+          share_code?: string | null
+          status?: string | null
+          template_id?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feasts_host_id_fkey"
+            columns: ["host_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "feasts_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "toast_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          display_name: string | null
+          email: string
+          experience_level: string | null
+          full_name: string | null
+          id: string
+          is_pro: boolean | null
+          onboarding_completed: boolean | null
+          preferred_language: string | null
+          pro_expires_at: string | null
+          region: string | null
+          stripe_customer_id: string | null
+          typical_occasions: string[] | null
+          updated_at: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          display_name?: string | null
+          email: string
+          experience_level?: string | null
+          full_name?: string | null
+          id: string
+          is_pro?: boolean | null
+          onboarding_completed?: boolean | null
+          preferred_language?: string | null
+          pro_expires_at?: string | null
+          region?: string | null
+          stripe_customer_id?: string | null
+          typical_occasions?: string[] | null
+          updated_at?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          display_name?: string | null
+          email?: string
+          experience_level?: string | null
+          full_name?: string | null
+          id?: string
+          is_pro?: boolean | null
+          onboarding_completed?: boolean | null
+          preferred_language?: string | null
+          pro_expires_at?: string | null
+          region?: string | null
+          stripe_customer_id?: string | null
+          typical_occasions?: string[] | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          cancel_at_period_end: boolean | null
+          created_at: string | null
+          current_period_end: string | null
+          current_period_start: string | null
+          id: string
+          status: string | null
+          stripe_price_id: string | null
+          stripe_subscription_id: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          cancel_at_period_end?: boolean | null
+          created_at?: string | null
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          status?: string | null
+          stripe_price_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          cancel_at_period_end?: boolean | null
+          created_at?: string | null
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          status?: string | null
+          stripe_price_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      toast_templates: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          estimated_duration_minutes: number | null
+          formality_level: string | null
+          id: string
+          is_system: boolean | null
+          name_en: string | null
+          name_ka: string
+          occasion_type: string
+          region: string | null
+          toast_sequence: Json
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          estimated_duration_minutes?: number | null
+          formality_level?: string | null
+          id?: string
+          is_system?: boolean | null
+          name_en?: string | null
+          name_ka: string
+          occasion_type: string
+          region?: string | null
+          toast_sequence: Json
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          estimated_duration_minutes?: number | null
+          formality_level?: string | null
+          id?: string
+          is_system?: boolean | null
+          name_en?: string | null
+          name_ka?: string
+          occasion_type?: string
+          region?: string | null
+          toast_sequence?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "toast_templates_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      toasts: {
+        Row: {
+          body_en: string | null
+          body_ka: string
+          created_at: string | null
+          created_by: string | null
+          formality_level: string | null
+          id: string
+          is_system: boolean | null
+          occasion_type: string
+          popularity_score: number | null
+          region: string | null
+          tags: string[] | null
+          title_en: string | null
+          title_ka: string
+          toast_order_position: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          body_en?: string | null
+          body_ka: string
+          created_at?: string | null
+          created_by?: string | null
+          formality_level?: string | null
+          id?: string
+          is_system?: boolean | null
+          occasion_type: string
+          popularity_score?: number | null
+          region?: string | null
+          tags?: string[] | null
+          title_en?: string | null
+          title_ka: string
+          toast_order_position?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          body_en?: string | null
+          body_ka?: string
+          created_at?: string | null
+          created_by?: string | null
+          formality_level?: string | null
+          id?: string
+          is_system?: boolean | null
+          occasion_type?: string
+          popularity_score?: number | null
+          region?: string | null
+          tags?: string[] | null
+          title_en?: string | null
+          title_ka?: string
+          toast_order_position?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "toasts_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_favorites: {
+        Row: {
+          created_at: string | null
+          custom_toast_id: string | null
+          id: string
+          notes: string | null
+          toast_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          custom_toast_id?: string | null
+          id?: string
+          notes?: string | null
+          toast_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          custom_toast_id?: string | null
+          id?: string
+          notes?: string | null
+          toast_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_favorites_custom_toast_id_fkey"
+            columns: ["custom_toast_id"]
+            isOneToOne: false
+            referencedRelation: "custom_toasts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_favorites_toast_id_fkey"
+            columns: ["toast_id"]
+            isOneToOne: false
+            referencedRelation: "toasts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_favorites_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_daily_ai_count: { Args: { p_user_id: string }; Returns: number }
+      increment_alaverdi: { Args: { p_guest_id: string }; Returns: undefined }
     }
     Enums: {
       [_ in never]: never
