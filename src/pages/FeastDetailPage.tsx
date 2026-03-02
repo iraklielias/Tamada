@@ -16,7 +16,7 @@ import {
 import EmptyState from "@/components/EmptyState";
 import {
   ArrowLeft, Play, Pause, Square, Plus, Trash2, Users, Clock,
-  CalendarDays, Wine, GripVertical, Edit2, Check, X,
+  CalendarDays, Wine, GripVertical, Edit2, Check, X, Share2, Copy, Link,
 } from "lucide-react";
 import { toast as sonnerToast } from "sonner";
 import { motion } from "framer-motion";
@@ -93,6 +93,27 @@ const FeastDetailPage: React.FC = () => {
     },
     enabled: !!id,
   });
+
+  // Generate share code
+  const generateShareCode = useMutation({
+    mutationFn: async () => {
+      const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+      const { error } = await supabase.from("feasts").update({ share_code: code }).eq("id", id!);
+      if (error) throw error;
+      return code;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["feast", id] });
+      sonnerToast.success("კოდი შეიქმნა!");
+    },
+  });
+
+  const copyShareLink = () => {
+    if (!feast?.share_code) return;
+    const link = `${window.location.origin}/feasts/join/${feast.share_code}`;
+    navigator.clipboard.writeText(link);
+    sonnerToast.success("ლინკი დაკოპირდა!");
+  };
 
   // Update feast status
   const updateStatus = useMutation({
@@ -426,6 +447,30 @@ const FeastDetailPage: React.FC = () => {
               )}
             </CardContent>
           </Card>
+
+          {/* Share Code */}
+          {isHost && (
+            <Card>
+              <CardContent className="p-4 space-y-3">
+                <p className="text-muted-foreground text-xs">გაზიარება (კო-თამადა)</p>
+                {feast.share_code ? (
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 flex items-center gap-2 p-2 rounded-lg bg-muted">
+                      <Link className="h-4 w-4 text-muted-foreground shrink-0" />
+                      <span className="text-sm font-mono font-semibold text-foreground">{feast.share_code}</span>
+                    </div>
+                    <Button variant="outline" size="sm" onClick={copyShareLink}>
+                      <Copy className="h-3.5 w-3.5 mr-1" /> კოპირება
+                    </Button>
+                  </div>
+                ) : (
+                  <Button variant="outline" className="w-full" onClick={() => generateShareCode.mutate()} disabled={generateShareCode.isPending}>
+                    <Share2 className="h-4 w-4 mr-2" /> კოდის გენერაცია
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
           {isHost && (
             <AlertDialog>

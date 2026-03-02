@@ -21,6 +21,7 @@ import FeastsPage from "./pages/FeastsPage";
 import NewFeastPage from "./pages/NewFeastPage";
 import FeastDetailPage from "./pages/FeastDetailPage";
 import LiveFeastPage from "./pages/LiveFeastPage";
+import JoinFeastPage from "./pages/JoinFeastPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -56,6 +57,11 @@ const App = () => (
               <Route path="/favorites" element={<FavoritesPage />} />
               <Route path="/profile" element={<ProfilePage />} />
             </Route>
+
+            {/* Join feast via share code (outside app shell but requires auth) */}
+            <Route path="/feasts/join/:shareCode" element={
+              <ProtectedRoute><JoinFeastPage /></ProtectedRoute>
+            } />
 
             <Route path="*" element={<NotFound />} />
           </Routes>
