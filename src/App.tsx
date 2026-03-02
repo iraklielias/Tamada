@@ -17,6 +17,9 @@ import LibraryPage from "./pages/LibraryPage";
 import AIGeneratePage from "./pages/AIGeneratePage";
 import FavoritesPage from "./pages/FavoritesPage";
 import ProfilePage from "./pages/ProfilePage";
+import FeastsPage from "./pages/FeastsPage";
+import NewFeastPage from "./pages/NewFeastPage";
+import FeastDetailPage from "./pages/FeastDetailPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -42,6 +45,9 @@ const App = () => (
             {/* App shell with sidebar/bottom nav */}
             <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
               <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/feasts" element={<FeastsPage />} />
+              <Route path="/feasts/new" element={<NewFeastPage />} />
+              <Route path="/feasts/:id" element={<FeastDetailPage />} />
               <Route path="/toasts" element={<ToastsPage />} />
               <Route path="/library" element={<LibraryPage />} />
               <Route path="/ai-generate" element={<AIGeneratePage />} />
