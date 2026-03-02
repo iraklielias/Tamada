@@ -10,6 +10,7 @@ import LoginPage from "./pages/auth/LoginPage";
 import SignupPage from "./pages/auth/SignupPage";
 import AuthCallback from "./pages/auth/AuthCallback";
 import Dashboard from "./pages/Dashboard";
+import OnboardingWizard from "./pages/OnboardingWizard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -36,9 +37,7 @@ const App = () => (
             />
             <Route path="/onboarding" element={
               <ProtectedRoute requireOnboarding={false}>
-                <div className="min-h-screen flex items-center justify-center bg-background">
-                  <p className="text-muted-foreground">Onboarding — Phase 4</p>
-                </div>
+                <OnboardingWizard />
               </ProtectedRoute>
             } />
             <Route path="*" element={<NotFound />} />
