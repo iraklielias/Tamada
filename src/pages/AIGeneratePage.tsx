@@ -22,8 +22,12 @@ const occasions = [
   { value: "wedding", label: "ქორწილი" },
   { value: "birthday", label: "დაბადების დღე" },
   { value: "memorial", label: "პანაშვიდი" },
+  { value: "christening", label: "ნათლობა" },
+  { value: "guest_reception", label: "სტუმრის მიღება" },
   { value: "holiday", label: "დღესასწაული" },
   { value: "business", label: "საქმიანი" },
+  { value: "friendly_gathering", label: "მეგობრული შეკრება" },
+  { value: "other", label: "სხვა" },
 ];
 
 const formalities = [
