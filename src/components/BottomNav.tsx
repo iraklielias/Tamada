@@ -1,12 +1,12 @@
-import { Wine, BookOpen, CalendarDays, Star, Sparkles } from "lucide-react";
+import { Wine, CalendarDays, Star, Sparkles, UtensilsCrossed } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 
 const navItems = [
   { title: "მთავარი", url: "/dashboard", icon: CalendarDays },
-  { title: "სადღეგრძელო", url: "/toasts", icon: Wine },
+  { title: "სუფრები", url: "/feasts", icon: UtensilsCrossed },
   { title: "AI", url: "/ai-generate", icon: Sparkles },
+  { title: "სადღეგრძელო", url: "/toasts", icon: Wine },
   { title: "რჩეულები", url: "/favorites", icon: Star },
-  { title: "ბიბლიოთეკა", url: "/library", icon: BookOpen },
 ];
 
 export function BottomNav() {

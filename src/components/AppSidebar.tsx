@@ -1,4 +1,4 @@
-import { Wine, BookOpen, CalendarDays, Star, User, Sparkles } from "lucide-react";
+import { Wine, BookOpen, CalendarDays, Star, User, Sparkles, UtensilsCrossed } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -20,6 +20,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const mainNav = [
   { title: "მთავარი", titleEn: "Dashboard", url: "/dashboard", icon: CalendarDays },
+  { title: "სუფრები", titleEn: "Feasts", url: "/feasts", icon: UtensilsCrossed },
   { title: "სადღეგრძელოები", titleEn: "Toasts", url: "/toasts", icon: Wine },
   { title: "ლექსიკონი", titleEn: "Library", url: "/library", icon: BookOpen },
   { title: "AI გენერატორი", titleEn: "AI Generator", url: "/ai-generate", icon: Sparkles },
