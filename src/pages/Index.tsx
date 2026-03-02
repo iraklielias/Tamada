@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import GrapevineDecor from "@/components/GrapevineDecor";
 import HornIcon from "@/components/icons/HornIcon";
@@ -81,12 +82,14 @@ const Index = () => {
 
           {/* CTA Buttons */}
           <motion.div variants={staggerChild} className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button variant="hero" size="lg">
-              <WineGlassIcon size={20} />
-              დაიწყე უფასოდ
+            <Button variant="hero" size="lg" asChild>
+              <Link to="/auth/signup">
+                <WineGlassIcon size={20} />
+                დაიწყე უფასოდ
+              </Link>
             </Button>
-            <Button variant="hero-outline" size="lg">
-              გაიგე მეტი
+            <Button variant="hero-outline" size="lg" asChild>
+              <Link to="/auth/login">შესვლა</Link>
             </Button>
           </motion.div>
         </motion.div>
