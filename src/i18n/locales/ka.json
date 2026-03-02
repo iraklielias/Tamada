@@ -1,0 +1,168 @@
+{
+  "nav": {
+    "dashboard": "მთავარი",
+    "feasts": "სუფრები",
+    "toasts": "სადღეგრძელოები",
+    "library": "ლექსიკონი",
+    "aiGenerator": "AI გენერატორი",
+    "favorites": "რჩეულები",
+    "profile": "პროფილი",
+    "navigation": "ნავიგაცია",
+    "ai": "AI"
+  },
+  "common": {
+    "save": "შენახვა",
+    "cancel": "გაუქმება",
+    "delete": "წაშლა",
+    "edit": "რედაქტირება",
+    "loading": "იტვირთება...",
+    "saving": "ინახება...",
+    "back": "უკან",
+    "next": "შემდეგი",
+    "create": "შექმნა",
+    "copy": "კოპირება",
+    "share": "გაზიარება",
+    "search": "ძიება",
+    "filter": "ფილტრი",
+    "noResults": "შედეგები არ მოიძებნა",
+    "signOut": "გასვლა",
+    "signIn": "შესვლა",
+    "signUp": "რეგისტრაცია",
+    "later": "მოგვიანებით",
+    "remove": "წაშლა"
+  },
+  "dashboard": {
+    "greeting": {
+      "morning": "დილა მშვიდობისა",
+      "afternoon": "შუადღე მშვიდობისა",
+      "evening": "საღამო მშვიდობისა"
+    },
+    "subtitle": "რა გეგმავთ დღეს?",
+    "quickActions": "სწრაფი მოქმედებები",
+    "upcomingFeasts": "მომავალი სუფრები",
+    "popularToasts": "პოპულარული სადღეგრძელოები",
+    "noFeasts": "ჯერ არ გაქვთ სუფრა",
+    "createFirst": "შექმენით პირველი სუფრა",
+    "noToasts": "სადღეგრძელოები არ მოიძებნა"
+  },
+  "feasts": {
+    "title": "სუფრები",
+    "subtitle": "თქვენი სუფრების სია",
+    "newFeast": "ახალი სუფრა",
+    "noFeasts": "სუფრა ჯერ არ შეგიქმნიათ",
+    "guests": "სტუმარი",
+    "duration": "ხანგრძლივობა",
+    "status": {
+      "draft": "მონახაზი",
+      "active": "აქტიური",
+      "paused": "შეჩერებული",
+      "completed": "დასრულებული"
+    },
+    "occasion": {
+      "supra": "სუფრა",
+      "wedding": "ქორწილი",
+      "birthday": "დაბადების დღე",
+      "memorial": "პანაშვიდი",
+      "christening": "ნათლობა",
+      "guest_reception": "სტუმრის მიღება",
+      "holiday": "დღესასწაული",
+      "business": "საქმიანი",
+      "friendly_gathering": "მეგობრული შეკრება",
+      "other": "სხვა"
+    }
+  },
+  "ai": {
+    "title": "AI გენერატორი",
+    "subtitle": "შექმენი უნიკალური ქართული სადღეგრძელო AI-ის დახმარებით",
+    "occasionType": "წვეულების ტიპი",
+    "formality": "ფორმალურობა",
+    "topic": "თემა / დამატებითი სურვილი (არასავალდებულო)",
+    "topicPlaceholder": "მაგ: სიყვარულზე, ოჯახურ ღირებულებებზე, წარმატებაზე...",
+    "generate": "სადღეგრძელოს გენერაცია",
+    "generating": "იქმნება...",
+    "limitReached": "ლიმიტი ამოიწურა",
+    "created": "სადღეგრძელო შეიქმნა!",
+    "savedToFavs": "დაემატა რჩეულებში!",
+    "saveFailed": "შენახვა ვერ მოხერხდა",
+    "generateFailed": "გენერაცია ვერ მოხერხდა",
+    "regenerate": "ხელახლა",
+    "today": "დღეს",
+    "formal": "ფორმალური",
+    "semi_formal": "ნახევრად ფორმალური",
+    "casual": "არაფორმალური"
+  },
+  "profile": {
+    "title": "პროფილი",
+    "settings": "პარამეტრები",
+    "name": "სახელი",
+    "namePlaceholder": "თქვენი სახელი",
+    "region": "რეგიონი",
+    "experience": "გამოცდილება",
+    "language": "ენა",
+    "chooseOption": "აირჩიეთ",
+    "updated": "პროფილი განახლდა!",
+    "saveFailed": "შენახვა ვერ მოხერხდა",
+    "avatarUpdated": "ავატარი განახლდა!",
+    "avatarFailed": "ატვირთვა ვერ მოხერხდა",
+    "fileTooLarge": "ფაილი ძალიან დიდია (მაქს. 5MB)",
+    "regions": {
+      "kakheti": "კახეთი",
+      "kartli": "ქართლი",
+      "imereti": "იმერეთი",
+      "samegrelo": "სამეგრელო",
+      "adjara": "აჭარა",
+      "guria": "გურია",
+      "svaneti": "სვანეთი",
+      "racha": "რაჭა-ლეჩხუმი",
+      "meskheti": "მესხეთი"
+    },
+    "levels": {
+      "beginner": "დამწყები",
+      "intermediate": "საშუალო",
+      "advanced": "გამოცდილი",
+      "master": "ოსტატი"
+    }
+  },
+  "favorites": {
+    "title": "რჩეულები",
+    "subtitle": "თქვენი შენახული სადღეგრძელოები",
+    "noFavorites": "ჯერ არ გაქვთ რჩეული",
+    "addSome": "დაამატეთ სადღეგრძელოები რჩეულებში",
+    "removed": "წაშლილია რჩეულებიდან"
+  },
+  "upgrade": {
+    "title": "PRO გეგმა",
+    "subtitle": "განბლოკეთ ყველა ფუნქცია",
+    "youArePro": "თქვენ PRO მომხმარებელი ხართ!",
+    "allUnlocked": "ყველა ფუნქცია ხელმისაწვდომია",
+    "feature": "ფუნქცია",
+    "free": "უფასო",
+    "activate": "გააქტიურე PRO",
+    "perMonth": "/თვეში",
+    "upsellDefault": "ეს ფუნქცია მხოლოდ PRO მომხმარებლებისთვისაა ხელმისაწვდომი.",
+    "becomePro": "გახდი PRO"
+  },
+  "landing": {
+    "heroTitle": "TAMADA",
+    "heroSubtitleKa": "შენი ციფრული თამადა",
+    "heroSubtitleEn": "Plan, manage, and lead unforgettable Georgian feasts with AI-powered intelligence and cultural wisdom.",
+    "startFree": "დაიწყე უფასოდ",
+    "featuresTitle": "ყველაფერი, რაც თამადას სჭირდება",
+    "featuresSubtitle": "Everything a Tamada needs",
+    "howItWorks": "როგორ მუშაობს",
+    "step": "ნაბიჯი"
+  },
+  "toasts": {
+    "title": "სადღეგრძელოები",
+    "subtitle": "ქართული სადღეგრძელოების კოლექცია",
+    "searchPlaceholder": "ძიება...",
+    "allOccasions": "ყველა ტიპი",
+    "allFormality": "ყველა სტილი",
+    "noToasts": "სადღეგრძელოები არ მოიძებნა"
+  },
+  "library": {
+    "title": "ლექსიკონი",
+    "subtitle": "სადღეგრძელოების თარგები",
+    "noTemplates": "თარგები არ მოიძებნა"
+  }
+}

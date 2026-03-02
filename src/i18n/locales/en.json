@@ -1,0 +1,168 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "feasts": "Feasts",
+    "toasts": "Toasts",
+    "library": "Library",
+    "aiGenerator": "AI Generator",
+    "favorites": "Favorites",
+    "profile": "Profile",
+    "navigation": "Navigation",
+    "ai": "AI"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "loading": "Loading...",
+    "saving": "Saving...",
+    "back": "Back",
+    "next": "Next",
+    "create": "Create",
+    "copy": "Copy",
+    "share": "Share",
+    "search": "Search",
+    "filter": "Filter",
+    "noResults": "No results found",
+    "signOut": "Sign out",
+    "signIn": "Sign in",
+    "signUp": "Sign up",
+    "later": "Later",
+    "remove": "Remove"
+  },
+  "dashboard": {
+    "greeting": {
+      "morning": "Good morning",
+      "afternoon": "Good afternoon",
+      "evening": "Good evening"
+    },
+    "subtitle": "What are you planning today?",
+    "quickActions": "Quick Actions",
+    "upcomingFeasts": "Upcoming Feasts",
+    "popularToasts": "Popular Toasts",
+    "noFeasts": "No feasts yet",
+    "createFirst": "Create your first feast",
+    "noToasts": "No toasts found"
+  },
+  "feasts": {
+    "title": "Feasts",
+    "subtitle": "Your feast list",
+    "newFeast": "New Feast",
+    "noFeasts": "No feasts created yet",
+    "guests": "guests",
+    "duration": "Duration",
+    "status": {
+      "draft": "Draft",
+      "active": "Active",
+      "paused": "Paused",
+      "completed": "Completed"
+    },
+    "occasion": {
+      "supra": "Supra",
+      "wedding": "Wedding",
+      "birthday": "Birthday",
+      "memorial": "Memorial",
+      "christening": "Christening",
+      "guest_reception": "Guest Reception",
+      "holiday": "Holiday",
+      "business": "Business",
+      "friendly_gathering": "Friendly Gathering",
+      "other": "Other"
+    }
+  },
+  "ai": {
+    "title": "AI Generator",
+    "subtitle": "Create unique Georgian toasts with AI assistance",
+    "occasionType": "Occasion type",
+    "formality": "Formality",
+    "topic": "Topic / Additional wish (optional)",
+    "topicPlaceholder": "e.g: about love, family values, success...",
+    "generate": "Generate Toast",
+    "generating": "Generating...",
+    "limitReached": "Limit reached",
+    "created": "Toast created!",
+    "savedToFavs": "Added to favorites!",
+    "saveFailed": "Save failed",
+    "generateFailed": "Generation failed",
+    "regenerate": "Regenerate",
+    "today": "today",
+    "formal": "Formal",
+    "semi_formal": "Semi-formal",
+    "casual": "Casual"
+  },
+  "profile": {
+    "title": "Profile",
+    "settings": "Settings",
+    "name": "Name",
+    "namePlaceholder": "Your name",
+    "region": "Region",
+    "experience": "Experience",
+    "language": "Language",
+    "chooseOption": "Choose",
+    "updated": "Profile updated!",
+    "saveFailed": "Save failed",
+    "avatarUpdated": "Avatar updated!",
+    "avatarFailed": "Upload failed",
+    "fileTooLarge": "File too large (max 5MB)",
+    "regions": {
+      "kakheti": "Kakheti",
+      "kartli": "Kartli",
+      "imereti": "Imereti",
+      "samegrelo": "Samegrelo",
+      "adjara": "Adjara",
+      "guria": "Guria",
+      "svaneti": "Svaneti",
+      "racha": "Racha-Lechkhumi",
+      "meskheti": "Meskheti"
+    },
+    "levels": {
+      "beginner": "Beginner",
+      "intermediate": "Intermediate",
+      "advanced": "Advanced",
+      "master": "Master"
+    }
+  },
+  "favorites": {
+    "title": "Favorites",
+    "subtitle": "Your saved toasts",
+    "noFavorites": "No favorites yet",
+    "addSome": "Add toasts to your favorites",
+    "removed": "Removed from favorites"
+  },
+  "upgrade": {
+    "title": "PRO Plan",
+    "subtitle": "Unlock all features",
+    "youArePro": "You are a PRO user!",
+    "allUnlocked": "All features are unlocked",
+    "feature": "Feature",
+    "free": "Free",
+    "activate": "Activate PRO",
+    "perMonth": "/month",
+    "upsellDefault": "This feature is only available for PRO users.",
+    "becomePro": "Become PRO"
+  },
+  "landing": {
+    "heroTitle": "TAMADA",
+    "heroSubtitleKa": "Your Digital Tamada",
+    "heroSubtitleEn": "Plan, manage, and lead unforgettable Georgian feasts with AI-powered intelligence and cultural wisdom.",
+    "startFree": "Start for free",
+    "featuresTitle": "Everything a Tamada Needs",
+    "featuresSubtitle": "Everything a Tamada needs",
+    "howItWorks": "How it works",
+    "step": "Step"
+  },
+  "toasts": {
+    "title": "Toasts",
+    "subtitle": "Georgian toast collection",
+    "searchPlaceholder": "Search...",
+    "allOccasions": "All types",
+    "allFormality": "All styles",
+    "noToasts": "No toasts found"
+  },
+  "library": {
+    "title": "Library",
+    "subtitle": "Toast templates",
+    "noTemplates": "No templates found"
+  }
+}
