@@ -230,8 +230,16 @@ const FeastDetailPage: React.FC = () => {
 
         {isHost && (
           <div className="flex gap-2 shrink-0">
+            {(feast.status === "active" || feast.status === "paused") && (
+              <Button size="sm" variant="default" onClick={() => navigate(`/feasts/${id}/live`)}>
+                <Play className="h-3.5 w-3.5 mr-1.5" />LIVE
+              </Button>
+            )}
             {canStart && (
-              <Button size="sm" onClick={() => updateStatus.mutate("active")}>
+              <Button size="sm" onClick={() => {
+                updateStatus.mutate("active");
+                navigate(`/feasts/${id}/live`);
+              }}>
                 <Play className="h-3.5 w-3.5 mr-1.5" />
                 {feast.status === "paused" ? "გაგრძელება" : "დაწყება"}
               </Button>
