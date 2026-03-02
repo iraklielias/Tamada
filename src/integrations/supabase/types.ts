@@ -611,6 +611,14 @@ export type Database = {
     Functions: {
       get_daily_ai_count: { Args: { p_user_id: string }; Returns: number }
       increment_alaverdi: { Args: { p_guest_id: string }; Returns: undefined }
+      is_feast_collaborator: {
+        Args: { p_feast_id: string; p_user_id: string }
+        Returns: boolean
+      }
+      is_feast_host: {
+        Args: { p_feast_id: string; p_user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
