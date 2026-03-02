@@ -72,6 +72,7 @@ const LiveFeastPage: React.FC = () => {
       return data;
     },
     enabled: !!id,
+    refetchInterval: false,
   });
 
   const isHost = feast?.host_id === user?.id;
@@ -89,6 +90,25 @@ const LiveFeastPage: React.FC = () => {
   const progressPercent = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
 
   const upcomingToasts = feastToasts?.slice(currentToastIndex + 1, currentToastIndex + 3) ?? [];
+
+  // Realtime subscriptions
+  useEffect(() => {
+    if (!id) return;
+    const channel = supabase
+      .channel(`feast-live-${id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "feast_toasts", filter: `feast_id=eq.${id}` },
+        () => queryClient.invalidateQueries({ queryKey: ["feast-toasts", id] })
+      )
+      .on("postgres_changes", { event: "*", schema: "public", table: "feast_guests", filter: `feast_id=eq.${id}` },
+        () => queryClient.invalidateQueries({ queryKey: ["feast-guests", id] })
+      )
+      .on("postgres_changes", { event: "*", schema: "public", table: "feasts", filter: `id=eq.${id}` },
+        () => queryClient.invalidateQueries({ queryKey: ["feast", id] })
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [id, queryClient]);
 
   // Timer
   useEffect(() => {
