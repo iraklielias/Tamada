@@ -2,18 +2,16 @@ import React, { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useProGate } from "@/hooks/useProGate";
+import ProUpsellModal from "@/components/ProUpsellModal";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Sparkles, Copy, Heart, Loader2, Wine, RefreshCw } from "lucide-react";
+import { Sparkles, Copy, Heart, Loader2, Wine, RefreshCw, Lock } from "lucide-react";
 import { toast as sonnerToast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -48,11 +46,21 @@ const AIGeneratePage = () => {
   const [formality, setFormality] = useState("formal");
   const [topic, setTopic] = useState("");
   const [result, setResult] = useState<GeneratedToast | null>(null);
+  const [showUpsell, setShowUpsell] = useState(false);
+  const [upsellMessage, setUpsellMessage] = useState("");
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { checkFeature, dailyAICount, limits, canGenerateAI } = useProGate();
 
   const generate = useMutation({
     mutationFn: async () => {
+      const check = checkFeature("ai");
+      if (!check.allowed) {
+        setUpsellMessage(check.message);
+        setShowUpsell(true);
+        throw new Error(check.message);
+      }
+
       const { data, error } = await supabase.functions.invoke("generate-toast", {
         body: { occasion_type: occasion, formality_level: formality, topic },
       });
@@ -62,17 +70,24 @@ const AIGeneratePage = () => {
     },
     onSuccess: (data) => {
       setResult(data);
+      queryClient.invalidateQueries({ queryKey: ["daily-ai-count"] });
       sonnerToast.success("სადღეგრძელო შეიქმნა!");
     },
     onError: (err: Error) => {
-      sonnerToast.error(err.message || "გენერაცია ვერ მოხერხდა");
+      if (!showUpsell) sonnerToast.error(err.message || "გენერაცია ვერ მოხერხდა");
     },
   });
 
   const saveToFavorites = useMutation({
     mutationFn: async () => {
+      const check = checkFeature("favorite");
+      if (!check.allowed) {
+        setUpsellMessage(check.message);
+        setShowUpsell(true);
+        throw new Error(check.message);
+      }
+
       if (!result || !user) return;
-      // Save as custom toast first
       const { data: custom, error: cErr } = await supabase
         .from("custom_toasts")
         .insert({
@@ -89,7 +104,6 @@ const AIGeneratePage = () => {
         .single();
       if (cErr) throw cErr;
 
-      // Add to favorites
       const { error: fErr } = await supabase
         .from("user_favorites")
         .insert({ user_id: user.id, custom_toast_id: custom.id });
@@ -100,7 +114,9 @@ const AIGeneratePage = () => {
       queryClient.invalidateQueries({ queryKey: ["fav-count"] });
       sonnerToast.success("დაემატა რჩეულებში!");
     },
-    onError: () => sonnerToast.error("შენახვა ვერ მოხერხდა"),
+    onError: (err: Error) => {
+      if (!showUpsell) sonnerToast.error("შენახვა ვერ მოხერხდა");
+    },
   });
 
   const copyToClipboard = () => {
@@ -111,14 +127,19 @@ const AIGeneratePage = () => {
 
   return (
     <div className="p-4 md:p-6 max-w-3xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-heading-1 text-foreground flex items-center gap-2">
-          <Sparkles className="h-7 w-7 text-primary" />
-          AI გენერატორი
-        </h1>
-        <p className="text-body-sm text-muted-foreground mt-1">
-          შექმენი უნიკალური ქართული სადღეგრძელო AI-ის დახმარებით
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-heading-1 text-foreground flex items-center gap-2">
+            <Sparkles className="h-7 w-7 text-primary" />
+            AI გენერატორი
+          </h1>
+          <p className="text-body-sm text-muted-foreground mt-1">
+            შექმენი უნიკალური ქართული სადღეგრძელო AI-ის დახმარებით
+          </p>
+        </div>
+        <Badge variant="outline" className="text-xs shrink-0">
+          {dailyAICount}/{limits.maxAIPerDay} დღეს
+        </Badge>
       </div>
 
       {/* Form */}
@@ -167,15 +188,11 @@ const AIGeneratePage = () => {
             disabled={generate.isPending}
           >
             {generate.isPending ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                იქმნება...
-              </>
+              <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> იქმნება...</>
+            ) : !canGenerateAI ? (
+              <><Lock className="h-4 w-4 mr-2" /> ლიმიტი ამოიწურა</>
             ) : (
-              <>
-                <Sparkles className="h-4 w-4 mr-2" />
-                სადღეგრძელოს გენერაცია
-              </>
+              <><Sparkles className="h-4 w-4 mr-2" /> სადღეგრძელოს გენერაცია</>
             )}
           </Button>
         </CardContent>
@@ -211,26 +228,21 @@ const AIGeneratePage = () => {
 
                 <div className="flex gap-2 flex-wrap">
                   <Button variant="outline" size="sm" onClick={copyToClipboard}>
-                    <Copy className="h-3.5 w-3.5 mr-1.5" />
-                    კოპირება
+                    <Copy className="h-3.5 w-3.5 mr-1.5" /> კოპირება
                   </Button>
                   <Button
-                    variant="outline"
-                    size="sm"
+                    variant="outline" size="sm"
                     onClick={() => saveToFavorites.mutate()}
                     disabled={saveToFavorites.isPending}
                   >
-                    <Heart className="h-3.5 w-3.5 mr-1.5" />
-                    შენახვა
+                    <Heart className="h-3.5 w-3.5 mr-1.5" /> შენახვა
                   </Button>
                   <Button
-                    variant="ghost"
-                    size="sm"
+                    variant="ghost" size="sm"
                     onClick={() => generate.mutate()}
                     disabled={generate.isPending}
                   >
-                    <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
-                    ხელახლა
+                    <RefreshCw className="h-3.5 w-3.5 mr-1.5" /> ხელახლა
                   </Button>
                 </div>
               </CardContent>
@@ -238,6 +250,8 @@ const AIGeneratePage = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <ProUpsellModal open={showUpsell} onOpenChange={setShowUpsell} message={upsellMessage} />
     </div>
   );
 };

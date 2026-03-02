@@ -22,6 +22,7 @@ import NewFeastPage from "./pages/NewFeastPage";
 import FeastDetailPage from "./pages/FeastDetailPage";
 import LiveFeastPage from "./pages/LiveFeastPage";
 import JoinFeastPage from "./pages/JoinFeastPage";
+import UpgradePage from "./pages/UpgradePage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -56,6 +57,7 @@ const App = () => (
               <Route path="/ai-generate" element={<AIGeneratePage />} />
               <Route path="/favorites" element={<FavoritesPage />} />
               <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/upgrade" element={<UpgradePage />} />
             </Route>
 
             {/* Join feast via share code (outside app shell but requires auth) */}
