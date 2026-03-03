@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/hooks/useAuth";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { AppLayout } from "@/components/AppLayout";
@@ -29,47 +30,49 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AuthProvider>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/auth/login" element={<LoginPage />} />
-            <Route path="/auth/signup" element={<SignupPage />} />
-            <Route path="/auth/callback" element={<AuthCallback />} />
-            <Route path="/onboarding" element={
-              <ProtectedRoute requireOnboarding={false}>
-                <OnboardingWizard />
-              </ProtectedRoute>
-            } />
+    <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AuthProvider>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/auth/login" element={<LoginPage />} />
+              <Route path="/auth/signup" element={<SignupPage />} />
+              <Route path="/auth/callback" element={<AuthCallback />} />
+              <Route path="/onboarding" element={
+                <ProtectedRoute requireOnboarding={false}>
+                  <OnboardingWizard />
+                </ProtectedRoute>
+              } />
 
-            {/* App shell with sidebar/bottom nav */}
-            <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/feasts" element={<FeastsPage />} />
-              <Route path="/feasts/new" element={<NewFeastPage />} />
-              <Route path="/feasts/:id" element={<FeastDetailPage />} />
-              <Route path="/feasts/:id/live" element={<LiveFeastPage />} />
-              <Route path="/toasts" element={<ToastsPage />} />
-              <Route path="/library" element={<LibraryPage />} />
-              <Route path="/ai-generate" element={<AIGeneratePage />} />
-              <Route path="/favorites" element={<FavoritesPage />} />
-              <Route path="/profile" element={<ProfilePage />} />
-              <Route path="/upgrade" element={<UpgradePage />} />
-            </Route>
+              {/* App shell with sidebar/bottom nav */}
+              <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/feasts" element={<FeastsPage />} />
+                <Route path="/feasts/new" element={<NewFeastPage />} />
+                <Route path="/feasts/:id" element={<FeastDetailPage />} />
+                <Route path="/feasts/:id/live" element={<LiveFeastPage />} />
+                <Route path="/toasts" element={<ToastsPage />} />
+                <Route path="/library" element={<LibraryPage />} />
+                <Route path="/ai-generate" element={<AIGeneratePage />} />
+                <Route path="/favorites" element={<FavoritesPage />} />
+                <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/upgrade" element={<UpgradePage />} />
+              </Route>
 
-            {/* Join feast via share code (outside app shell but requires auth) */}
-            <Route path="/feasts/join/:shareCode" element={
-              <ProtectedRoute><JoinFeastPage /></ProtectedRoute>
-            } />
+              {/* Join feast via share code (outside app shell but requires auth) */}
+              <Route path="/feasts/join/:shareCode" element={
+                <ProtectedRoute><JoinFeastPage /></ProtectedRoute>
+              } />
 
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </AuthProvider>
-      </BrowserRouter>
-    </TooltipProvider>
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </AuthProvider>
+        </BrowserRouter>
+      </TooltipProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 

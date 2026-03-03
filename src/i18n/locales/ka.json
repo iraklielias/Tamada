@@ -135,7 +135,8 @@
     "shareCotamada": "გაზიარება (კო-თამადა)",
     "deleteFeast": "სუფრის წაშლა",
     "deleteConfirmDesc": "ეს მოქმედება შეუქცევადია. სუფრა და მასთან დაკავშირებული ყველა მონაცემი წაიშლება.",
-    "alaverdi": "ალავერდი"
+    "alaverdi": "ალავერდი",
+    "aiGenerate": "AI გეგმა"
   },
   "live": {
     "toastProgress": "სადღეგრძელო",
