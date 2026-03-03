@@ -29,7 +29,25 @@
     "signIn": "შესვლა",
     "signUp": "რეგისტრაცია",
     "later": "მოგვიანებით",
-    "remove": "წაშლა"
+    "remove": "წაშლა",
+    "all": "ყველა",
+    "error": "შეცდომა",
+    "creating": "იქმნება...",
+    "resume": "გაგრძელება",
+    "start": "დაწყება",
+    "pause": "პაუზა",
+    "complete": "დასრულება",
+    "completed": "დასრულდა",
+    "skip": "გამოტოვება",
+    "assign": "მიანიჭე",
+    "notFound": "ვერ მოიძებნა",
+    "confirmDelete": "ნამდვილად წაშლა?",
+    "deleteWarning": "ეს მოქმედება შეუქცევადია.",
+    "statusUpdated": "სტატუსი განახლდა",
+    "deleted": "წაიშალა",
+    "codeGenerated": "კოდი შეიქმნა!",
+    "linkCopied": "ლინკი დაკოპირდა!",
+    "generateCode": "კოდის გენერაცია"
   },
   "dashboard": {
     "greeting": {
@@ -47,16 +65,37 @@
   },
   "feasts": {
     "title": "სუფრები",
-    "subtitle": "თქვენი სუფრების სია",
+    "subtitle": "მართეთ თქვენი წვეულებები",
     "newFeast": "ახალი სუფრა",
-    "noFeasts": "სუფრა ჯერ არ შეგიქმნიათ",
+    "noFeasts": "ჯერ არ გაქვთ სუფრა",
+    "noFeastsDesc": "შექმენით პირველი სუფრა და მოამზადეთ სადღეგრძელოების თანმიმდევრობა",
     "guests": "სტუმარი",
     "duration": "ხანგრძლივობა",
+    "created": "სუფრა შეიქმნა!",
+    "feastName": "სუფრის სახელი",
+    "feastNamePlaceholder": "მაგ. გიორგის ქორწილი",
+    "basicInfo": "ძირითადი ინფორმაცია",
+    "details": "დეტალები",
+    "guestCount": "სტუმრების რაოდენობა",
+    "formality": "ფორმალურობა",
+    "notes": "შენიშვნები",
+    "notesPlaceholder": "დამატებითი ინფორმაცია...",
+    "templateSelect": "თანმიმდევრობის არჩევა",
+    "customTemplate": "მორგებული",
+    "customTemplateDesc": "ცარიელი — თავად შეადგინეთ",
+    "selected": "არჩეული",
+    "guestList": "სტუმრების სია (არასავალდებულო)",
+    "guestNamePlaceholder": "სტუმრის სახელი",
+    "createFeast": "სუფრის შექმნა",
+    "nameRequired": "სახელი აუცილებელია",
+    "createNewFeast": "შექმენით ახალი წვეულება",
     "status": {
       "draft": "მონახაზი",
-      "active": "აქტიური",
+      "scheduled": "დაგეგმილი",
+      "active": "მიმდინარე",
       "paused": "შეჩერებული",
-      "completed": "დასრულებული"
+      "completed": "დასრულებული",
+      "cancelled": "გაუქმებული"
     },
     "occasion": {
       "supra": "სუფრა",
@@ -69,6 +108,53 @@
       "business": "საქმიანი",
       "friendly_gathering": "მეგობრული შეკრება",
       "other": "სხვა"
+    },
+    "formalityOptions": {
+      "formal": "ფორმალური",
+      "formalDesc": "ტრადიციული წესით",
+      "semi_formal": "ნახევრად ფორმალური",
+      "semi_formalDesc": "შერეული სტილი",
+      "casual": "არაფორმალური",
+      "casualDesc": "თავისუფალი"
+    },
+    "regionOptions": {
+      "none": "არ აქვს მნიშვნელობა"
+    }
+  },
+  "feastDetail": {
+    "plan": "გეგმა",
+    "guestsTab": "სტუმრები",
+    "detailsTab": "დეტალები",
+    "planEmpty": "გეგმა ცარიელია",
+    "planEmptyDesc": "დაამატეთ სადღეგრძელოები ან აირჩიეთ თანმიმდევრობა",
+    "toastNamePlaceholder": "სადღეგრძელოს სახელი",
+    "noGuests": "სტუმრები არ არის",
+    "noGuestsDesc": "დაამატეთ სტუმრები ალავერდის თვალთვალისთვის",
+    "occasionType": "წვეულების ტიპი",
+    "guestCount": "სტუმრების რაოდენობა",
+    "shareCotamada": "გაზიარება (კო-თამადა)",
+    "deleteFeast": "სუფრის წაშლა",
+    "deleteConfirmDesc": "ეს მოქმედება შეუქცევადია. სუფრა და მასთან დაკავშირებული ყველა მონაცემი წაიშლება.",
+    "alaverdi": "ალავერდი"
+  },
+  "live": {
+    "toastProgress": "სადღეგრძელო",
+    "allCompleted": "გაუმარჯოს!",
+    "allCompletedDesc": "ყველა სადღეგრძელო დასრულდა",
+    "returnBack": "უკან დაბრუნება",
+    "noToastsAdded": "სადღეგრძელოები არ არის დამატებული",
+    "editPlan": "გეგმის რედაქტირება",
+    "upcoming": "მომდევნო",
+    "estimated": "სავარაუდო",
+    "alaverdiRecorded": "ალავერდი დაფიქსირდა!",
+    "toastType": {
+      "mandatory": "სავალდებულო",
+      "traditional": "ტრადიციული",
+      "custom": "მორგებული",
+      "religious": "სარწმუნოებრივი",
+      "patriotic": "პატრიოტული",
+      "humorous": "იუმორისტული",
+      "personal": "პირადი"
     }
   },
   "ai": {
@@ -154,11 +240,11 @@
   },
   "toasts": {
     "title": "სადღეგრძელოები",
-    "subtitle": "ქართული სადღეგრძელოების კოლექცია",
+    "subtitle": "აღმოაჩინე ქართული სადღეგრძელოების საუნჯე",
     "searchPlaceholder": "ძიება...",
     "allOccasions": "ყველა ტიპი",
     "allFormality": "ყველა სტილი",
-    "noToasts": "სადღეგრძელოები არ მოიძებნა"
+    "noToasts": "სადღეგრძელო ვერ მოიძებნა"
   },
   "library": {
     "title": "ლექსიკონი",

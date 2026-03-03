@@ -29,7 +29,25 @@
     "signIn": "Sign in",
     "signUp": "Sign up",
     "later": "Later",
-    "remove": "Remove"
+    "remove": "Remove",
+    "all": "All",
+    "error": "Error",
+    "creating": "Creating...",
+    "resume": "Resume",
+    "start": "Start",
+    "pause": "Pause",
+    "complete": "Complete",
+    "completed": "Completed",
+    "skip": "Skip",
+    "assign": "Assign",
+    "notFound": "Not found",
+    "confirmDelete": "Are you sure?",
+    "deleteWarning": "This action cannot be undone.",
+    "statusUpdated": "Status updated",
+    "deleted": "Deleted",
+    "codeGenerated": "Code generated!",
+    "linkCopied": "Link copied!",
+    "generateCode": "Generate code"
   },
   "dashboard": {
     "greeting": {
@@ -47,16 +65,37 @@
   },
   "feasts": {
     "title": "Feasts",
-    "subtitle": "Your feast list",
+    "subtitle": "Manage your feasts",
     "newFeast": "New Feast",
-    "noFeasts": "No feasts created yet",
+    "noFeasts": "No feasts yet",
+    "noFeastsDesc": "Create your first feast and prepare a toast sequence",
     "guests": "guests",
     "duration": "Duration",
+    "created": "Feast created!",
+    "feastName": "Feast name",
+    "feastNamePlaceholder": "e.g. George's Wedding",
+    "basicInfo": "Basic Information",
+    "details": "Details",
+    "guestCount": "Number of guests",
+    "formality": "Formality",
+    "notes": "Notes",
+    "notesPlaceholder": "Additional information...",
+    "templateSelect": "Choose template",
+    "customTemplate": "Custom",
+    "customTemplateDesc": "Empty — compose your own",
+    "selected": "Selected",
+    "guestList": "Guest list (optional)",
+    "guestNamePlaceholder": "Guest name",
+    "createFeast": "Create feast",
+    "nameRequired": "Name is required",
+    "createNewFeast": "Create a new feast",
     "status": {
       "draft": "Draft",
+      "scheduled": "Scheduled",
       "active": "Active",
       "paused": "Paused",
-      "completed": "Completed"
+      "completed": "Completed",
+      "cancelled": "Cancelled"
     },
     "occasion": {
       "supra": "Supra",
@@ -69,6 +108,53 @@
       "business": "Business",
       "friendly_gathering": "Friendly Gathering",
       "other": "Other"
+    },
+    "formalityOptions": {
+      "formal": "Formal",
+      "formalDesc": "Traditional style",
+      "semi_formal": "Semi-formal",
+      "semi_formalDesc": "Mixed style",
+      "casual": "Casual",
+      "casualDesc": "Relaxed"
+    },
+    "regionOptions": {
+      "none": "No preference"
+    }
+  },
+  "feastDetail": {
+    "plan": "Plan",
+    "guestsTab": "Guests",
+    "detailsTab": "Details",
+    "planEmpty": "Plan is empty",
+    "planEmptyDesc": "Add toasts or choose a sequence",
+    "toastNamePlaceholder": "Toast name",
+    "noGuests": "No guests",
+    "noGuestsDesc": "Add guests for alaverdi tracking",
+    "occasionType": "Occasion type",
+    "guestCount": "Guest count",
+    "shareCotamada": "Share (Co-Tamada)",
+    "deleteFeast": "Delete feast",
+    "deleteConfirmDesc": "This action cannot be undone. The feast and all associated data will be deleted.",
+    "alaverdi": "Alaverdi"
+  },
+  "live": {
+    "toastProgress": "toast",
+    "allCompleted": "Cheers!",
+    "allCompletedDesc": "All toasts completed",
+    "returnBack": "Return back",
+    "noToastsAdded": "No toasts added",
+    "editPlan": "Edit plan",
+    "upcoming": "Upcoming",
+    "estimated": "Estimated",
+    "alaverdiRecorded": "Alaverdi recorded!",
+    "toastType": {
+      "mandatory": "Mandatory",
+      "traditional": "Traditional",
+      "custom": "Custom",
+      "religious": "Religious",
+      "patriotic": "Patriotic",
+      "humorous": "Humorous",
+      "personal": "Personal"
     }
   },
   "ai": {
@@ -154,7 +240,7 @@
   },
   "toasts": {
     "title": "Toasts",
-    "subtitle": "Georgian toast collection",
+    "subtitle": "Discover the treasure of Georgian toasts",
     "searchPlaceholder": "Search...",
     "allOccasions": "All types",
     "allFormality": "All styles",
