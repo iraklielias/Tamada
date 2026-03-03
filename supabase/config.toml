@@ -1,1 +1,7 @@
 project_id = "jerpfhxijoapvbjcplua"
+
+[functions.generate-toast]
+verify_jwt = false
+
+[functions.generate-feast-plan]
+verify_jwt = false

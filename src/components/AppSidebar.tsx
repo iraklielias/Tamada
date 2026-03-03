@@ -4,6 +4,7 @@ import { useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useTranslation } from "react-i18next";
 import { LanguageToggle } from "@/components/LanguageToggle";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import {
   Sidebar,
   SidebarContent,
@@ -85,8 +86,9 @@ export function AppSidebar() {
       <SidebarFooter className="p-3">
         <SidebarMenu>
           <SidebarMenuItem>
-            <div className="flex items-center justify-between px-1 mb-2">
+            <div className="flex items-center justify-between px-1 mb-2 gap-1">
               <LanguageToggle collapsed={collapsed} />
+              <ThemeToggle collapsed={collapsed} />
             </div>
           </SidebarMenuItem>
           <SidebarMenuItem>

@@ -135,7 +135,8 @@
     "shareCotamada": "Share (Co-Tamada)",
     "deleteFeast": "Delete feast",
     "deleteConfirmDesc": "This action cannot be undone. The feast and all associated data will be deleted.",
-    "alaverdi": "Alaverdi"
+    "alaverdi": "Alaverdi",
+    "aiGenerate": "AI Plan"
   },
   "live": {
     "toastProgress": "toast",

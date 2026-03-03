@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import EmptyState from "@/components/EmptyState";
 import {
-  ArrowLeft, Play, Pause, Square, Plus, Trash2, Users, Clock, Wine, Share2, Copy, Link,
+  ArrowLeft, Play, Pause, Square, Plus, Trash2, Users, Clock, Wine, Share2, Copy, Link, Sparkles, Loader2,
 } from "lucide-react";
 import { toast as sonnerToast } from "sonner";
 import { motion } from "framer-motion";
@@ -131,6 +131,52 @@ const FeastDetailPage: React.FC = () => {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["feast-toasts", id] }),
   });
 
+  const generatePlan = useMutation({
+    mutationFn: async () => {
+      if (!feast) throw new Error("No feast");
+      const { data, error } = await supabase.functions.invoke("generate-feast-plan", {
+        body: {
+          occasion_type: feast.occasion_type,
+          formality_level: feast.formality_level,
+          duration_minutes: feast.estimated_duration_minutes,
+          guest_count: feast.guest_count,
+          region: feast.region,
+          language: "ka",
+        },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      return data.toasts as Array<{
+        title_ka: string; title_en?: string; toast_type: string;
+        duration_minutes?: number; description_ka?: string; description_en?: string;
+      }>;
+    },
+    onSuccess: async (toasts) => {
+      if (!toasts?.length) { sonnerToast.error(t("ai.generateFailed")); return; }
+      // Delete existing toasts first
+      if (feastToasts?.length) {
+        await supabase.from("feast_toasts").delete().eq("feast_id", id!);
+      }
+      // Insert generated toasts
+      const rows = toasts.map((toast, i) => ({
+        feast_id: id!,
+        position: i + 1,
+        toast_type: toast.toast_type || "traditional",
+        title_ka: toast.title_ka,
+        title_en: toast.title_en || null,
+        description_ka: toast.description_ka || null,
+        description_en: toast.description_en || null,
+        duration_minutes: toast.duration_minutes || 5,
+        status: "pending",
+      }));
+      const { error } = await supabase.from("feast_toasts").insert(rows);
+      if (error) throw error;
+      queryClient.invalidateQueries({ queryKey: ["feast-toasts", id] });
+      sonnerToast.success(t("ai.created"));
+    },
+    onError: () => sonnerToast.error(t("ai.generateFailed")),
+  });
+
   const formatDuration = (mins: number) => { const h = Math.floor(mins / 60); const m = mins % 60; return h > 0 ? `${h}h ${m > 0 ? `${m}m` : ""}` : `${m}m`; };
 
   if (isLoading) {
@@ -207,6 +253,22 @@ const FeastDetailPage: React.FC = () => {
             </div>
           ) : (
             <EmptyState icon={<Wine className="h-10 w-10" />} title={t("feastDetail.planEmpty")} description={t("feastDetail.planEmptyDesc")} />
+          )}
+          {isHost && (
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => generatePlan.mutate()}
+                disabled={generatePlan.isPending}
+              >
+                {generatePlan.isPending ? (
+                  <><Loader2 className="h-4 w-4 mr-2 animate-spin" />{t("ai.generating")}</>
+                ) : (
+                  <><Sparkles className="h-4 w-4 mr-2" />{t("feastDetail.aiGenerate", "AI გეგმა")}</>
+                )}
+              </Button>
+            </div>
           )}
           {isHost && (
             <Card className="border-dashed">
