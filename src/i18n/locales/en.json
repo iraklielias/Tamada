@@ -250,6 +250,7 @@
   "library": {
     "title": "Library",
     "subtitle": "Toast templates",
-    "noTemplates": "No templates found"
+    "noTemplates": "No templates found",
+    "useTemplate": "Use template"
   }
 }

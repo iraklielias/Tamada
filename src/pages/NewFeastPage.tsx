@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,11 +24,14 @@ interface GuestInput { name: string; role: string; }
 
 const NewFeastPage: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const { t } = useTranslation();
 
+  const templateOccasion = searchParams.get("template");
+
   const [title, setTitle] = useState("");
-  const [occasionType, setOccasionType] = useState("supra");
+  const [occasionType, setOccasionType] = useState(templateOccasion || "supra");
   const [guestCount, setGuestCount] = useState<number>(10);
   const [formality, setFormality] = useState("formal");
   const [region, setRegion] = useState("");
@@ -67,11 +70,13 @@ const NewFeastPage: React.FC = () => {
         const tmpl = templates.find((t) => t.id === selectedTemplateId);
         if (tmpl) {
           const seq = tmpl.toast_sequence as unknown as Array<{
-            position: number; toast_type: string; title_ka: string; title_en?: string; duration_minutes?: number;
+            position?: number; toast_type: string; title_ka: string; title_en?: string; duration_minutes?: number;
+            description_ka?: string; description_en?: string;
           }>;
-          const toastRows = seq.map((s) => ({
-            feast_id: feast.id, position: s.position, toast_type: s.toast_type,
+          const toastRows = seq.map((s, idx) => ({
+            feast_id: feast.id, position: s.position ?? idx + 1, toast_type: s.toast_type || "traditional",
             title_ka: s.title_ka, title_en: s.title_en || null,
+            description_ka: s.description_ka || null, description_en: s.description_en || null,
             duration_minutes: s.duration_minutes || 5, status: "pending",
           }));
           const { error: toastErr } = await supabase.from("feast_toasts").insert(toastRows);
