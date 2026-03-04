@@ -1,10 +1,20 @@
-import { Wine, BookOpen, CalendarDays, Star, Sparkles, UtensilsCrossed, Activity, History } from "lucide-react";
+import {
+  Wine,
+  BookOpen,
+  CalendarDays,
+  Star,
+  Sparkles,
+  UtensilsCrossed,
+  Activity,
+  History,
+} from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useTranslation } from "react-i18next";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import HornIcon from "@/components/icons/HornIcon";
 import {
   Sidebar,
   SidebarContent,
@@ -42,15 +52,16 @@ export function AppSidebar() {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <Sidebar collapsible="icon">
+    <Sidebar collapsible="icon" className="border-r-0">
+      {/* ─── Header ─── */}
       <SidebarHeader className="p-4">
-        <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg wine-gradient">
-            <Wine className="h-4 w-4 text-primary-foreground" />
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl wine-gradient shadow-wine shrink-0">
+            <HornIcon size={18} className="text-primary-foreground" />
           </div>
           {!collapsed && (
-            <span className="text-heading-3 text-foreground tracking-tight">
-              თამადა
+            <span className="font-display text-lg font-bold text-foreground tracking-tight">
+              TAMADA
             </span>
           )}
         </div>
@@ -58,26 +69,42 @@ export function AppSidebar() {
 
       <SidebarSeparator />
 
+      {/* ─── Main nav ─── */}
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>{t("nav.navigation")}</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-caption text-muted-foreground uppercase tracking-wider">
+            {t("nav.navigation")}
+          </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {mainNav.map((item) => (
-                <SidebarMenuItem key={item.url}>
-                  <SidebarMenuButton asChild isActive={isActive(item.url)} tooltip={t(item.titleKey)}>
-                    <NavLink
-                      to={item.url}
-                      end
-                      className="hover:bg-sidebar-accent/50"
-                      activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+              {mainNav.map((item) => {
+                const active = isActive(item.url);
+                return (
+                  <SidebarMenuItem key={item.url}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={active}
+                      tooltip={t(item.titleKey)}
                     >
-                      <item.icon className="h-4 w-4" />
-                      {!collapsed && <span>{t(item.titleKey)}</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+                      <NavLink
+                        to={item.url}
+                        end
+                        className="relative rounded-lg transition-all duration-150 hover:bg-accent/60"
+                        activeClassName="bg-accent text-accent-foreground font-semibold shadow-card"
+                      >
+                        <item.icon className="h-4 w-4 shrink-0" />
+                        {!collapsed && (
+                          <span className="truncate">{t(item.titleKey)}</span>
+                        )}
+                        {/* Active indicator dot */}
+                        {active && !collapsed && (
+                          <span className="absolute right-2 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-primary" />
+                        )}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -85,31 +112,48 @@ export function AppSidebar() {
 
       <SidebarSeparator />
 
+      {/* ─── Footer ─── */}
       <SidebarFooter className="p-3">
         <SidebarMenu>
+          {/* Controls row */}
           <SidebarMenuItem>
             <div className="flex items-center justify-between px-1 mb-2 gap-1">
               <LanguageToggle collapsed={collapsed} />
               <ThemeToggle collapsed={collapsed} />
             </div>
           </SidebarMenuItem>
+
+          {/* Profile link */}
           <SidebarMenuItem>
-            <SidebarMenuButton asChild isActive={isActive("/profile")} tooltip={t("nav.profile")}>
+            <SidebarMenuButton
+              asChild
+              isActive={isActive("/profile")}
+              tooltip={t("nav.profile")}
+            >
               <NavLink
                 to="/profile"
-                className="hover:bg-sidebar-accent/50"
-                activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+                className="rounded-lg transition-all duration-150 hover:bg-accent/60"
+                activeClassName="bg-accent text-accent-foreground font-semibold shadow-card"
               >
-                <Avatar className="h-6 w-6">
+                <Avatar className="h-7 w-7 shrink-0">
                   <AvatarImage src={profile?.avatar_url || undefined} />
-                  <AvatarFallback className="text-[10px] bg-primary text-primary-foreground">
-                    {(profile?.display_name || profile?.email || "U").charAt(0).toUpperCase()}
+                  <AvatarFallback className="text-[10px] font-bold bg-primary text-primary-foreground">
+                    {(profile?.display_name || profile?.email || "U")
+                      .charAt(0)
+                      .toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 {!collapsed && (
-                  <span className="truncate text-sm">
-                    {profile?.display_name || t("nav.profile")}
-                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium">
+                      {profile?.display_name || t("nav.profile")}
+                    </p>
+                    {profile?.email && (
+                      <p className="truncate text-[10px] text-muted-foreground leading-tight">
+                        {profile.email}
+                      </p>
+                    )}
+                  </div>
                 )}
               </NavLink>
             </SidebarMenuButton>
