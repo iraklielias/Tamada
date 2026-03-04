@@ -396,7 +396,7 @@ const AIGeneratePage = () => {
                   <div className="flex items-center gap-1.5">
                     {editedTitle !== originalResult?.title_ka || editedBody !== originalResult?.body_ka ? (
                       <Badge variant="outline" className="text-[10px] border-primary/50 text-primary">
-                        <Pencil className="h-2.5 w-2.5 mr-0.5" /> რედაქტირებული
+                        <Pencil className="h-2.5 w-2.5 mr-0.5" /> {t("common.edited")}
                       </Badge>
                     ) : null}
                     {meta?.tone && (
