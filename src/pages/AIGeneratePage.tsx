@@ -524,6 +524,63 @@ const AIGeneratePage = () => {
                   </p>
                 )}
 
+                {/* Visual Diff View */}
+                {!isEditing && originalResult && (editedTitle !== originalResult.title_ka || editedBody !== originalResult.body_ka) && (
+                  <div className="space-y-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowDiff(!showDiff)}
+                      className="flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 transition-colors"
+                    >
+                      {showDiff ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+                      {showDiff ? "ცვლილებების დამალვა" : "ცვლილებების ნახვა"}
+                    </button>
+                    <AnimatePresence>
+                      {showDiff && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="overflow-hidden"
+                        >
+                          <div className="rounded-lg border border-border bg-muted/30 p-3 space-y-2">
+                            {editedTitle !== originalResult.title_ka && (
+                              <div className="text-xs">
+                                <span className="font-medium text-muted-foreground block mb-1">სათაური:</span>
+                                <p className="leading-relaxed">
+                                  {computeWordDiff(originalResult.title_ka, editedTitle).map((seg, i) =>
+                                    seg.type === "same" ? (
+                                      <span key={i}>{seg.text}</span>
+                                    ) : seg.type === "removed" ? (
+                                      <span key={i} className="bg-destructive/20 text-destructive line-through rounded px-0.5">{seg.text}</span>
+                                    ) : (
+                                      <span key={i} className="bg-green-500/20 text-green-700 dark:text-green-400 rounded px-0.5">{seg.text}</span>
+                                    )
+                                  )}
+                                </p>
+                              </div>
+                            )}
+                            <div className="text-xs">
+                              <span className="font-medium text-muted-foreground block mb-1">ტექსტი:</span>
+                              <p className="leading-relaxed whitespace-pre-wrap">
+                                {computeWordDiff(originalResult.body_ka, editedBody).map((seg, i) =>
+                                  seg.type === "same" ? (
+                                    <span key={i}>{seg.text}</span>
+                                  ) : seg.type === "removed" ? (
+                                    <span key={i} className="bg-destructive/20 text-destructive line-through rounded px-0.5">{seg.text}</span>
+                                  ) : (
+                                    <span key={i} className="bg-green-500/20 text-green-700 dark:text-green-400 rounded px-0.5">{seg.text}</span>
+                                  )
+                                )}
+                              </p>
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                )}
+
                 {!isEditing && result.body_en && (
                   <div className="border-t border-border pt-3">
                     <p className="text-xs text-muted-foreground italic">{result.body_en}</p>
