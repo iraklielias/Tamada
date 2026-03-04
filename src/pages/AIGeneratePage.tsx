@@ -302,7 +302,7 @@ const AIGeneratePage = () => {
         <div>
           <h1 className="text-heading-1 text-foreground flex items-center gap-2">
             <Sparkles className="h-7 w-7 text-primary" />
-            AI გენერატორი
+            {t("ai.title")}
           </h1>
           <p className="text-body-sm text-muted-foreground mt-1">
             შექმენი უნიკალური ქართული სადღეგრძელო AI-ის დახმარებით
