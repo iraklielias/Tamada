@@ -65,44 +65,11 @@ function computeWordDiff(original: string, edited: string): { type: "same" | "ad
   return result;
 }
 
-const occasions = [
-  { value: "supra", label: "სუფრა" },
-  { value: "wedding", label: "ქორწილი" },
-  { value: "birthday", label: "დაბადების დღე" },
-  { value: "memorial", label: "პანაშვიდი" },
-  { value: "christening", label: "ნათლობა" },
-  { value: "guest_reception", label: "სტუმრის მიღება" },
-  { value: "holiday", label: "დღესასწაული" },
-  { value: "business", label: "საქმიანი" },
-  { value: "friendly_gathering", label: "მეგობრული შეკრება" },
-  { value: "other", label: "სხვა" },
-];
-
-const formalities = [
-  { value: "formal", label: "ფორმალური" },
-  { value: "semi_formal", label: "ნახევრად ფორმალური" },
-  { value: "casual", label: "არაფორმალური" },
-];
-
-const tones = [
-  { value: "traditional", label: "ტრადიციული", icon: "🏛️" },
-  { value: "humorous", label: "იუმორისტული", icon: "😄" },
-  { value: "emotional", label: "ემოციური", icon: "❤️" },
-  { value: "philosophical", label: "ფილოსოფიური", icon: "🤔" },
-];
-
-const regions = [
-  { value: "general", label: "ზოგადი ქართული" },
-  { value: "kakheti", label: "კახეთი — პოეტური, ვაზის მეტაფორები" },
-  { value: "imereti", label: "იმერეთი — მახვილგონივრული, იუმორი" },
-  { value: "kartli", label: "ქართლი — ღირსეული, ისტორიული" },
-  { value: "racha", label: "რაჭა-ლეჩხუმი — გულწრფელი, მთიური" },
-  { value: "samegrelo", label: "სამეგრელო — ვნებიანი, ემოციური" },
-  { value: "guria", label: "გურია — ენერგიული, მუსიკალური" },
-  { value: "adjara", label: "აჭარა — სტუმართმოყვარე, ინკლუზიური" },
-  { value: "svaneti", label: "სვანეთი — უძველესი, მისტიკური" },
-  { value: "meskheti", label: "მესხეთი — გამძლე, მემორიალური" },
-];
+const occasionKeys = ["supra","wedding","birthday","memorial","christening","guest_reception","holiday","business","friendly_gathering","other"];
+const formalityKeys = ["formal","semi_formal","casual"];
+const toneKeys = ["traditional","humorous","emotional","philosophical"];
+const toneIcons: Record<string, string> = { traditional: "🏛️", humorous: "😄", emotional: "❤️", philosophical: "🤔" };
+const regionKeys = ["general","kakheti","imereti","kartli","racha","samegrelo","guria","adjara","svaneti","meskheti"];
 
 interface DeliveryGuidance {
   recommended_pace?: string;
