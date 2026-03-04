@@ -177,12 +177,16 @@ const AIGeneratePage = () => {
       }
 
       if (!result || !user) return;
+
+      // Check if user edited the toast
+      const wasEdited = originalResult && (editedTitle !== originalResult.title_ka || editedBody !== originalResult.body_ka);
+
       const { data: custom, error: cErr } = await supabase
         .from("custom_toasts")
         .insert({
           user_id: user.id,
-          title_ka: result.title_ka,
-          body_ka: result.body_ka,
+          title_ka: editedTitle,
+          body_ka: editedBody,
           title_en: result.title_en,
           body_en: result.body_en,
           occasion_type: occasion,
@@ -197,11 +201,36 @@ const AIGeneratePage = () => {
         .from("user_favorites")
         .insert({ user_id: user.id, custom_toast_id: custom.id });
       if (fErr) throw fErr;
+
+      // Send edit delta for adaptive learning if edited
+      if (wasEdited && originalResult) {
+        supabase.functions.invoke("tamada-ai", {
+          body: {
+            action: "analyze_edit_delta",
+            edit_delta_params: {
+              original_title: originalResult.title_ka,
+              original_body: originalResult.body_ka,
+              edited_title: editedTitle,
+              edited_body: editedBody,
+              generation_params: {
+                occasion_type: occasion,
+                tone,
+                region: region !== "general" ? region : undefined,
+                formality_level: formality,
+              },
+            },
+          },
+        }).catch(() => {}); // fire-and-forget
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["favorites-full"] });
       queryClient.invalidateQueries({ queryKey: ["fav-count"] });
-      sonnerToast.success("დაემატა რჩეულებში!");
+      sonnerToast.success(
+        originalResult && (editedTitle !== originalResult.title_ka || editedBody !== originalResult.body_ka)
+          ? "რედაქტირებული ვერსია შეინახა!"
+          : "დაემატა რჩეულებში!"
+      );
     },
     onError: (err: Error) => {
       if (!showUpsell) sonnerToast.error("შენახვა ვერ მოხერხდა");
