@@ -496,7 +496,7 @@ const AIGeneratePage = () => {
                     {isEditing ? (
                       <>
                         <Button variant="default" size="sm" onClick={() => setIsEditing(false)}>
-                          <Check className="h-3.5 w-3.5 mr-1.5" /> მზადაა
+                          <Check className="h-3.5 w-3.5 mr-1.5" /> {t("common.ready")}
                         </Button>
                         {originalResult && (editedTitle !== originalResult.title_ka || editedBody !== originalResult.body_ka) && (
                           <Button
