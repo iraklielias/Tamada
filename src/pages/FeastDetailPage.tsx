@@ -171,47 +171,39 @@ const FeastDetailPage: React.FC = () => {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["feast-toasts", id] }),
   });
 
-  // ── Toast reordering ──
-  const reorderToast = useMutation({
-    mutationFn: async ({ toastId, direction }: { toastId: string; direction: "up" | "down" }) => {
-      if (!feastToasts) return;
-      const idx = feastToasts.findIndex((ft) => ft.id === toastId);
-      if (idx < 0) return;
-      const swapIdx = direction === "up" ? idx - 1 : idx + 1;
-      if (swapIdx < 0 || swapIdx >= feastToasts.length) return;
+  // ── Toast reordering (dnd-kit) ──
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } }),
+    useSensor(KeyboardSensor),
+  );
 
-      const current = feastToasts[idx];
-      const swap = feastToasts[swapIdx];
-
-      // Swap positions in DB
-      const { error: e1 } = await supabase.from("feast_toasts").update({ position: swap.position }).eq("id", current.id);
-      if (e1) throw e1;
-      const { error: e2 } = await supabase.from("feast_toasts").update({ position: current.position }).eq("id", swap.id);
-      if (e2) throw e2;
-    },
-    onMutate: async ({ toastId, direction }) => {
-      // Optimistic update
-      await queryClient.cancelQueries({ queryKey: ["feast-toasts", id] });
-      const prev = queryClient.getQueryData<any[]>(["feast-toasts", id]);
-      if (prev) {
-        const next = [...prev];
-        const idx = next.findIndex((ft) => ft.id === toastId);
-        const swapIdx = direction === "up" ? idx - 1 : idx + 1;
-        if (idx >= 0 && swapIdx >= 0 && swapIdx < next.length) {
-          const tmpPos = next[idx].position;
-          next[idx] = { ...next[idx], position: next[swapIdx].position };
-          next[swapIdx] = { ...next[swapIdx], position: tmpPos };
-          next.sort((a, b) => a.position - b.position);
-          queryClient.setQueryData(["feast-toasts", id], next);
-        }
+  const reorderToasts = useMutation({
+    mutationFn: async (updates: { id: string; position: number }[]) => {
+      for (const u of updates) {
+        const { error } = await supabase.from("feast_toasts").update({ position: u.position }).eq("id", u.id);
+        if (error) throw error;
       }
-      return { prev };
-    },
-    onError: (_err, _vars, ctx) => {
-      if (ctx?.prev) queryClient.setQueryData(["feast-toasts", id], ctx.prev);
     },
     onSettled: () => queryClient.invalidateQueries({ queryKey: ["feast-toasts", id] }),
   });
+
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id || !feastToasts) return;
+
+    const oldIndex = feastToasts.findIndex((ft) => ft.id === active.id);
+    const newIndex = feastToasts.findIndex((ft) => ft.id === over.id);
+    if (oldIndex < 0 || newIndex < 0) return;
+
+    const reordered = arrayMove(feastToasts, oldIndex, newIndex);
+    const updates = reordered.map((ft, i) => ({ ...ft, position: i + 1 }));
+
+    // Optimistic
+    queryClient.setQueryData(["feast-toasts", id], updates);
+
+    reorderToasts.mutate(updates.map((u) => ({ id: u.id, position: u.position })));
+  }, [feastToasts, id, queryClient, reorderToasts]);
 
   const generatePlan = useMutation({
     mutationFn: async () => {
