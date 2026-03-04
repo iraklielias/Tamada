@@ -518,7 +518,7 @@ const AIGeneratePage = () => {
                       </Button>
                     )}
                     <Button variant="outline" size="sm" onClick={copyToClipboard}>
-                      <Copy className="h-3.5 w-3.5 mr-1.5" /> კოპირება
+                      <Copy className="h-3.5 w-3.5 mr-1.5" /> {t("common.copy")}
                     </Button>
                     <Button
                       variant="outline" size="sm"
