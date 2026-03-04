@@ -9,7 +9,8 @@
     "profile": "Profile",
     "navigation": "Navigation",
     "ai": "AI",
-    "telemetry": "Telemetry"
+    "telemetry": "Telemetry",
+    "aiHistory": "AI History"
   },
   "common": {
     "save": "Save",

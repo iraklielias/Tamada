@@ -26,6 +26,7 @@ import LiveFeastPage from "./pages/LiveFeastPage";
 import JoinFeastPage from "./pages/JoinFeastPage";
 import UpgradePage from "./pages/UpgradePage";
 import AdminTelemetryPage from "./pages/AdminTelemetryPage";
+import AIHistoryPage from "./pages/AIHistoryPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -68,6 +69,7 @@ const App = () => (
                 <Route path="/toasts" element={<ToastsPage />} />
                 <Route path="/library" element={<LibraryPage />} />
                 <Route path="/ai-generate" element={<AIGeneratePage />} />
+                <Route path="/ai-history" element={<AIHistoryPage />} />
                 <Route path="/favorites" element={<FavoritesPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/upgrade" element={<UpgradePage />} />

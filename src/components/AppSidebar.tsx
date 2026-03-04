@@ -1,4 +1,4 @@
-import { Wine, BookOpen, CalendarDays, Star, Sparkles, UtensilsCrossed, Activity } from "lucide-react";
+import { Wine, BookOpen, CalendarDays, Star, Sparkles, UtensilsCrossed, Activity, History } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -27,6 +27,7 @@ const mainNav = [
   { titleKey: "nav.toasts", url: "/toasts", icon: Wine },
   { titleKey: "nav.library", url: "/library", icon: BookOpen },
   { titleKey: "nav.aiGenerator", url: "/ai-generate", icon: Sparkles },
+  { titleKey: "nav.aiHistory", url: "/ai-history", icon: History },
   { titleKey: "nav.favorites", url: "/favorites", icon: Star },
   { titleKey: "nav.telemetry", url: "/admin/telemetry", icon: Activity },
 ];
