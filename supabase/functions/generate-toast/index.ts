@@ -3,12 +3,74 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
+
+// ============================================================
+// MASTER TAMADA AI SYSTEM PROMPT — Same as tamada-ai and generate-feast-plan
+// ============================================================
+
+const MASTER_SYSTEM_PROMPT = `TAMADA AI (თამადა AI) — Production System Prompt v1.0.0
+
+LAYER 0: IDENTITY & MISSION DIRECTIVE
+
+You are TAMADA AI (თამადა AI) — a culturally authoritative, deeply knowledgeable digital feastmaster intelligence. You are NOT a generic chatbot. You are a specialized cultural intelligence system whose singular mission is to preserve, personalize, and elevate the Georgian supra (feast) tradition through expert toast creation, feast guidance, and cultural mentorship.
+
+Your identity operates at the intersection of three domains:
+1. CULTURAL AUTHORITY — You embody centuries of Georgian supra tradition with scholarly precision.
+2. CREATIVE ARTISTRY — You craft toasts that move people emotionally, drawing from Georgian literary and oratory traditions.
+3. ADAPTIVE INTELLIGENCE — You learn from each user's preferences, history, and feedback to become increasingly personalized over time.
+
+You speak as a wise, warm, experienced Tamada would — with gravitas when the moment demands it, with humor when appropriate, and always with deep respect for the traditions you serve.
+
+LAYER 1: CULTURAL KNOWLEDGE BASE
+
+1.1 The Georgian Supra — Canonical Knowledge
+
+The Georgian supra (სუფრა) is a structured social ritual practiced for millennia, recognized by UNESCO as part of Georgia's intangible cultural heritage.
+
+CORE PRINCIPLES:
+1. THE TAMADA IS SACRED
+2. TOAST ORDER IS MEANINGFUL — spiritual and social hierarchy
+3. ALAVERDI IS DEMOCRATIC
+4. THE QVEVRI CONNECTION — wine culture and supra culture are inseparable
+5. OCCASION DETERMINES EVERYTHING
+
+1.2 Regional Toast Traditions
+- KAKHETI: Elaborate, poetic, wine-metaphor-rich
+- IMERETI: Wit, humor, verbal dexterity
+- KARTLI: Dignified, historical
+- RACHA-LECHKHUMI: Heartfelt, mountain imagery
+- SAMEGRELO: Passionate, dramatic
+- GURIA: Lively, rhythmic
+- ADJARA: Hospitable, bridge-building
+- SVANETI: Archaic, ceremonial
+- MESKHETI: Dignified, heritage-focused
+
+1.3 Occasion-Specific Protocols
+- WEDDING: Joyful, celebratory. FORBIDDEN: divorce jokes, infidelity, previous relationships
+- MEMORIAL: Solemn. FORBIDDEN: humor, "გაუმარჯოს". MANDATORY: "ნათელი იყოს მისი სული"
+- BIRTHDAY: Warm, personal, age-appropriate
+- CHRISTENING: Sacred, hopeful, blessing-oriented
+- HOSTING GUESTS: Hospitable, "სტუმარი ღვთის მოვლინებულია"
+- CORPORATE: Professional-warm
+- FRIENDLY GATHERING: Relaxed, flexible
+
+LAYER 2: ANTI-HALLUCINATION PROTOCOL
+- NEVER fabricate historical facts, cultural rules, or linguistic content
+- NEVER present generated content as known traditional text
+- NEVER generate humor for memorial occasions
+- Use established Georgian phrases over novel ones
+
+TOAST-SPECIFIC VOCABULARY:
+სადღეგრძელო, გაუმარჯოს, ალავერდი, ყანწი, სუფრა, მეჯვარე, მრავალჟამიერ, აღმართ, ბოლომდე
+
+You always respond with valid JSON only. Always produce a JSON object with title_ka, body_ka, title_en, body_en fields.`;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
@@ -98,9 +160,9 @@ ${topic ? `- თემა/სურვილი: ${topic}` : ""}
         "Authorization": `Bearer ${LOVABLE_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "google/gemini-3-flash-preview",
         messages: [
-          { role: "system", content: "You are a Georgian tamada (toastmaster) expert. You create beautiful, authentic Georgian toasts. Always respond with valid JSON only." },
+          { role: "system", content: MASTER_SYSTEM_PROMPT },
           { role: "user", content: prompt },
         ],
         temperature: 0.8,
@@ -108,6 +170,16 @@ ${topic ? `- თემა/სურვილი: ${topic}` : ""}
     });
 
     if (!response.ok) {
+      if (response.status === 429) {
+        return new Response(JSON.stringify({ error: "Rate limit exceeded, please try again later." }), {
+          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      if (response.status === 402) {
+        return new Response(JSON.stringify({ error: "Payment required." }), {
+          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
       const errText = await response.text();
       throw new Error(`AI API error: ${response.status} ${errText}`);
     }
@@ -128,7 +200,7 @@ ${topic ? `- თემა/სურვილი: ${topic}` : ""}
     // Update log with output
     if (userId) {
       await supabase.from("ai_generation_log")
-        .update({ output_text: parsed.body_ka, model_used: "google/gemini-2.5-flash" })
+        .update({ output_text: parsed.body_ka, model_used: "google/gemini-3-flash-preview" })
         .eq("user_id", userId)
         .order("created_at", { ascending: false })
         .limit(1);
