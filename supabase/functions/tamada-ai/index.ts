@@ -447,6 +447,96 @@ ${fc.skipped_count ? `- გამოტოვებული: ${fc.skipped_count
     }
   ]
 }`;
+    } else if (action === "submit_feedback") {
+      // Direct feedback processing — no AI call needed
+      if (!userId) {
+        return new Response(
+          JSON.stringify({ error: "Authentication required" }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const fp = feedback_params || {};
+      const signal = fp.signal; // "positive" or "negative"
+      const gp = fp.generation_params || {};
+      const signalWeight = signal === "positive" ? 1.0 : 0.2;
+
+      // Update tone preference
+      if (gp.tone) {
+        const toneUpdate: Record<string, number> = {};
+        const toneKeys = ["traditional", "humorous", "emotional", "philosophical"];
+        for (const tk of toneKeys) {
+          if (tk === gp.tone) {
+            toneUpdate[tk] = signal === "positive" ? 0.15 : -0.1;
+          }
+        }
+
+        // Fetch current tone preference
+        const { data: existing } = await supabase
+          .from("user_ai_knowledge")
+          .select("knowledge_value, confidence_score, signal_count")
+          .eq("user_id", userId)
+          .eq("knowledge_type", "preference_model")
+          .eq("knowledge_key", "tone_preference")
+          .maybeSingle();
+
+        const current = (existing?.knowledge_value as Record<string, number>) || {
+          traditional: 0.5, humorous: 0.3, emotional: 0.5, philosophical: 0.4,
+        };
+
+        for (const [k, delta] of Object.entries(toneUpdate)) {
+          current[k] = Math.max(0, Math.min(1, (current[k] || 0.5) + delta));
+        }
+
+        const oldCount = existing?.signal_count || 0;
+        const oldConf = existing?.confidence_score || 0.5;
+        const newConf = Math.max(0, Math.min(1, (oldConf * oldCount + signalWeight) / (oldCount + 1)));
+
+        await supabase.from("user_ai_knowledge").upsert({
+          user_id: userId,
+          knowledge_type: "preference_model",
+          knowledge_key: "tone_preference",
+          knowledge_value: current as any,
+          confidence_score: newConf,
+          signal_count: oldCount + 1,
+          last_reinforced_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }, { onConflict: "user_id,knowledge_type,knowledge_key" });
+      }
+
+      // Update region affinity from feedback
+      if (gp.region && signal === "positive") {
+        const { data: existing } = await supabase
+          .from("user_ai_knowledge")
+          .select("knowledge_value, confidence_score, signal_count")
+          .eq("user_id", userId)
+          .eq("knowledge_type", "preference_model")
+          .eq("knowledge_key", "region_affinity")
+          .maybeSingle();
+
+        const current = (existing?.knowledge_value as Record<string, number>) || {};
+        current[gp.region] = Math.min(1, (current[gp.region] || 0) + 0.15);
+
+        const oldCount = existing?.signal_count || 0;
+        const oldConf = existing?.confidence_score || 0.5;
+        const newConf = Math.max(0, Math.min(1, (oldConf * oldCount + signalWeight) / (oldCount + 1)));
+
+        await supabase.from("user_ai_knowledge").upsert({
+          user_id: userId,
+          knowledge_type: "preference_model",
+          knowledge_key: "region_affinity",
+          knowledge_value: current as any,
+          confidence_score: newConf,
+          signal_count: oldCount + 1,
+          last_reinforced_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }, { onConflict: "user_id,knowledge_type,knowledge_key" });
+      }
+
+      return new Response(
+        JSON.stringify({ success: true, signal }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     } else {
       return new Response(
         JSON.stringify({ error: `Unknown action: ${action}` }),
