@@ -59,7 +59,7 @@ interface SortableToastCardProps {
   toastStatusIcon: Record<string, string>;
   onSelect: (ft: any) => void;
   onRemove: (id: string) => void;
-  t: (key: string, fallback?: string) => string;
+  t: (key: string, fallback?: any) => string;
 }
 
 const SortableToastCard: React.FC<SortableToastCardProps> = ({
