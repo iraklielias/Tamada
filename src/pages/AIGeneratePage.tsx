@@ -358,11 +358,11 @@ const AIGeneratePage = () => {
             disabled={generate.isPending}
           >
             {generate.isPending ? (
-              <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> იქმნება...</>
+              <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> {t("ai.generating")}</>
             ) : !canGenerateAI ? (
-              <><Lock className="h-4 w-4 mr-2" /> ლიმიტი ამოიწურა</>
+              <><Lock className="h-4 w-4 mr-2" /> {t("ai.limitReached")}</>
             ) : (
-              <><Sparkles className="h-4 w-4 mr-2" /> სადღეგრძელოს გენერაცია</>
+              <><Sparkles className="h-4 w-4 mr-2" /> {t("ai.generate")}</>
             )}
           </Button>
         </CardContent>
