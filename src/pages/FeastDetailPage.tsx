@@ -715,10 +715,42 @@ const FeastDetailPage: React.FC = () => {
                 </div>
               </SortableContext>
             </DndContext>
+          ) : isHost ? (
+            <Card className="border-2 border-dashed border-primary/30 bg-primary/5">
+              <CardContent className="p-6 flex flex-col items-center text-center space-y-4">
+                <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Sparkles className="h-7 w-7 text-primary" />
+                </div>
+                <div>
+                  <h3 className="text-heading-3 text-foreground mb-1">{t("feastDetail.aiPlanTitle", "შექმენი სუფრის გეგმა AI-ით")}</h3>
+                  <p className="text-body-sm text-muted-foreground max-w-xs">{t("feastDetail.aiPlanDesc", "AI შექმნის სრულ სადღეგრძელოების გეგმას შენი სუფრის პარამეტრებზე დაყრდნობით")}</p>
+                </div>
+                <div className="flex flex-wrap justify-center gap-2 text-xs text-muted-foreground">
+                  <Badge variant="outline">{t(`feasts.occasion.${feast.occasion_type}`, feast.occasion_type)}</Badge>
+                  <Badge variant="outline">{t(`feasts.formality.${feast.formality_level || "formal"}`, feast.formality_level || "formal")}</Badge>
+                  {feast.guest_count && <Badge variant="outline"><Users className="h-3 w-3 mr-1" />{feast.guest_count}</Badge>}
+                  <Badge variant="outline"><Clock className="h-3 w-3 mr-1" />{formatDuration(feast.estimated_duration_minutes)}</Badge>
+                  {feast.region && <Badge variant="outline">{t(`profile.regions.${feast.region}`, feast.region)}</Badge>}
+                </div>
+                <Button
+                  variant="wine"
+                  size="lg"
+                  onClick={handleAiGenerate}
+                  disabled={generatePlan.isPending}
+                  className="mt-2"
+                >
+                  {generatePlan.isPending ? (
+                    <><Loader2 className="h-4 w-4 mr-2 animate-spin" />{t("ai.generating")}</>
+                  ) : (
+                    <><Sparkles className="h-4 w-4 mr-2" />{t("feastDetail.generatePlan", "გეგმის გენერაცია")}</>
+                  )}
+                </Button>
+              </CardContent>
+            </Card>
           ) : (
             <EmptyState icon={<Wine className="h-10 w-10" />} title={t("feastDetail.planEmpty")} description={t("feastDetail.planEmptyDesc")} />
           )}
-          {isHost && (
+          {isHost && feastToasts && feastToasts.length > 0 && (
             <div className="flex gap-2">
               <Button
                 variant="outline"
@@ -729,7 +761,7 @@ const FeastDetailPage: React.FC = () => {
                 {generatePlan.isPending ? (
                   <><Loader2 className="h-4 w-4 mr-2 animate-spin" />{t("ai.generating")}</>
                 ) : (
-                  <><Sparkles className="h-4 w-4 mr-2" />{t("feastDetail.aiGenerate", "AI გეგმა")}</>
+                  <><Sparkles className="h-4 w-4 mr-2" />{t("feastDetail.aiRegenerate", "ხელახლა გენერაცია")}</>
                 )}
               </Button>
             </div>
