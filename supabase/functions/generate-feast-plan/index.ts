@@ -458,7 +458,7 @@ CRITICAL INSTRUCTION — TOAST COUNT:
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: "google/gemini-3-pro-preview",
         messages: [
           { role: "system", content: fullSystemPrompt },
           { role: "user", content: userPrompt },
