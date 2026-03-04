@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Sparkles, Copy, Heart, Loader2, Wine, RefreshCw, Lock, MapPin, User, Clock, Volume2, Hand, ThumbsUp, ThumbsDown, Palette } from "lucide-react";
+import { Sparkles, Copy, Heart, Loader2, Wine, RefreshCw, Lock, MapPin, User, Clock, Volume2, Hand, ThumbsUp, ThumbsDown, Palette, Pencil, Check } from "lucide-react";
 import { toast as sonnerToast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -101,6 +101,10 @@ const AIGeneratePage = () => {
   const [personDetails, setPersonDetails] = useState("");
   const [topic, setTopic] = useState("");
   const [result, setResult] = useState<GeneratedToast | null>(null);
+  const [originalResult, setOriginalResult] = useState<GeneratedToast | null>(null);
+  const [editedTitle, setEditedTitle] = useState("");
+  const [editedBody, setEditedBody] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
   const [showUpsell, setShowUpsell] = useState(false);
   const [upsellMessage, setUpsellMessage] = useState("");
   const [feedbackGiven, setFeedbackGiven] = useState<"positive" | "negative" | null>(null);
@@ -150,6 +154,10 @@ const AIGeneratePage = () => {
     },
     onSuccess: (data) => {
       setResult(data);
+      setOriginalResult(data);
+      setEditedTitle(data.title_ka);
+      setEditedBody(data.body_ka);
+      setIsEditing(false);
       setFeedbackGiven(null);
       queryClient.invalidateQueries({ queryKey: ["daily-ai-count"] });
       sonnerToast.success("სადღეგრძელო შეიქმნა!");
@@ -169,12 +177,16 @@ const AIGeneratePage = () => {
       }
 
       if (!result || !user) return;
+
+      // Check if user edited the toast
+      const wasEdited = originalResult && (editedTitle !== originalResult.title_ka || editedBody !== originalResult.body_ka);
+
       const { data: custom, error: cErr } = await supabase
         .from("custom_toasts")
         .insert({
           user_id: user.id,
-          title_ka: result.title_ka,
-          body_ka: result.body_ka,
+          title_ka: editedTitle,
+          body_ka: editedBody,
           title_en: result.title_en,
           body_en: result.body_en,
           occasion_type: occasion,
@@ -189,11 +201,36 @@ const AIGeneratePage = () => {
         .from("user_favorites")
         .insert({ user_id: user.id, custom_toast_id: custom.id });
       if (fErr) throw fErr;
+
+      // Send edit delta for adaptive learning if edited
+      if (wasEdited && originalResult) {
+        supabase.functions.invoke("tamada-ai", {
+          body: {
+            action: "analyze_edit_delta",
+            edit_delta_params: {
+              original_title: originalResult.title_ka,
+              original_body: originalResult.body_ka,
+              edited_title: editedTitle,
+              edited_body: editedBody,
+              generation_params: {
+                occasion_type: occasion,
+                tone,
+                region: region !== "general" ? region : undefined,
+                formality_level: formality,
+              },
+            },
+          },
+        }).catch(() => {}); // fire-and-forget
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["favorites-full"] });
       queryClient.invalidateQueries({ queryKey: ["fav-count"] });
-      sonnerToast.success("დაემატა რჩეულებში!");
+      sonnerToast.success(
+        originalResult && (editedTitle !== originalResult.title_ka || editedBody !== originalResult.body_ka)
+          ? "რედაქტირებული ვერსია შეინახა!"
+          : "დაემატა რჩეულებში!"
+      );
     },
     onError: (err: Error) => {
       if (!showUpsell) sonnerToast.error("შენახვა ვერ მოხერხდა");
@@ -232,8 +269,8 @@ const AIGeneratePage = () => {
   });
 
   const copyToClipboard = () => {
-    if (!result) return;
-    navigator.clipboard.writeText(result.body_ka);
+    if (!editedBody) return;
+    navigator.clipboard.writeText(editedBody);
     sonnerToast.success("დაკოპირდა!");
   };
 
@@ -388,14 +425,27 @@ const AIGeneratePage = () => {
             className="space-y-4"
           >
             {/* Toast card */}
-            <Card className="border-primary/20 shadow-card-hover">
+             <Card className="border-primary/20 shadow-card-hover">
               <CardContent className="p-5 space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Wine className="h-5 w-5 text-primary" />
-                    <h3 className="font-semibold text-foreground">{result.title_ka}</h3>
+                    {isEditing ? (
+                      <Input
+                        value={editedTitle}
+                        onChange={(e) => setEditedTitle(e.target.value)}
+                        className="font-semibold text-sm h-8"
+                      />
+                    ) : (
+                      <h3 className="font-semibold text-foreground">{editedTitle}</h3>
+                    )}
                   </div>
                   <div className="flex items-center gap-1.5">
+                    {editedTitle !== originalResult?.title_ka || editedBody !== originalResult?.body_ka ? (
+                      <Badge variant="outline" className="text-[10px] border-primary/50 text-primary">
+                        <Pencil className="h-2.5 w-2.5 mr-0.5" /> რედაქტირებული
+                      </Badge>
+                    ) : null}
                     {meta?.tone && (
                       <Badge variant="outline" className="text-[10px]">
                         {tones.find(t => t.value === meta.tone)?.icon} {tones.find(t => t.value === meta.tone)?.label || meta.tone}
@@ -411,11 +461,20 @@ const AIGeneratePage = () => {
                   </div>
                 </div>
 
-                <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
-                  {result.body_ka}
-                </p>
+                {isEditing ? (
+                  <Textarea
+                    value={editedBody}
+                    onChange={(e) => setEditedBody(e.target.value)}
+                    className="text-sm leading-relaxed min-h-[120px]"
+                    rows={6}
+                  />
+                ) : (
+                  <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
+                    {editedBody}
+                  </p>
+                )}
 
-                {result.body_en && (
+                {!isEditing && result.body_en && (
                   <div className="border-t border-border pt-3">
                     <p className="text-xs text-muted-foreground italic">{result.body_en}</p>
                   </div>
@@ -424,6 +483,15 @@ const AIGeneratePage = () => {
                 {/* Actions + Feedback */}
                 <div className="flex items-center justify-between gap-2 flex-wrap">
                   <div className="flex gap-2 flex-wrap">
+                    {isEditing ? (
+                      <Button variant="default" size="sm" onClick={() => setIsEditing(false)}>
+                        <Check className="h-3.5 w-3.5 mr-1.5" /> მზადაა
+                      </Button>
+                    ) : (
+                      <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
+                        <Pencil className="h-3.5 w-3.5 mr-1.5" /> რედაქტირება
+                      </Button>
+                    )}
                     <Button variant="outline" size="sm" onClick={copyToClipboard}>
                       <Copy className="h-3.5 w-3.5 mr-1.5" /> კოპირება
                     </Button>

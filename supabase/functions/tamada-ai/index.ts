@@ -447,6 +447,101 @@ ${fc.skipped_count ? `- გამოტოვებული: ${fc.skipped_count
     }
   ]
 }`;
+    } else if (action === "analyze_edit_delta") {
+      // Edit delta analysis — no AI call needed, pure signal processing
+      if (!userId) {
+        return new Response(
+          JSON.stringify({ error: "Authentication required" }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const edp = body.edit_delta_params || {};
+      const originalBody = edp.original_body || "";
+      const editedBody = edp.edited_body || "";
+      const gp = edp.generation_params || {};
+
+      // Calculate edit magnitude
+      const originalWords = originalBody.split(/\s+/).length;
+      const editedWords = editedBody.split(/\s+/).length;
+      const lengthDelta = editedWords - originalWords;
+      const lengthChangeRatio = originalWords > 0 ? Math.abs(lengthDelta) / originalWords : 0;
+
+      // Determine edit pattern
+      let editPattern = "minor_tweak";
+      if (lengthChangeRatio > 0.5) editPattern = "major_rewrite";
+      else if (lengthChangeRatio > 0.2) editPattern = "significant_edit";
+      else if (editedBody !== originalBody) editPattern = "minor_tweak";
+
+      // Learn length preference from edit direction
+      if (lengthDelta > 10) {
+        // User prefers longer toasts
+        await supabase.rpc("upsert_ai_knowledge", {
+          p_user_id: userId,
+          p_type: "preference_model",
+          p_key: "length_preference",
+          p_value: { preferred: editedWords > 150 ? "long" : "medium", direction: "longer", avg_word_count: editedWords },
+          p_signal_weight: 0.8,
+        });
+      } else if (lengthDelta < -10) {
+        // User prefers shorter toasts
+        await supabase.rpc("upsert_ai_knowledge", {
+          p_user_id: userId,
+          p_type: "preference_model",
+          p_key: "length_preference",
+          p_value: { preferred: editedWords < 60 ? "short" : "medium", direction: "shorter", avg_word_count: editedWords },
+          p_signal_weight: 0.8,
+        });
+      }
+
+      // Track edit pattern as style fingerprint
+      await supabase.rpc("upsert_ai_knowledge", {
+        p_user_id: userId,
+        p_type: "style_fingerprint",
+        p_key: "edit_behavior",
+        p_value: {
+          last_edit_pattern: editPattern,
+          last_length_delta: lengthDelta,
+          last_occasion: gp.occasion_type || null,
+          last_tone: gp.tone || null,
+        },
+        p_signal_weight: editPattern === "major_rewrite" ? 0.9 : 0.6,
+      });
+
+      // If major rewrite, dampen confidence for the tone that was used
+      if (editPattern === "major_rewrite" && gp.tone) {
+        const { data: existing } = await supabase
+          .from("user_ai_knowledge")
+          .select("knowledge_value, confidence_score, signal_count")
+          .eq("user_id", userId)
+          .eq("knowledge_type", "preference_model")
+          .eq("knowledge_key", "tone_preference")
+          .maybeSingle();
+
+        if (existing) {
+          const current = (existing.knowledge_value as Record<string, number>) || {};
+          current[gp.tone] = Math.max(0, (current[gp.tone] || 0.5) - 0.1);
+
+          const oldCount = existing.signal_count || 0;
+          const newConf = Math.max(0, Math.min(1, (existing.confidence_score * oldCount + 0.3) / (oldCount + 1)));
+
+          await supabase.from("user_ai_knowledge").upsert({
+            user_id: userId,
+            knowledge_type: "preference_model",
+            knowledge_key: "tone_preference",
+            knowledge_value: current as any,
+            confidence_score: newConf,
+            signal_count: oldCount + 1,
+            last_reinforced_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          }, { onConflict: "user_id,knowledge_type,knowledge_key" });
+        }
+      }
+
+      return new Response(
+        JSON.stringify({ success: true, edit_pattern: editPattern, length_delta: lengthDelta }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     } else if (action === "submit_feedback") {
       // Direct feedback processing — no AI call needed
       if (!userId) {
