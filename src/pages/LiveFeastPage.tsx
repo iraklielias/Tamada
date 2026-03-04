@@ -153,9 +153,6 @@ const LiveFeastPage: React.FC = () => {
     return h > 0 ? `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}` : `${m}:${String(s).padStart(2, "0")}`;
   };
 
-  if (feastLoading) return <div className="min-h-screen bg-background flex items-center justify-center"><div className="animate-pulse text-muted-foreground">{t("common.loading")}</div></div>;
-  if (!feast) return <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4"><p className="text-muted-foreground">{t("common.notFound")}</p><Button variant="outline" onClick={() => navigate("/feasts")}>{t("common.back")}</Button></div>;
-
   const elapsedMinutes = Math.floor(elapsedSeconds / 60);
   const completedToastsData = useMemo(() =>
     (feastToasts || []).filter(t => t.status === "completed").map(t => ({
@@ -166,7 +163,10 @@ const LiveFeastPage: React.FC = () => {
   const skippedCount = feastToasts?.filter(t => t.status === "skipped").length ?? 0;
   const guestsForAdvisory = useMemo(() =>
     (guests || []).map(g => ({ name: g.name, alaverdi_count: g.alaverdi_count })), [guests]);
+  const allCompleted = totalCount > 0 && completedCount === totalCount;
 
+  if (feastLoading) return <div className="min-h-screen bg-background flex items-center justify-center"><div className="animate-pulse text-muted-foreground">{t("common.loading")}</div></div>;
+  if (!feast) return <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4"><p className="text-muted-foreground">{t("common.notFound")}</p><Button variant="outline" onClick={() => navigate("/feasts")}>{t("common.back")}</Button></div>;
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
