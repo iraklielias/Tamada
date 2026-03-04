@@ -182,7 +182,7 @@ const AIGeneratePage = () => {
       sonnerToast.success(t("ai.created"));
     },
     onError: (err: Error) => {
-      if (!showUpsell) sonnerToast.error(err.message || "გენერაცია ვერ მოხერხდა");
+      if (!showUpsell) sonnerToast.error(err.message || t("ai.generateFailed"));
     },
   });
 
