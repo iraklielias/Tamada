@@ -12,7 +12,7 @@ import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger,
 } from "@/components/ui/sheet";
 import {
-  ArrowLeft, Play, Pause, Square, Check, SkipForward,
+  ArrowLeft, Play, Pause, Square, Check, SkipForward, Undo2,
   Clock, Wine, Hand,
 } from "lucide-react";
 import { toast as sonnerToast } from "sonner";
@@ -30,6 +30,7 @@ const LiveFeastPage: React.FC = () => {
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [alertFired, setAlertFired] = useState<Set<string>>(new Set());
   const audioCtxRef = useRef<AudioContext | null>(null);
+  const [lastSkippedToastId, setLastSkippedToastId] = useState<string | null>(null);
 
   const { data: feast, isLoading: feastLoading } = useQuery({
     queryKey: ["feast", id],
@@ -62,13 +63,25 @@ const LiveFeastPage: React.FC = () => {
     refetchInterval: false,
   });
 
+  // Fetch assigned toast body text when current toast has assigned_toast_id
+  const currentToastIndex = feastToasts?.findIndex((t) => t.status === "pending" || t.status === "active") ?? -1;
+  const currentToast = currentToastIndex >= 0 ? feastToasts![currentToastIndex] : null;
+
+  const { data: assignedToastBody } = useQuery({
+    queryKey: ["assigned-toast", currentToast?.assigned_toast_id],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("toasts").select("body_ka, body_en").eq("id", currentToast!.assigned_toast_id!).single();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!currentToast?.assigned_toast_id,
+  });
+
   const isHost = feast?.host_id === user?.id;
   const isPaused = feast?.status === "paused";
   const isActive = feast?.status === "active";
   const isLive = isActive || isPaused;
 
-  const currentToastIndex = feastToasts?.findIndex((t) => t.status === "pending" || t.status === "active") ?? -1;
-  const currentToast = currentToastIndex >= 0 ? feastToasts![currentToastIndex] : null;
   const completedCount = feastToasts?.filter((t) => t.status === "completed" || t.status === "skipped").length ?? 0;
   const totalCount = feastToasts?.length ?? 0;
   const progressPercent = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
@@ -89,9 +102,18 @@ const LiveFeastPage: React.FC = () => {
     return () => { supabase.removeChannel(channel); };
   }, [id, queryClient]);
 
+  // Timer: only run when active, calculate from start time
   useEffect(() => { if (!isActive) { setIsTimerRunning(false); return; } setIsTimerRunning(true); }, [isActive]);
   useEffect(() => { if (!isTimerRunning) return; const interval = setInterval(() => setElapsedSeconds((s) => s + 1), 1000); return () => clearInterval(interval); }, [isTimerRunning]);
-  useEffect(() => { if (feast?.actual_start_time) { setElapsedSeconds(Math.max(0, Math.floor((Date.now() - new Date(feast.actual_start_time).getTime()) / 1000))); } }, [feast?.actual_start_time]);
+
+  // Initialize elapsed from actual_start_time, accounting for paused time
+  // Since we don't track cumulative paused time in DB, we show wall-clock elapsed from start
+  // but stop counting when paused (timer stops via isTimerRunning)
+  useEffect(() => {
+    if (feast?.actual_start_time && isActive) {
+      setElapsedSeconds(Math.max(0, Math.floor((Date.now() - new Date(feast.actual_start_time).getTime()) / 1000)));
+    }
+  }, [feast?.actual_start_time, isActive]);
 
   const playChime = useCallback(() => {
     try {
@@ -127,12 +149,20 @@ const LiveFeastPage: React.FC = () => {
 
   const completeToast = useMutation({
     mutationFn: async (toastId: string) => { const { error } = await supabase.from("feast_toasts").update({ status: "completed", actual_time: new Date().toISOString() }).eq("id", toastId); if (error) throw error; },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["feast-toasts", id] }),
+    onSuccess: () => { setLastSkippedToastId(null); queryClient.invalidateQueries({ queryKey: ["feast-toasts", id] }); },
   });
 
   const skipToast = useMutation({
-    mutationFn: async (toastId: string) => { const { error } = await supabase.from("feast_toasts").update({ status: "skipped" }).eq("id", toastId); if (error) throw error; },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["feast-toasts", id] }),
+    mutationFn: async (toastId: string) => { const { error } = await supabase.from("feast_toasts").update({ status: "skipped" }).eq("id", toastId); if (error) throw error; return toastId; },
+    onSuccess: (toastId) => { setLastSkippedToastId(toastId); queryClient.invalidateQueries({ queryKey: ["feast-toasts", id] }); },
+  });
+
+  const undoSkip = useMutation({
+    mutationFn: async (toastId: string) => {
+      const { error } = await supabase.from("feast_toasts").update({ status: "pending" }).eq("id", toastId);
+      if (error) throw error;
+    },
+    onSuccess: () => { setLastSkippedToastId(null); queryClient.invalidateQueries({ queryKey: ["feast-toasts", id] }); },
   });
 
   const incrementAlaverdi = useMutation({
@@ -164,6 +194,10 @@ const LiveFeastPage: React.FC = () => {
   const guestsForAdvisory = useMemo(() =>
     (guests || []).map(g => ({ name: g.name, alaverdi_count: g.alaverdi_count })), [guests]);
   const allCompleted = totalCount > 0 && completedCount === totalCount;
+
+  // Get the body text for the current toast (from description or assigned toast)
+  const currentToastBody = currentToast?.description_ka || assignedToastBody?.body_ka || null;
+  const currentToastBodyEn = currentToast?.description_en || assignedToastBody?.body_en || null;
 
   if (feastLoading) return <div className="min-h-screen bg-background flex items-center justify-center"><div className="animate-pulse text-muted-foreground">{t("common.loading")}</div></div>;
   if (!feast) return <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4"><p className="text-muted-foreground">{t("common.notFound")}</p><Button variant="outline" onClick={() => navigate("/feasts")}>{t("common.back")}</Button></div>;
@@ -208,6 +242,33 @@ const LiveFeastPage: React.FC = () => {
               <div className="text-6xl">🎉</div>
               <h2 className="text-heading-1 text-foreground">{t("live.allCompleted")}</h2>
               <p className="text-body text-muted-foreground">{t("live.allCompletedDesc")}</p>
+              {/* Summary stats */}
+              <div className="grid grid-cols-3 gap-3 text-center mt-4">
+                <div className="p-3 rounded-xl bg-accent">
+                  <p className="text-heading-2 text-foreground">{feastToasts?.filter(t => t.status === "completed").length}</p>
+                  <p className="text-[10px] text-muted-foreground">{t("common.completed")}</p>
+                </div>
+                <div className="p-3 rounded-xl bg-accent">
+                  <p className="text-heading-2 text-foreground">{skippedCount}</p>
+                  <p className="text-[10px] text-muted-foreground">{t("common.skip")}</p>
+                </div>
+                <div className="p-3 rounded-xl bg-accent">
+                  <p className="text-heading-2 text-foreground">{formatTime(elapsedSeconds)}</p>
+                  <p className="text-[10px] text-muted-foreground">{t("feasts.duration")}</p>
+                </div>
+              </div>
+              {/* Alaverdi leaderboard */}
+              {guests && guests.some(g => (g.alaverdi_count ?? 0) > 0) && (
+                <div className="mt-4 space-y-1.5 max-w-xs mx-auto">
+                  <p className="text-caption text-muted-foreground">{t("feastDetail.alaverdi")} 🏆</p>
+                  {[...guests].sort((a, b) => (b.alaverdi_count ?? 0) - (a.alaverdi_count ?? 0)).filter(g => (g.alaverdi_count ?? 0) > 0).map((g, i) => (
+                    <div key={g.id} className="flex items-center justify-between p-2 rounded-lg bg-muted/50">
+                      <span className="text-sm text-foreground">{i === 0 ? "🥇" : i === 1 ? "🥈" : "🥉"} {g.name}</span>
+                      <Badge variant="secondary" className="text-[10px]">{g.alaverdi_count}</Badge>
+                    </div>
+                  ))}
+                </div>
+              )}
               <Button onClick={() => navigate(`/feasts/${id}`)}>{t("live.returnBack")}</Button>
             </motion.div>
           ) : currentToast ? (
@@ -218,7 +279,8 @@ const LiveFeastPage: React.FC = () => {
               <div>
                 <Badge variant="outline" className="mb-2 text-xs">{t(`live.toastType.${currentToast.toast_type}`, currentToast.toast_type)}</Badge>
                 <h2 className="text-display text-foreground">{currentToast.title_ka}</h2>
-                {currentToast.description_ka && <p className="text-body text-muted-foreground mt-3 leading-relaxed">{currentToast.description_ka}</p>}
+                {currentToastBody && <p className="text-body text-muted-foreground mt-3 leading-relaxed">{currentToastBody}</p>}
+                {currentToastBodyEn && <p className="text-body-sm text-muted-foreground/70 mt-2 italic">{currentToastBodyEn}</p>}
               </div>
               {currentToast.alaverdi_assigned_to && (
                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent text-accent-foreground text-sm">
@@ -231,6 +293,12 @@ const LiveFeastPage: React.FC = () => {
                   <Button size="lg" onClick={() => completeToast.mutate(currentToast.id)} disabled={completeToast.isPending}><Check className="h-4 w-4 mr-2" />{t("common.completed")}</Button>
                   <Button size="lg" variant="outline" onClick={() => skipToast.mutate(currentToast.id)} disabled={skipToast.isPending}><SkipForward className="h-4 w-4 mr-2" />{t("common.skip")}</Button>
                 </div>
+              )}
+              {/* Undo skip button */}
+              {isHost && lastSkippedToastId && (
+                <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={() => undoSkip.mutate(lastSkippedToastId)} disabled={undoSkip.isPending}>
+                  <Undo2 className="h-3.5 w-3.5 mr-1.5" />{t("feastDetail.undoSkip")}
+                </Button>
               )}
             </motion.div>
           ) : (
