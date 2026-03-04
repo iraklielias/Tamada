@@ -92,7 +92,7 @@ const FavoritesPage = () => {
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
                           <h3 className="font-semibold text-sm text-foreground">
-                            {toastData.title_ka}
+                            {isEn ? (toastData.title_en || toastData.title_ka) : toastData.title_ka}
                           </h3>
                           {"occasion_type" in toastData && toastData.occasion_type && (
                             <Badge variant="outline" className="text-[10px]">
