@@ -525,7 +525,7 @@ const AIGeneratePage = () => {
                       onClick={() => saveToFavorites.mutate()}
                       disabled={saveToFavorites.isPending}
                     >
-                      <Heart className="h-3.5 w-3.5 mr-1.5" /> შენახვა
+                      <Heart className="h-3.5 w-3.5 mr-1.5" /> {t("common.save")}
                     </Button>
                     <Button
                       variant="ghost" size="sm"
