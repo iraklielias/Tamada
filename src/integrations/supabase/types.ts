@@ -555,6 +555,53 @@ export type Database = {
           },
         ]
       }
+      user_ai_knowledge: {
+        Row: {
+          confidence_score: number | null
+          created_at: string | null
+          id: string
+          knowledge_key: string
+          knowledge_type: string
+          knowledge_value: Json
+          last_reinforced_at: string | null
+          signal_count: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          confidence_score?: number | null
+          created_at?: string | null
+          id?: string
+          knowledge_key: string
+          knowledge_type: string
+          knowledge_value: Json
+          last_reinforced_at?: string | null
+          signal_count?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          confidence_score?: number | null
+          created_at?: string | null
+          id?: string
+          knowledge_key?: string
+          knowledge_type?: string
+          knowledge_value?: Json
+          last_reinforced_at?: string | null
+          signal_count?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_ai_knowledge_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_favorites: {
         Row: {
           created_at: string | null

@@ -61,8 +61,16 @@ const AIGeneratePage = () => {
         throw new Error(check.message);
       }
 
-      const { data, error } = await supabase.functions.invoke("generate-toast", {
-        body: { occasion_type: occasion, formality_level: formality, topic },
+      const { data, error } = await supabase.functions.invoke("tamada-ai", {
+        body: {
+          action: "generate_toast",
+          generation_params: {
+            occasion_type: occasion,
+            formality_level: formality,
+            freeform_comment: topic,
+            language: "both",
+          },
+        },
       });
       if (error) throw error;
       if (data.error) throw new Error(data.error);
