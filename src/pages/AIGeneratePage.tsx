@@ -98,11 +98,6 @@ interface GeneratedToast {
 
 const paceKeys = ["slow", "moderate", "conversational"] as const;
 const peakKeys = ["beginning", "middle", "end"] as const;
-  middle: "შუაში",
-  end: "ბოლოს",
-};
-
-const AIGeneratePage = () => {
   const [occasion, setOccasion] = useState("supra");
   const [formality, setFormality] = useState("formal");
   const [tone, setTone] = useState("traditional");
