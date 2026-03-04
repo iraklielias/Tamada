@@ -247,8 +247,8 @@ const AIGeneratePage = () => {
       queryClient.invalidateQueries({ queryKey: ["fav-count"] });
       sonnerToast.success(
         originalResult && (editedTitle !== originalResult.title_ka || editedBody !== originalResult.body_ka)
-          ? "რედაქტირებული ვერსია შეინახა!"
-          : "დაემატა რჩეულებში!"
+          ? t("common.editedVersionSaved")
+          : t("ai.savedToFavs")
       );
     },
     onError: (err: Error) => {
