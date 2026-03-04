@@ -538,6 +538,15 @@ ${fc.skipped_count ? `- გამოტოვებული: ${fc.skipped_count
         }
       }
 
+      // Log edit delta to ai_generation_log
+      await supabase.from("ai_generation_log").insert({
+        user_id: userId,
+        generation_type: "analyze_edit_delta",
+        input_params: { edit_pattern: editPattern, length_delta: lengthDelta, occasion: gp.occasion_type },
+        output_text: null,
+        model_used: null,
+      });
+
       return new Response(
         JSON.stringify({ success: true, edit_pattern: editPattern, length_delta: lengthDelta }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -628,6 +637,15 @@ ${fc.skipped_count ? `- გამოტოვებული: ${fc.skipped_count
         }, { onConflict: "user_id,knowledge_type,knowledge_key" });
       }
 
+      // Log feedback to ai_generation_log
+      await supabase.from("ai_generation_log").insert({
+        user_id: userId,
+        generation_type: "submit_feedback",
+        input_params: { signal, tone: gp.tone, occasion: gp.occasion_type },
+        output_text: null,
+        model_used: null,
+      });
+
       return new Response(
         JSON.stringify({ success: true, signal }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -652,7 +670,7 @@ ${fc.skipped_count ? `- გამოტოვებული: ${fc.skipped_count
           Authorization: `Bearer ${LOVABLE_API_KEY}`,
         },
         body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
+          model: "google/gemini-3-flash-preview",
           messages: [
             { role: "system", content: fullSystemPrompt },
             { role: "user", content: userMessage },
@@ -712,7 +730,7 @@ ${fc.skipped_count ? `- გამოტოვებული: ${fc.skipped_count
         generation_type: action,
         input_params: generation_params || refinement_params || feast_context || {},
         output_text: parsed.body_ka || JSON.stringify(parsed),
-        model_used: "google/gemini-2.5-flash",
+        model_used: "google/gemini-3-flash-preview",
       });
     }
 

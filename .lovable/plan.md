@@ -1,115 +1,109 @@
 
 
-# Comprehensive Audit + Execution Plan
+## TAMADA — Status Audit & Master Execution Plan
 
-## Three Requests Addressed
+### What Is Built
 
-1. **Drag-and-drop toast reordering** in FeastDetailPage
-2. **Upgrade `generate-feast-plan` to use the sophisticated Tamada AI system prompt** (same cultural depth as `tamada-ai`)
-3. **Full product audit** — all remaining leaks and integration gaps
+| Area | Status |
+|------|--------|
+| Landing page (`/`) | Done — hero, features, how-it-works, footer |
+| Auth (login, signup, callback) | Done — email/password, onAuthStateChange, protected routes |
+| Onboarding wizard (`/onboarding`) | Done — 4 steps: name, region, experience, occasions |
+| App shell (sidebar + bottom nav) | Done — collapsible sidebar, mobile bottom nav, profile footer |
+| Dashboard (`/dashboard`) | Done — greeting, quick actions, recent feasts, popular toasts |
+| Toasts browse (`/toasts`) | Done — search, occasion/formality filters, favorite toggle |
+| AI Generator (`/ai-generate`) | Done — occasion/formality/topic form, edge function, save to favorites |
+| Favorites (`/favorites`) | Done — list system + custom favorites, remove |
+| Library (`/library`) | Done — reads toast_templates (currently 0 rows) |
+| Profile (`/profile`) | Done — read-only display, logout |
+| Edge function: `generate-toast` | Done — Lovable AI gateway, JSON parse |
+| Database schema + RLS | Done — all 11 tables, policies in place |
+| Seed data: toasts | Done — 11 system toasts |
 
----
+### What Is NOT Built
 
-## Remaining Leaks Found
-
-### A. Database (Still Broken)
-
-| Issue | Detail |
-|-------|--------|
-| **DB Triggers still not attached** | The `<db-triggers>` section says "There are no triggers in the database" — meaning the previous migration to create triggers either failed or wasn't applied. The 5 trigger functions exist but are NOT connected to any tables. The entire adaptive learning pipeline is dead. |
-| **Toasts RLS still restrictive** | `toasts_select_system` and `toasts_select_own` are both `Permissive: No`. Two restrictive SELECT policies = AND logic. Users can only see system toasts they also created (impossible). The previous migration to fix this was apparently not applied or failed. |
-| **Collaborator INSERT still restrictive** | `collaborators_insert_host` and `collaborators_insert_self` are both `Permissive: No`. A joining user cannot satisfy both. The feast join flow is still broken. |
-| **`feasts_select_by_share_code` is restrictive** | The share code lookup policy was created but also as restrictive. Combined with `feasts_select`, a non-host/non-collaborator still can't look up by share code because they must also satisfy `feasts_select` (host OR collaborator). |
-
-### B. `generate-feast-plan` Uses a Trivial Prompt
-
-The edge function uses a simple generic prompt ("You are an expert Georgian Tamada...") instead of the rich 11-layer `SYSTEM_PROMPT` from `tamada-ai`. It also:
-- Does not load user profile or AI knowledge
-- Does not authenticate the user or check rate limits
-- Does not log to `ai_generation_log`
-- Uses a different model (`gemini-3-flash-preview` vs `gemini-2.5-flash`)
-- Returns different `toast_type` values (`mandatory`, `traditional`, `custom`) than the canonical `ToastType` enum in `types/index.ts` (`god`, `homeland`, `parents`, etc.)
-
-### C. Feature Integration Gaps
-
-| Gap | Pages Affected |
-|-----|----------------|
-| **FavoritesPage has no detail dialog** | Click does nothing — can only delete, can't read full text |
-| **FavoritesPage doesn't use i18n** — hardcoded Georgian strings | `FavoritesPage.tsx` |
-| **FavoritesPage has limited occasion labels** — only 6 hardcoded, missing many | `FavoritesPage.tsx` line 48-51 |
-| **Library "Use template" doesn't preselect the template** — passes `?template=occasion_type` but `NewFeastPage` only reads this to set `occasionType`, not to auto-select the matching template | `LibraryPage` → `NewFeastPage` |
-| **OnboardingWizard uses `corporate`** but `NewFeastPage` and `ToastsPage` use `business` | Still inconsistent |
-| **No `supra` in OnboardingWizard occasions** | Missing the core occasion type |
-| **Dashboard "Popular Toasts" link goes to `/library`** not `/toasts`** | Confusing navigation |
-| **Profile page not internationalized** — all Georgian hardcoded | `ProfilePage.tsx` |
-| **FeastsPage missing `pb-24`** for bottom nav | Content hidden under bottom nav on mobile |
-| **No toast content in FeastDetailPage toast cards** — only shows title/description, no `body_ka` from linked `toasts` table | Same gap as LiveFeastPage had |
-
-### D. AI Integration Gaps
-
-| Gap | Detail |
-|-----|--------|
-| **Feedback/edit delta not logged to `ai_generation_log`** | `submit_feedback` and `analyze_edit_delta` actions in `tamada-ai` return early without creating log entries. Telemetry dashboard has no visibility into these signals. |
-| **`tamada-ai` uses `gemini-2.5-flash`** but best practice says to use `gemini-3-flash-preview` as default | Model mismatch |
+| Area | Spec Section |
+|------|-------------|
+| **Feast CRUD** — `/feasts`, `/feasts/new`, `/feasts/:id` | Sections 3, 4, 5 |
+| **Live Feast Mode** — `/feasts/:id/live` with timer, toast progression, alerts, audio | Section 6 |
+| **Alaverdi tracking** — FAB, guest assignment, count increment | Section 6 |
+| **Co-Tamada / Realtime** — share code, join link, Supabase Realtime sync | Section 6 + Realtime spec |
+| **Toast template seeding** — 7 templates with JSONB sequences | Seed Data |
+| **More sample toasts** — spec calls for 50-100; we have 11 | Seed Data |
+| **Feast plan from template** — selecting a template populates feast_toasts | Section 4 |
+| **AI Feast Plan generator** — `generate-feast-plan` edge function | AI Integration |
+| **Pro gating / useProGate hook** — daily limits, feature locks, upsell modals | Free vs Pro |
+| **Upgrade page** (`/upgrade`) — comparison table, Stripe checkout | Section 11 |
+| **Stripe integration** — checkout session, webhook, subscription management | Edge Functions |
+| **Profile editing** — avatar upload, edit name/region/experience/language | Section 10 |
+| **PDF export** — jsPDF feast plan export (Pro) | Section 5 |
+| **i18n** — i18next setup, language toggle, all strings externalized | i18n spec |
+| **Dark mode** | Design System |
+| **Keyboard shortcuts** | Desktop spec |
+| **Additional occasion types** in filters (christening, guest_reception, friendly_gathering) | Throughout |
+| **config.toml** — `generate-toast` function entry with `verify_jwt = false` | Edge function config |
 
 ---
 
-## Execution Plan
+### Master Execution Plan (8 Phases)
 
-### Task 1: Fix Database — Triggers, RLS, and Realtime (Migration)
+#### Phase 8 — Seed Data & Config Fixes
+- Seed 7 toast templates into `toast_templates` table (wedding, birthday, memorial, guest reception, holiday, corporate, friendly gathering) with proper `toast_sequence` JSONB arrays
+- Add `[functions.generate-toast]` with `verify_jwt = false` to `supabase/config.toml`
+- Add missing occasion types to all filter dropdowns across pages (christening, guest_reception, friendly_gathering, other)
 
-Create a single migration that:
-1. **Drop and recreate ALL feast/toast RLS policies as PERMISSIVE** — `toasts_select_system`, `toasts_select_own`, `feasts_select`, `feasts_select_by_share_code`, `collaborators_insert_host`, `collaborators_insert_self`
-2. **Attach the 5 triggers** to their tables (with `IF NOT EXISTS` guards)
-3. **Enable realtime** on `feasts`, `feast_toasts`, `feast_guests` (idempotent)
+#### Phase 9 — Feast CRUD (Core)
+- Create `/feasts` page — list user's feasts with status filter pills + search
+- Create `/feasts/new` page — multi-section form: basic info, details (guest count, formality, region, duration), template selection, optional guest list
+- Create `/feasts/:id` page — tabbed view (Plan, Guests, Details) with toast timeline, guest management, edit metadata, delete
+- Add routes to `App.tsx`, add "სუფრები" nav item to sidebar and bottom nav
+- Dashboard "ახალი სუფრა" quick action routes to `/feasts/new`; feast cards link to `/feasts/:id`
 
-### Task 2: Upgrade `generate-feast-plan` Edge Function
+#### Phase 10 — Live Feast Mode
+- Create `/feasts/:id/live` — full-screen immersive view
+- Current toast display with complete text, toast number, type
+- Next-up preview (2 upcoming toasts)
+- Elapsed time tracker + progress bar
+- "Completed" and "Skip" buttons that update `feast_toasts` status
+- Pause/Resume/End feast controls updating `feasts.status`
+- Timer alert system: amber glow + audio chime at configurable intervals before next toast (Web Audio API)
+- Alaverdi FAB: bottom sheet with guest list, tap to assign, increment `alaverdi_count` via `increment_alaverdi` RPC
 
-Rewrite to:
-- Use the full Tamada AI system prompt (from `tamada-ai`)
-- Load user profile and AI knowledge for personalization
-- Authenticate the user and check rate limits
-- Log to `ai_generation_log`
-- Use canonical `ToastType` values (`god`, `homeland`, `parents`, etc.) instead of generic ones
-- Use `google/gemini-3-flash-preview` model
-- Include guest names, region, and occasion-specific protocols in the prompt
-- Return richer toast objects with proper `description_ka`/`description_en`
+#### Phase 11 — Co-Tamada & Realtime
+- Generate `share_code` on feast, build `/feasts/:id/join/:shareCode` route
+- Add user as `feast_collaborator` on join
+- Subscribe to Supabase Realtime channels for `feast_toasts`, `feast_guests`, `feasts` changes
+- Enable realtime publication on relevant tables (`ALTER PUBLICATION supabase_realtime ADD TABLE ...`)
+- Co-Tamada sees live view with read-only controls (can assign alaverdi, cannot pause/end)
+- Online indicator for connected collaborators
 
-### Task 3: Add Drag-and-Drop Toast Reordering in FeastDetailPage
+#### Phase 12 — Profile Editing & Pro Gating
+- Make profile page editable: avatar upload (to `avatars` bucket), display name, region, experience, language
+- Build `useProGate` hook checking `is_pro` + `pro_expires_at`
+- Enforce free limits: 5 AI generations/day (server + client), 10 favorites, 1 active feast
+- Add server-side rate limit check in `generate-toast` edge function using `get_daily_ai_count`
+- Soft upsell modals when limits reached; gold lock icons on Pro features
+- Create `/upgrade` page with feature comparison table and pricing
 
-- Add move-up/move-down buttons on each toast card (simpler and more reliable than full drag-and-drop which requires a new dependency)
-- On reorder, update `position` values for affected toasts in the database
-- Optimistic UI update for instant feedback
-- Only show reorder controls when feast is in `draft` status
+#### Phase 13 — Stripe & Subscriptions
+- Enable Stripe integration
+- Create `create-checkout-session` edge function
+- Create `stripe-webhook` edge function handling subscription lifecycle events
+- Wire `/upgrade` page CTA to checkout session
+- Add `/profile/subscription` route for managing active subscription
 
-### Task 4: Fix FavoritesPage — Add Detail Dialog, i18n, Full Occasion Labels
+#### Phase 14 — i18n & Polish
+- Set up i18next with `ka` (default) and `en` locales
+- Extract all hardcoded Georgian strings to locale JSON files
+- Add language toggle to sidebar footer and profile settings
+- Persist language choice to `profiles.preferred_language`
+- Toast content displays `_ka` or `_en` based on selected language
 
-- Add the same `Dialog` pattern used on `ToastsPage` to expand and read full toast content
-- Replace hardcoded Georgian strings with `t()` calls
-- Use `t(\`feasts.occasion.\${type}\`)` instead of the limited hardcoded `occasionLabel` map
-
-### Task 5: Fix Remaining Integration Gaps
-
-In a single pass:
-- **OnboardingWizard**: Add `supra` to OCCASIONS list, keep `corporate` (it's in the type union)
-- **NewFeastPage**: Auto-select matching template when `?template=` is passed
-- **Dashboard**: Change "Popular Toasts" link from `/library` to `/toasts`
-- **FeastsPage**: Add `pb-24` for bottom nav
-- **ProfilePage**: Internationalize with `t()` calls
-- **`tamada-ai` edge function**: Log feedback and edit_delta to `ai_generation_log`; update model to `gemini-3-flash-preview`
-
-### Task 6: Log Feedback/Edit Delta in `tamada-ai`
-
-Add `ai_generation_log` inserts to the `submit_feedback` and `analyze_edit_delta` code paths so telemetry can see these signals.
-
----
-
-## Implementation Order
-
-1. **Task 1** (DB migration) — unblocks everything
-2. **Task 2** (Feast plan AI upgrade) — core AI improvement
-3. **Task 3** (Drag-and-drop reorder) — UX feature
-4. **Task 4** (FavoritesPage fixes) — UX polish
-5. **Task 5** (Integration gaps) — polish pass
-6. **Task 6** (AI logging) — telemetry completeness
+#### Phase 15 — Advanced Features & Hardening
+- `generate-feast-plan` edge function — AI-generated toast schedule based on occasion/duration/formality
+- PDF export of feast plan using jsPDF (Pro only)
+- Dark mode support
+- Keyboard shortcuts in live feast mode (Space = complete, Esc = pause)
+- Additional seed toasts (expand from 11 to 50+)
+- Error boundary components, offline queue for failed writes, optimistic updates throughout
 

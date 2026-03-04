@@ -23,6 +23,7 @@ import {
 import EmptyState from "@/components/EmptyState";
 import {
   ArrowLeft, Play, Pause, Square, Plus, Trash2, Users, Clock, Wine, Share2, Copy, Link, Sparkles, Loader2, Pencil,
+  ChevronUp, ChevronDown,
 } from "lucide-react";
 import { toast as sonnerToast } from "sonner";
 import { motion } from "framer-motion";
@@ -161,9 +162,52 @@ const FeastDetailPage: React.FC = () => {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["feast-toasts", id] }),
   });
 
+  // ── Toast reordering ──
+  const reorderToast = useMutation({
+    mutationFn: async ({ toastId, direction }: { toastId: string; direction: "up" | "down" }) => {
+      if (!feastToasts) return;
+      const idx = feastToasts.findIndex((ft) => ft.id === toastId);
+      if (idx < 0) return;
+      const swapIdx = direction === "up" ? idx - 1 : idx + 1;
+      if (swapIdx < 0 || swapIdx >= feastToasts.length) return;
+
+      const current = feastToasts[idx];
+      const swap = feastToasts[swapIdx];
+
+      // Swap positions in DB
+      const { error: e1 } = await supabase.from("feast_toasts").update({ position: swap.position }).eq("id", current.id);
+      if (e1) throw e1;
+      const { error: e2 } = await supabase.from("feast_toasts").update({ position: current.position }).eq("id", swap.id);
+      if (e2) throw e2;
+    },
+    onMutate: async ({ toastId, direction }) => {
+      // Optimistic update
+      await queryClient.cancelQueries({ queryKey: ["feast-toasts", id] });
+      const prev = queryClient.getQueryData<any[]>(["feast-toasts", id]);
+      if (prev) {
+        const next = [...prev];
+        const idx = next.findIndex((ft) => ft.id === toastId);
+        const swapIdx = direction === "up" ? idx - 1 : idx + 1;
+        if (idx >= 0 && swapIdx >= 0 && swapIdx < next.length) {
+          const tmpPos = next[idx].position;
+          next[idx] = { ...next[idx], position: next[swapIdx].position };
+          next[swapIdx] = { ...next[swapIdx], position: tmpPos };
+          next.sort((a, b) => a.position - b.position);
+          queryClient.setQueryData(["feast-toasts", id], next);
+        }
+      }
+      return { prev };
+    },
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(["feast-toasts", id], ctx.prev);
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ["feast-toasts", id] }),
+  });
+
   const generatePlan = useMutation({
     mutationFn: async () => {
       if (!feast) throw new Error("No feast");
+      const guestNames = guests?.map((g) => g.name) || [];
       const { data, error } = await supabase.functions.invoke("generate-feast-plan", {
         body: {
           occasion_type: feast.occasion_type,
@@ -171,7 +215,7 @@ const FeastDetailPage: React.FC = () => {
           duration_minutes: feast.estimated_duration_minutes,
           guest_count: feast.guest_count,
           region: feast.region,
-          language: "ka",
+          guest_names: guestNames,
         },
       });
       if (error) throw error;
@@ -189,7 +233,7 @@ const FeastDetailPage: React.FC = () => {
       const rows = toasts.map((toast, i) => ({
         feast_id: id!,
         position: i + 1,
-        toast_type: toast.toast_type || "traditional",
+        toast_type: toast.toast_type || "custom",
         title_ka: toast.title_ka,
         title_en: toast.title_en || null,
         description_ka: toast.description_ka || null,
@@ -214,6 +258,8 @@ const FeastDetailPage: React.FC = () => {
   };
 
   const formatDuration = (mins: number) => { const h = Math.floor(mins / 60); const m = mins % 60; return h > 0 ? `${h}h ${m > 0 ? `${m}m` : ""}` : `${m}m`; };
+
+  const isDraft = feast?.status === "draft";
 
   if (isLoading) {
     return <div className="p-4 md:p-6 max-w-4xl mx-auto space-y-4">{[1, 2, 3].map((i) => <Card key={i} className="animate-pulse"><CardContent className="p-4 h-20" /></Card>)}</div>;
@@ -271,6 +317,21 @@ const FeastDetailPage: React.FC = () => {
                     onClick={() => setSelectedToast(ft)}
                   >
                     <CardContent className="p-3 flex items-center gap-3">
+                      {/* Reorder buttons — only in draft */}
+                      {isHost && isDraft && (
+                        <div className="flex flex-col gap-0.5 shrink-0">
+                          <Button
+                            variant="ghost" size="icon" className="h-6 w-6"
+                            disabled={i === 0 || reorderToast.isPending}
+                            onClick={(e) => { e.stopPropagation(); reorderToast.mutate({ toastId: ft.id, direction: "up" }); }}
+                          ><ChevronUp className="h-3.5 w-3.5" /></Button>
+                          <Button
+                            variant="ghost" size="icon" className="h-6 w-6"
+                            disabled={i === feastToasts.length - 1 || reorderToast.isPending}
+                            onClick={(e) => { e.stopPropagation(); reorderToast.mutate({ toastId: ft.id, direction: "down" }); }}
+                          ><ChevronDown className="h-3.5 w-3.5" /></Button>
+                        </div>
+                      )}
                       <div className="h-8 w-8 rounded-full bg-accent flex items-center justify-center shrink-0 text-sm font-bold text-accent-foreground">{ft.position}</div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">

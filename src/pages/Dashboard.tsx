@@ -189,7 +189,7 @@ const Dashboard: React.FC = () => {
       <section>
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-heading-3 text-foreground">{t("dashboard.popularToasts")}</h2>
-          <Button variant="ghost" size="sm" onClick={() => navigate("/library")}>
+          <Button variant="ghost" size="sm" onClick={() => navigate("/toasts")}>
             {t("common.search")}
             <ChevronRight className="h-4 w-4 ml-1" />
           </Button>
