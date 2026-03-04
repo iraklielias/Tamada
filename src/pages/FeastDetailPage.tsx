@@ -90,7 +90,7 @@ const SortableToastCard: React.FC<SortableToastCardProps> = ({
       transition={{ delay: index * 0.02 }}
     >
       <Card
-        className={`transition-shadow cursor-pointer hover:shadow-card-hover ${ft.status === "completed" ? "opacity-60" : ""} ${isDragging ? "shadow-lg ring-2 ring-primary/30" : ""}`}
+        className={`card-interactive cursor-pointer ${ft.status === "completed" ? "opacity-60" : ""} ${isDragging ? "shadow-elevated ring-2 ring-primary/30" : ""}`}
         onClick={() => onSelect(ft)}
       >
         <CardContent className="p-3 flex items-center gap-3">
@@ -103,16 +103,16 @@ const SortableToastCard: React.FC<SortableToastCardProps> = ({
               <GripVertical className="h-4 w-4" />
             </div>
           )}
-          <div className="h-8 w-8 rounded-full bg-accent flex items-center justify-center shrink-0 text-sm font-bold text-accent-foreground">{ft.position}</div>
+          <div className="h-9 w-9 rounded-lg bg-wine-light flex items-center justify-center shrink-0 text-sm font-bold text-primary">{ft.position}</div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
               <p className="text-sm font-semibold text-foreground truncate">{(typeof window !== 'undefined' && localStorage.getItem('tamada-lang') === 'en') ? (ft.title_en || ft.title_ka) : ft.title_ka}</p>
               <span className="text-xs">{toastStatusIcon[ft.status || "pending"]}</span>
             </div>
             {(ft.description_ka || ft.description_en) && <p className="text-xs text-muted-foreground truncate mt-0.5">{(typeof window !== 'undefined' && localStorage.getItem('tamada-lang') === 'en') ? (ft.description_en || ft.description_ka) : ft.description_ka}</p>}
-            <div className="flex items-center gap-2 mt-0.5">
+            <div className="flex items-center gap-2 mt-1">
               <Badge variant="outline" className="text-[10px]">{t(`live.toastType.${ft.toast_type}`, ft.toast_type)}</Badge>
-              {ft.duration_minutes && <span className="text-[10px] text-muted-foreground">{ft.duration_minutes}m</span>}
+              {ft.duration_minutes && <span className="text-[10px] text-muted-foreground flex items-center gap-0.5"><Clock className="h-2.5 w-2.5" />{ft.duration_minutes}m</span>}
               {ft.alaverdi_assigned_to && <Badge variant="secondary" className="text-[10px]">{t("feastDetail.alaverdi")}: {ft.alaverdi_assigned_to}</Badge>}
             </div>
           </div>
