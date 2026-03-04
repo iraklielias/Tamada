@@ -320,6 +320,66 @@ const AIGeneratePage = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="text-caption text-muted-foreground mb-1.5 flex items-center gap-1.5">
+                <Wine className="h-3.5 w-3.5" /> {t("ai.occasionType")}
+              </label>
+              <Select value={occasion} onValueChange={(v) => setOccasion(v)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {occasionKeys.map((k) => (
+                    <SelectItem key={k} value={k}>{t(`feasts.occasion.${k}`)}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-caption text-muted-foreground mb-1.5 flex items-center gap-1.5">
+                <Lock className="h-3.5 w-3.5" /> {t("ai.formality")}
+              </label>
+              <Select value={formality} onValueChange={(v) => setFormality(v)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {formalityKeys.map((k) => (
+                    <SelectItem key={k} value={k}>{t(`feasts.formalityOptions.${k}`)}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Row 2: Tone + Region */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="text-caption text-muted-foreground mb-1.5 flex items-center gap-1.5">
+                <Palette className="h-3.5 w-3.5" /> {t("ai.tone")}
+              </label>
+              <Select value={tone} onValueChange={(v) => setTone(v)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {toneKeys.map((k) => (
+                    <SelectItem key={k} value={k}>{toneIcons[k]} {t(`ai.tones.${k}`)}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-caption text-muted-foreground mb-1.5 flex items-center gap-1.5">
+                <MapPin className="h-3.5 w-3.5" /> {t("ai.region")}
+              </label>
+              <Select value={region} onValueChange={(v) => setRegion(v)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {regionKeys.map((k) => (
+                    <SelectItem key={k} value={k}>{t(`ai.regions.${k}`)}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Row 3: Person Name + Details */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="text-caption text-muted-foreground mb-1.5 flex items-center gap-1.5">
                 <User className="h-3.5 w-3.5" /> {t("ai.personName")}
               </label>
               <Input
