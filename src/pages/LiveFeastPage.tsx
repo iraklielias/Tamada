@@ -258,6 +258,24 @@ const LiveFeastPage: React.FC = () => {
             ))}
           </div>
         )}
+
+        {/* AI Advisory */}
+        {isLive && isHost && feast && (
+          <FeastAdvisory
+            feastId={feast.id}
+            occasionType={feast.occasion_type}
+            currentToastIndex={currentToastIndex}
+            totalToasts={totalCount}
+            elapsedMinutes={elapsedMinutes}
+            totalDurationMinutes={feast.estimated_duration_minutes}
+            guestCount={feast.guest_count ?? guests?.length ?? 0}
+            currentToastTitle={currentToast?.title_ka}
+            currentToastType={currentToast?.toast_type}
+            completedToasts={completedToastsData}
+            guests={guestsForAdvisory}
+            skippedCount={skippedCount}
+          />
+        )}
       </div>
 
       {isLive && guests && guests.length > 0 && (
