@@ -283,7 +283,7 @@ const AIGeneratePage = () => {
     },
     onSuccess: (_, signal) => {
       setFeedbackGiven(signal);
-      sonnerToast.success(signal === "positive" ? "მადლობა! 👍" : "გავითვალისწინებთ 📝");
+      sonnerToast.success(signal === "positive" ? t("ai.feedback.thanks") : t("ai.feedback.noted"));
     },
   });
 
