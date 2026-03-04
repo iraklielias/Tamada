@@ -160,7 +160,7 @@ ${topic ? `- თემა/სურვილი: ${topic}` : ""}
         "Authorization": `Bearer ${LOVABLE_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: "google/gemini-3-pro-preview",
         messages: [
           { role: "system", content: MASTER_SYSTEM_PROMPT },
           { role: "user", content: prompt },
