@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.tamada-ai]
 verify_jwt = false
+
+[functions.regenerate-library]
+verify_jwt = false

@@ -106,10 +106,10 @@ const SortableToastCard: React.FC<SortableToastCardProps> = ({
           <div className="h-8 w-8 rounded-full bg-accent flex items-center justify-center shrink-0 text-sm font-bold text-accent-foreground">{ft.position}</div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <p className="text-sm font-semibold text-foreground truncate">{ft.title_ka}</p>
+              <p className="text-sm font-semibold text-foreground truncate">{(typeof window !== 'undefined' && localStorage.getItem('tamada-lang') === 'en') ? (ft.title_en || ft.title_ka) : ft.title_ka}</p>
               <span className="text-xs">{toastStatusIcon[ft.status || "pending"]}</span>
             </div>
-            {ft.description_ka && <p className="text-xs text-muted-foreground truncate mt-0.5">{ft.description_ka}</p>}
+            {(ft.description_ka || ft.description_en) && <p className="text-xs text-muted-foreground truncate mt-0.5">{(typeof window !== 'undefined' && localStorage.getItem('tamada-lang') === 'en') ? (ft.description_en || ft.description_ka) : ft.description_ka}</p>}
             <div className="flex items-center gap-2 mt-0.5">
               <Badge variant="outline" className="text-[10px]">{t(`live.toastType.${ft.toast_type}`, ft.toast_type)}</Badge>
               {ft.duration_minutes && <span className="text-[10px] text-muted-foreground">{ft.duration_minutes}m</span>}
@@ -183,7 +183,7 @@ const ToastDetailDialog: React.FC<ToastDetailDialogProps> = ({
   const { data: libraryToasts } = useQuery({
     queryKey: ["library-toasts", librarySearch],
     queryFn: async () => {
-      let query = supabase.from("toasts").select("id, title_ka, title_en, body_ka, occasion_type, toast_order_position").eq("is_system", true).order("toast_order_position", { ascending: true }).limit(50);
+      let query = supabase.from("toasts").select("id, title_ka, title_en, body_ka, body_en, occasion_type, toast_order_position").eq("is_system", true).order("toast_order_position", { ascending: true }).limit(50);
       if (librarySearch.trim()) {
         query = query.ilike("title_ka", `%${librarySearch.trim()}%`);
       }
@@ -271,7 +271,7 @@ const ToastDetailDialog: React.FC<ToastDetailDialogProps> = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <span className="h-7 w-7 rounded-full bg-accent flex items-center justify-center text-xs font-bold text-accent-foreground">{selectedToast?.position}</span>
-            {selectedToast?.title_ka}
+            {(typeof window !== 'undefined' && localStorage.getItem('tamada-lang') === 'en') ? (selectedToast?.title_en || selectedToast?.title_ka) : selectedToast?.title_ka}
           </DialogTitle>
           <DialogDescription>
             <Badge variant="outline" className="text-xs mt-1">{String(t(`live.toastType.${selectedToast?.toast_type}`, selectedToast?.toast_type || ""))}</Badge>
@@ -300,8 +300,8 @@ const ToastDetailDialog: React.FC<ToastDetailDialogProps> = ({
                   >
                     <CardContent className="p-2.5 flex items-center gap-2">
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-foreground truncate">{lt.title_ka}</p>
-                        {lt.body_ka && <p className="text-xs text-muted-foreground truncate mt-0.5">{lt.body_ka.substring(0, 80)}…</p>}
+                        <p className="text-sm font-medium text-foreground truncate">{(typeof window !== 'undefined' && localStorage.getItem('tamada-lang') === 'en') ? (lt.title_en || lt.title_ka) : lt.title_ka}</p>
+                        {(lt.body_ka || lt.body_en) && <p className="text-xs text-muted-foreground truncate mt-0.5">{((typeof window !== 'undefined' && localStorage.getItem('tamada-lang') === 'en') ? (lt.body_en || lt.body_ka) : lt.body_ka)?.substring(0, 80)}…</p>}
                       </div>
                       <Check className="h-4 w-4 text-muted-foreground shrink-0" />
                     </CardContent>
@@ -318,18 +318,29 @@ const ToastDetailDialog: React.FC<ToastDetailDialogProps> = ({
           </div>
         ) : (
           <div className="space-y-3">
-            {bodyKa && (
-              <div className="p-3 rounded-lg bg-accent/50 border border-border">
-                <p className="text-xs text-muted-foreground mb-1.5 font-medium">🇬🇪 {t("feastDetail.fullToast", "სრული სადღეგრძელო")}</p>
-                <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">{bodyKa}</p>
-              </div>
-            )}
-            {bodyEn && (
-              <div className="p-3 rounded-lg bg-muted/50 border border-border">
-                <p className="text-xs text-muted-foreground mb-1.5 font-medium">🇬🇧 English</p>
-                <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">{bodyEn}</p>
-              </div>
-            )}
+            {(() => {
+              const isEnLang = typeof window !== 'undefined' && localStorage.getItem('tamada-lang') === 'en';
+              const primaryBody = isEnLang ? (bodyEn || bodyKa) : bodyKa;
+              const secondaryBody = isEnLang ? bodyKa : bodyEn;
+              const primaryLabel = isEnLang ? "🇬🇧 English" : `🇬🇪 ${t("feastDetail.fullToast", "სრული სადღეგრძელო")}`;
+              const secondaryLabel = isEnLang ? `🇬🇪 ქართულად` : "🇬🇧 English";
+              return (
+                <>
+                  {primaryBody && (
+                    <div className="p-3 rounded-lg bg-accent/50 border border-border">
+                      <p className="text-xs text-muted-foreground mb-1.5 font-medium">{primaryLabel}</p>
+                      <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">{primaryBody}</p>
+                    </div>
+                  )}
+                  {secondaryBody && (
+                    <div className="p-3 rounded-lg bg-muted/50 border border-border">
+                      <p className="text-xs text-muted-foreground mb-1.5 font-medium">{secondaryLabel}</p>
+                      <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">{secondaryBody}</p>
+                    </div>
+                  )}
+                </>
+              );
+            })()}
 
             {/* Prominent Generate Body CTA when no body exists */}
             {!hasBody && isHost && isDraft && (

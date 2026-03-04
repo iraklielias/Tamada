@@ -133,12 +133,12 @@ const ToastsPage = () => {
                         </div>
                         <div className="min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <h3 className="font-semibold text-sm text-foreground">{toast.title_ka}</h3>
+                            <h3 className="font-semibold text-sm text-foreground">{isEn ? (toast.title_en || toast.title_ka) : toast.title_ka}</h3>
                             <Badge variant="outline" className="text-[10px]">
                               {t(`feasts.occasion.${toast.occasion_type}`, toast.occasion_type)}
                             </Badge>
                           </div>
-                          <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{toast.body_ka}</p>
+                          <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{isEn ? (toast.body_en || toast.body_ka) : toast.body_ka}</p>
                           {toast.tags && toast.tags.length > 0 && (
                             <div className="flex gap-1 mt-2 flex-wrap">
                               {toast.tags.map((tag: string) => (
@@ -179,7 +179,7 @@ const ToastsPage = () => {
           {selectedToast && (
             <>
               <DialogHeader>
-                <DialogTitle className="text-lg">{selectedToast.title_ka}</DialogTitle>
+                <DialogTitle className="text-lg">{isEn ? (selectedToast.title_en || selectedToast.title_ka) : selectedToast.title_ka}</DialogTitle>
                 <DialogDescription className="flex items-center gap-2 flex-wrap pt-1">
                   <Badge variant="outline" className="text-xs">
                     {String(t(`feasts.occasion.${selectedToast.occasion_type}`, selectedToast.occasion_type))}
@@ -197,21 +197,19 @@ const ToastsPage = () => {
 
               <div className="space-y-4 mt-2">
                 <div>
-                  <p className="text-caption text-muted-foreground mb-1">ქართულად</p>
-                  <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{selectedToast.body_ka}</p>
+                  <p className="text-caption text-muted-foreground mb-1">{isEn ? "English" : "ქართულად"}</p>
+                  <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{isEn ? (selectedToast.body_en || selectedToast.body_ka) : selectedToast.body_ka}</p>
                 </div>
 
-                {selectedToast.body_en && (
+                {isEn ? selectedToast.body_ka && (
+                  <div>
+                    <p className="text-caption text-muted-foreground mb-1">ქართულად</p>
+                    <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{selectedToast.body_ka}</p>
+                  </div>
+                ) : selectedToast.body_en && (
                   <div>
                     <p className="text-caption text-muted-foreground mb-1">English</p>
                     <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{selectedToast.body_en}</p>
-                  </div>
-                )}
-
-                {selectedToast.title_en && (
-                  <div>
-                    <p className="text-caption text-muted-foreground mb-1">Title (EN)</p>
-                    <p className="text-sm text-foreground">{selectedToast.title_en}</p>
                   </div>
                 )}
 

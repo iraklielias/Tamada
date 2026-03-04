@@ -19,7 +19,8 @@ const FavoritesPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isEn = i18n.language === "en";
   const [selectedToast, setSelectedToast] = useState<any | null>(null);
 
   const { data: favorites, isLoading } = useQuery({
@@ -91,7 +92,7 @@ const FavoritesPage = () => {
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
                           <h3 className="font-semibold text-sm text-foreground">
-                            {toastData.title_ka}
+                            {isEn ? (toastData.title_en || toastData.title_ka) : toastData.title_ka}
                           </h3>
                           {"occasion_type" in toastData && toastData.occasion_type && (
                             <Badge variant="outline" className="text-[10px]">
@@ -100,7 +101,7 @@ const FavoritesPage = () => {
                           )}
                         </div>
                         <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-                          {toastData.body_ka}
+                          {isEn ? (toastData.body_en || toastData.body_ka) : toastData.body_ka}
                         </p>
                       </div>
                       <Button
@@ -132,7 +133,7 @@ const FavoritesPage = () => {
       <Dialog open={!!selectedToast} onOpenChange={(open) => !open && setSelectedToast(null)}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>{selectedToast?.title_ka || t("favorites.title")}</DialogTitle>
+            <DialogTitle>{isEn ? (selectedToast?.title_en || selectedToast?.title_ka) : selectedToast?.title_ka || t("favorites.title")}</DialogTitle>
             <DialogDescription>
               {"occasion_type" in (selectedToast || {}) && selectedToast?.occasion_type && (
                 <Badge variant="outline" className="text-xs mt-1">
@@ -142,18 +143,26 @@ const FavoritesPage = () => {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
-            {selectedToast?.body_ka && (
-              <div>
-                <p className="text-xs text-muted-foreground mb-1">🇬🇪</p>
-                <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">{selectedToast.body_ka}</p>
-              </div>
-            )}
-            {selectedToast?.body_en && (
-              <div>
-                <p className="text-xs text-muted-foreground mb-1">🇬🇧</p>
-                <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">{selectedToast.body_en}</p>
-              </div>
-            )}
+            {(() => {
+              const primaryBody = isEn ? (selectedToast?.body_en || selectedToast?.body_ka) : selectedToast?.body_ka;
+              const secondaryBody = isEn ? selectedToast?.body_ka : selectedToast?.body_en;
+              return (
+                <>
+                  {primaryBody && (
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">{isEn ? "🇬🇧" : "🇬🇪"}</p>
+                      <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">{primaryBody}</p>
+                    </div>
+                  )}
+                  {secondaryBody && (
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">{isEn ? "🇬🇪" : "🇬🇧"}</p>
+                      <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">{secondaryBody}</p>
+                    </div>
+                  )}
+                </>
+              );
+            })()}
             {selectedToast?.title_en && (
               <p className="text-xs text-muted-foreground italic">{selectedToast.title_en}</p>
             )}

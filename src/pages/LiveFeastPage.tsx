@@ -289,9 +289,19 @@ const LiveFeastPage: React.FC = () => {
               </div>
               <div>
                 <Badge variant="outline" className="mb-2 text-xs">{t(`live.toastType.${currentToast.toast_type}`, currentToast.toast_type)}</Badge>
-                <h2 className="text-display text-foreground">{currentToast.title_ka}</h2>
-                {currentToastBody && <p className="text-body text-muted-foreground mt-3 leading-relaxed">{currentToastBody}</p>}
-                {currentToastBodyEn && <p className="text-body-sm text-muted-foreground/70 mt-2 italic">{currentToastBodyEn}</p>}
+                {(() => {
+                  const isEnLang = typeof window !== 'undefined' && localStorage.getItem('tamada-lang') === 'en';
+                  const displayTitle = isEnLang ? (currentToast.title_en || currentToast.title_ka) : currentToast.title_ka;
+                  const primaryBody = isEnLang ? (currentToastBodyEn || currentToastBody) : currentToastBody;
+                  const secondaryBody = isEnLang ? currentToastBody : currentToastBodyEn;
+                  return (
+                    <>
+                      <h2 className="text-display text-foreground">{displayTitle}</h2>
+                      {primaryBody && <p className="text-body text-muted-foreground mt-3 leading-relaxed">{primaryBody}</p>}
+                      {secondaryBody && <p className="text-body-sm text-muted-foreground/70 mt-2 italic">{secondaryBody}</p>}
+                    </>
+                  );
+                })()}
               </div>
               {currentToast.alaverdi_assigned_to && (
                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent text-accent-foreground text-sm">
