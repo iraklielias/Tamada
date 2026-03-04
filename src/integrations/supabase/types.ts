@@ -496,6 +496,50 @@ export type Database = {
           },
         ]
       }
+      toast_versions: {
+        Row: {
+          body_en: string | null
+          body_ka: string
+          created_at: string | null
+          feast_toast_id: string
+          id: string
+          source_type: string
+          style_overrides: Json | null
+          user_instructions: string | null
+          version_number: number
+        }
+        Insert: {
+          body_en?: string | null
+          body_ka: string
+          created_at?: string | null
+          feast_toast_id: string
+          id?: string
+          source_type?: string
+          style_overrides?: Json | null
+          user_instructions?: string | null
+          version_number?: number
+        }
+        Update: {
+          body_en?: string | null
+          body_ka?: string
+          created_at?: string | null
+          feast_toast_id?: string
+          id?: string
+          source_type?: string
+          style_overrides?: Json | null
+          user_instructions?: string | null
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "toast_versions_feast_toast_id_fkey"
+            columns: ["feast_toast_id"]
+            isOneToOne: false
+            referencedRelation: "feast_toasts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       toasts: {
         Row: {
           body_en: string | null

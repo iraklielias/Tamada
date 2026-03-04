@@ -23,7 +23,7 @@ import {
 import EmptyState from "@/components/EmptyState";
 import {
   ArrowLeft, Play, Pause, Square, Plus, Trash2, Users, Clock, Wine, Share2, Copy, Link, Sparkles, Loader2, Pencil,
-  GripVertical, RefreshCw, ArrowDown, Heart, Check,
+  GripVertical, RefreshCw, ArrowDown, Heart, Check, History, RotateCcw,
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast as sonnerToast } from "sonner";
@@ -159,6 +159,7 @@ const ToastDetailDialog: React.FC<ToastDetailDialogProps> = ({
   const [selectedTone, setSelectedTone] = useState<string | null>(null);
   const [selectedLength, setSelectedLength] = useState<string | null>(null);
   const [selectedStyle, setSelectedStyle] = useState<string | null>(null);
+  const [showVersions, setShowVersions] = useState(false);
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
@@ -182,10 +183,54 @@ const ToastDetailDialog: React.FC<ToastDetailDialogProps> = ({
     enabled: !!selectedToast?.assigned_toast_id && !selectedToast?.assigned_custom_toast_id,
   });
 
+  // Fetch version history
+  const { data: versions } = useQuery({
+    queryKey: ["toast-versions", selectedToast?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("toast_versions")
+        .select("*")
+        .eq("feast_toast_id", selectedToast!.id)
+        .order("version_number", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!selectedToast?.id,
+  });
+
+  // Save current body as a version snapshot before regen
+  const saveVersionSnapshot = async () => {
+    const currentBodyKa = customToastBody?.body_ka || assignedToastBody?.body_ka;
+    if (!currentBodyKa || !selectedToast?.id) return;
+
+    const currentBodyEn = customToastBody?.body_en || assignedToastBody?.body_en;
+    const nextVersion = (versions?.length || 0) + 1;
+
+    await supabase.from("toast_versions").insert({
+      feast_toast_id: selectedToast.id,
+      version_number: nextVersion,
+      body_ka: currentBodyKa,
+      body_en: currentBodyEn || null,
+      source_type: "ai",
+      user_instructions: retryComment.trim() || null,
+      style_overrides: (() => {
+        const so: Record<string, string> = {};
+        if (selectedTone) so.tone = selectedTone;
+        if (selectedLength) so.length = selectedLength;
+        if (selectedStyle) so.style = selectedStyle;
+        return Object.keys(so).length > 0 ? so : null;
+      })(),
+    });
+  };
+
   // Generate body for a toast slot (single regen) with customization
   const regenSingleToast = useMutation({
     mutationFn: async () => {
       if (!selectedToast || !feast) throw new Error("No toast/feast");
+
+      // Save current version before regenerating
+      await saveVersionSnapshot();
+
       const allToasts = queryClient.getQueryData<any[]>(["feast-toasts", feastId]) || [];
       const existingToastTypes = allToasts
         .filter((ft: any) => ft.id !== selectedToast.id)
@@ -236,8 +281,46 @@ const ToastDetailDialog: React.FC<ToastDetailDialogProps> = ({
       onToastUpdated();
       queryClient.invalidateQueries({ queryKey: ["custom-toast-body"] });
       queryClient.invalidateQueries({ queryKey: ["assigned-toast-body"] });
+      queryClient.invalidateQueries({ queryKey: ["toast-versions"] });
     },
     onError: () => sonnerToast.error(t("ai.generateFailed")),
+  });
+
+  // Restore a previous version
+  const restoreVersion = useMutation({
+    mutationFn: async (version: { body_ka: string; body_en: string | null; version_number: number }) => {
+      if (!selectedToast || !user) throw new Error("Missing data");
+
+      // Save current as a new version snapshot before restoring
+      await saveVersionSnapshot();
+
+      // Create a new custom_toast with the restored content
+      const { data: newCustomToast, error: insertErr } = await supabase.from("custom_toasts").insert({
+        user_id: user.id,
+        body_ka: version.body_ka,
+        body_en: version.body_en,
+        title_ka: selectedToast.title_ka,
+        title_en: selectedToast.title_en,
+        occasion_type: feast?.occasion_type || "supra",
+        is_ai_generated: true,
+      }).select("id").single();
+      if (insertErr) throw insertErr;
+
+      // Update the feast_toast to point to the restored version
+      const { error: updateErr } = await supabase.from("feast_toasts")
+        .update({ assigned_custom_toast_id: newCustomToast.id, assigned_toast_id: null })
+        .eq("id", selectedToast.id);
+      if (updateErr) throw updateErr;
+    },
+    onSuccess: () => {
+      sonnerToast.success(t("feastDetail.versionRestored", "ვერსია აღდგენილია"));
+      setShowVersions(false);
+      onToastUpdated();
+      queryClient.invalidateQueries({ queryKey: ["custom-toast-body"] });
+      queryClient.invalidateQueries({ queryKey: ["assigned-toast-body"] });
+      queryClient.invalidateQueries({ queryKey: ["toast-versions"] });
+    },
+    onError: () => sonnerToast.error(t("common.error")),
   });
 
   // Save to favorites
@@ -441,6 +524,67 @@ const ToastDetailDialog: React.FC<ToastDetailDialogProps> = ({
                   </Button>
                 )}
               </div>
+
+              {/* Version History toggle + panel */}
+              {versions && versions.length > 0 && (
+                <div className="space-y-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full justify-start text-xs text-muted-foreground"
+                    onClick={() => setShowVersions(!showVersions)}
+                  >
+                    <History className="h-3.5 w-3.5 mr-1.5" />
+                    {t("feastDetail.versionHistory", "ვერსიების ისტორია")} ({versions.length})
+                  </Button>
+
+                  {showVersions && (
+                    <ScrollArea className="max-h-[200px]">
+                      <div className="space-y-2 pr-2">
+                        {versions.map((v: any) => {
+                          const isEnLang = typeof window !== 'undefined' && localStorage.getItem('tamada-lang') === 'en';
+                          const vBody = isEnLang ? (v.body_en || v.body_ka) : v.body_ka;
+                          return (
+                            <Card key={v.id} className="border-dashed">
+                              <CardContent className="p-2.5 space-y-1.5">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-1.5">
+                                    <Badge variant="outline" className="text-[10px]">v{v.version_number}</Badge>
+                                    <span className="text-[10px] text-muted-foreground">
+                                      {new Date(v.created_at).toLocaleDateString()}
+                                    </span>
+                                  </div>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-6 px-2 text-xs"
+                                    onClick={() => restoreVersion.mutate(v)}
+                                    disabled={restoreVersion.isPending}
+                                  >
+                                    <RotateCcw className="h-3 w-3 mr-1" />
+                                    {t("common.restore")}
+                                  </Button>
+                                </div>
+                                <p className="text-xs text-foreground leading-relaxed line-clamp-3">{vBody}</p>
+                                {v.user_instructions && (
+                                  <p className="text-[10px] text-muted-foreground italic">💬 {v.user_instructions}</p>
+                                )}
+                                {v.style_overrides && (
+                                  <div className="flex gap-1 flex-wrap">
+                                    {Object.entries(v.style_overrides as Record<string, string>).map(([k, val]) => (
+                                      <Badge key={k} variant="secondary" className="text-[9px] px-1.5 py-0">{val}</Badge>
+                                    ))}
+                                  </div>
+                                )}
+                              </CardContent>
+                            </Card>
+                          );
+                        })}
+                      </div>
+                    </ScrollArea>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </div>
