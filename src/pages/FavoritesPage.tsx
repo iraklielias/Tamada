@@ -1,10 +1,14 @@
-import React from "react";
+import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
+} from "@/components/ui/dialog";
 import { Wine, Heart, Trash2 } from "lucide-react";
 import EmptyState from "@/components/EmptyState";
 import { useNavigate } from "react-router-dom";
@@ -15,6 +19,8 @@ const FavoritesPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
+  const [selectedToast, setSelectedToast] = useState<any | null>(null);
 
   const { data: favorites, isLoading } = useQuery({
     queryKey: ["favorites-full"],
@@ -41,21 +47,16 @@ const FavoritesPage = () => {
       queryClient.invalidateQueries({ queryKey: ["favorites-full"] });
       queryClient.invalidateQueries({ queryKey: ["user-favorites"] });
       queryClient.invalidateQueries({ queryKey: ["fav-count"] });
-      sonnerToast.success("წაიშალა რჩეულებიდან");
+      sonnerToast.success(t("favorites.removed"));
     },
   });
 
-  const occasionLabel: Record<string, string> = {
-    wedding: "ქორწილი", birthday: "დაბადების დღე", supra: "სუფრა",
-    memorial: "პანაშვიდი", holiday: "დღესასწაული", business: "საქმიანი",
-  };
-
   return (
-    <div className="p-4 md:p-6 max-w-4xl mx-auto space-y-5">
+    <div className="p-4 md:p-6 max-w-4xl mx-auto space-y-5 pb-24">
       <div>
-        <h1 className="text-heading-1 text-foreground">რჩეულები</h1>
+        <h1 className="text-heading-1 text-foreground">{t("favorites.title")}</h1>
         <p className="text-body-sm text-muted-foreground mt-1">
-          შენი შენახული სადღეგრძელოები
+          {t("favorites.subtitle")}
         </p>
       </div>
 
@@ -69,8 +70,8 @@ const FavoritesPage = () => {
         <AnimatePresence mode="popLayout">
           <div className="grid gap-3">
             {favorites.map((fav) => {
-              const t = fav.toasts || fav.custom_toasts;
-              if (!t) return null;
+              const toastData = fav.toasts || fav.custom_toasts;
+              if (!toastData) return null;
               return (
                 <motion.div
                   key={fav.id}
@@ -79,7 +80,10 @@ const FavoritesPage = () => {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, x: -100 }}
                 >
-                  <Card className="hover:shadow-card-hover transition-shadow">
+                  <Card
+                    className="hover:shadow-card-hover transition-shadow cursor-pointer"
+                    onClick={() => setSelectedToast(toastData)}
+                  >
                     <CardContent className="p-4 flex items-start gap-3">
                       <div className="h-9 w-9 rounded-lg bg-accent flex items-center justify-center shrink-0 mt-0.5">
                         <Heart className="h-4 w-4 text-primary fill-primary" />
@@ -87,23 +91,23 @@ const FavoritesPage = () => {
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
                           <h3 className="font-semibold text-sm text-foreground">
-                            {t.title_ka}
+                            {toastData.title_ka}
                           </h3>
-                          {"occasion_type" in t && t.occasion_type && (
+                          {"occasion_type" in toastData && toastData.occasion_type && (
                             <Badge variant="outline" className="text-[10px]">
-                              {occasionLabel[t.occasion_type] || t.occasion_type}
+                              {t(`feasts.occasion.${toastData.occasion_type}`, toastData.occasion_type)}
                             </Badge>
                           )}
                         </div>
                         <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-                          {t.body_ka}
+                          {toastData.body_ka}
                         </p>
                       </div>
                       <Button
                         variant="ghost"
                         size="icon"
                         className="shrink-0 text-muted-foreground hover:text-destructive"
-                        onClick={() => removeFav.mutate(fav.id)}
+                        onClick={(e) => { e.stopPropagation(); removeFav.mutate(fav.id); }}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -117,12 +121,45 @@ const FavoritesPage = () => {
       ) : (
         <EmptyState
           icon={<Heart className="h-10 w-10" />}
-          title="რჩეულები ცარიელია"
-          description="სადღეგრძელოების გვერდიდან დაამატე შენი ფავორიტები"
-          actionLabel="სადღეგრძელოები"
+          title={t("favorites.empty")}
+          description={t("favorites.emptyDesc")}
+          actionLabel={t("nav.toasts")}
           onAction={() => navigate("/toasts")}
         />
       )}
+
+      {/* Toast Detail Dialog */}
+      <Dialog open={!!selectedToast} onOpenChange={(open) => !open && setSelectedToast(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{selectedToast?.title_ka || t("favorites.title")}</DialogTitle>
+            <DialogDescription>
+              {"occasion_type" in (selectedToast || {}) && selectedToast?.occasion_type && (
+                <Badge variant="outline" className="text-xs mt-1">
+                  {t(`feasts.occasion.${selectedToast.occasion_type}`, selectedToast.occasion_type)}
+                </Badge>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            {selectedToast?.body_ka && (
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">🇬🇪</p>
+                <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">{selectedToast.body_ka}</p>
+              </div>
+            )}
+            {selectedToast?.body_en && (
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">🇬🇧</p>
+                <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">{selectedToast.body_en}</p>
+              </div>
+            )}
+            {selectedToast?.title_en && (
+              <p className="text-xs text-muted-foreground italic">{selectedToast.title_en}</p>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
