@@ -672,22 +672,7 @@ const FeastDetailPage: React.FC = () => {
           {guests && guests.length > 0 ? (
             <div className="space-y-2">
               {guests.map((g) => (
-                <Card key={g.id}>
-                  <CardContent className="p-3 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="h-8 w-8 rounded-full bg-accent flex items-center justify-center shrink-0 text-sm font-semibold text-accent-foreground">{g.name.charAt(0).toUpperCase()}</div>
-                      <div>
-                        <p className="text-sm font-semibold text-foreground">{g.name}</p>
-                        <div className="flex items-center gap-2 mt-0.5">
-                          <Badge variant="outline" className="text-[10px]">{t(`feastDetail.guestRoles.${g.role || "guest"}`, g.role || "guest")}</Badge>
-                          {(g.alaverdi_count ?? 0) > 0 && <span className="text-[10px] text-muted-foreground">{t("feastDetail.alaverdi")}: {g.alaverdi_count}</span>}
-                        </div>
-                        {g.notes && <p className="text-[10px] text-muted-foreground mt-0.5">{g.notes}</p>}
-                      </div>
-                    </div>
-                    {isHost && <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => removeGuest.mutate(g.id)}><Trash2 className="h-3.5 w-3.5 text-muted-foreground" /></Button>}
-                  </CardContent>
-                </Card>
+                <GuestCard key={g.id} guest={g} isHost={isHost} feastId={id!} t={t} onRemove={(guestId) => removeGuest.mutate(guestId)} onUpdated={() => queryClient.invalidateQueries({ queryKey: ["feast-guests", id] })} />
               ))}
             </div>
           ) : (
