@@ -252,7 +252,7 @@ const AIGeneratePage = () => {
       );
     },
     onError: (err: Error) => {
-      if (!showUpsell) sonnerToast.error("შენახვა ვერ მოხერხდა");
+      if (!showUpsell) sonnerToast.error(t("ai.saveFailed"));
     },
   });
 
