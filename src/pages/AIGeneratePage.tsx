@@ -342,31 +342,28 @@ const AIGeneratePage = () => {
             </div>
           </div>
 
-          {/* Row 2: Tone selector */}
           <div>
             <label className="text-caption text-muted-foreground mb-1.5 flex items-center gap-1.5">
-              <Palette className="h-3.5 w-3.5" /> ტონი / სტილი
+              <Palette className="h-3.5 w-3.5" /> {t("ai.tone")}
             </label>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {tones.map((t) => (
+              {toneKeys.map((tk) => (
                 <button
-                  key={t.value}
+                  key={tk}
                   type="button"
-                  onClick={() => setTone(t.value)}
+                  onClick={() => setTone(tk)}
                   className={`flex items-center gap-2 px-3 py-2.5 rounded-lg border text-sm transition-all ${
-                    tone === t.value
+                    tone === tk
                       ? "border-primary bg-primary/10 text-primary font-medium shadow-sm"
                       : "border-border bg-background text-muted-foreground hover:border-primary/40 hover:bg-accent/50"
                   }`}
                 >
-                  <span className="text-base">{t.icon}</span>
-                  <span className="truncate">{t.label}</span>
+                  <span className="text-base">{toneIcons[tk]}</span>
+                  <span className="truncate">{t(`ai.tones.${tk}`)}</span>
                 </button>
               ))}
             </div>
           </div>
-
-          {/* Row 3: Region */}
           <div>
             <label className="text-caption text-muted-foreground mb-1.5 flex items-center gap-1.5">
               <MapPin className="h-3.5 w-3.5" /> რეგიონული სტილი
