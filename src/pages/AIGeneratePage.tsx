@@ -449,7 +449,7 @@ const AIGeneratePage = () => {
                           <div className="rounded-lg border border-border bg-muted/30 p-3 space-y-2">
                             {editedTitle !== originalResult.title_ka && (
                               <div className="text-xs">
-                                <span className="font-medium text-muted-foreground block mb-1">სათაური:</span>
+                                <span className="font-medium text-muted-foreground block mb-1">{t("common.titleLabel")}:</span>
                                 <p className="leading-relaxed">
                                   {computeWordDiff(originalResult.title_ka, editedTitle).map((seg, i) =>
                                     seg.type === "same" ? (
