@@ -115,6 +115,87 @@ const SortableToastCard: React.FC<SortableToastCardProps> = ({
   );
 };
 
+// ── Toast Detail Dialog (fetches custom_toast body) ──
+const ToastDetailDialog: React.FC<{ selectedToast: any; onClose: () => void; t: (key: string, fallback?: any) => string }> = ({ selectedToast, onClose, t }) => {
+  const { data: customToastBody } = useQuery({
+    queryKey: ["custom-toast-body", selectedToast?.assigned_custom_toast_id],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("custom_toasts").select("body_ka, body_en").eq("id", selectedToast!.assigned_custom_toast_id!).single();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!selectedToast?.assigned_custom_toast_id,
+  });
+
+  const { data: assignedToastBody } = useQuery({
+    queryKey: ["assigned-toast-body", selectedToast?.assigned_toast_id],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("toasts").select("body_ka, body_en").eq("id", selectedToast!.assigned_toast_id!).single();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!selectedToast?.assigned_toast_id && !selectedToast?.assigned_custom_toast_id,
+  });
+
+  const bodyKa = customToastBody?.body_ka || assignedToastBody?.body_ka || null;
+  const bodyEn = customToastBody?.body_en || assignedToastBody?.body_en || null;
+
+  return (
+    <Dialog open={!!selectedToast} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <span className="h-7 w-7 rounded-full bg-accent flex items-center justify-center text-xs font-bold text-accent-foreground">{selectedToast?.position}</span>
+            {selectedToast?.title_ka}
+          </DialogTitle>
+          <DialogDescription>
+            <Badge variant="outline" className="text-xs mt-1">{String(t(`live.toastType.${selectedToast?.toast_type}`, selectedToast?.toast_type || ""))}</Badge>
+            {selectedToast?.duration_minutes && <span className="text-xs text-muted-foreground ml-2">{selectedToast.duration_minutes}m</span>}
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-3">
+          {bodyKa && (
+            <div className="p-3 rounded-lg bg-accent/50 border border-border">
+              <p className="text-xs text-muted-foreground mb-1.5 font-medium">🇬🇪 {t("feastDetail.fullToast", "სრული სადღეგრძელო")}</p>
+              <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">{bodyKa}</p>
+            </div>
+          )}
+          {bodyEn && (
+            <div className="p-3 rounded-lg bg-muted/50 border border-border">
+              <p className="text-xs text-muted-foreground mb-1.5 font-medium">🇬🇧 English</p>
+              <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">{bodyEn}</p>
+            </div>
+          )}
+          {!bodyKa && selectedToast?.description_ka && (
+            <div>
+              <p className="text-xs text-muted-foreground mb-1">🇬🇪</p>
+              <p className="text-sm text-foreground leading-relaxed">{selectedToast.description_ka}</p>
+            </div>
+          )}
+          {!bodyEn && selectedToast?.description_en && (
+            <div>
+              <p className="text-xs text-muted-foreground mb-1">🇬🇧</p>
+              <p className="text-sm text-foreground leading-relaxed">{selectedToast.description_en}</p>
+            </div>
+          )}
+          {selectedToast?.title_en && (
+            <div>
+              <p className="text-xs text-muted-foreground mb-1">{t("feastDetail.toastDetail")}</p>
+              <p className="text-sm text-foreground">{selectedToast.title_en}</p>
+            </div>
+          )}
+          {selectedToast?.alaverdi_assigned_to && (
+            <Badge variant="secondary">{t("feastDetail.alaverdi")}: {selectedToast.alaverdi_assigned_to}</Badge>
+          )}
+          {selectedToast?.notes && (
+            <p className="text-xs text-muted-foreground">{selectedToast.notes}</p>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 const FeastDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
