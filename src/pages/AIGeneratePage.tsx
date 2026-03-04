@@ -425,14 +425,27 @@ const AIGeneratePage = () => {
             className="space-y-4"
           >
             {/* Toast card */}
-            <Card className="border-primary/20 shadow-card-hover">
+             <Card className="border-primary/20 shadow-card-hover">
               <CardContent className="p-5 space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Wine className="h-5 w-5 text-primary" />
-                    <h3 className="font-semibold text-foreground">{result.title_ka}</h3>
+                    {isEditing ? (
+                      <Input
+                        value={editedTitle}
+                        onChange={(e) => setEditedTitle(e.target.value)}
+                        className="font-semibold text-sm h-8"
+                      />
+                    ) : (
+                      <h3 className="font-semibold text-foreground">{editedTitle}</h3>
+                    )}
                   </div>
                   <div className="flex items-center gap-1.5">
+                    {editedTitle !== originalResult?.title_ka || editedBody !== originalResult?.body_ka ? (
+                      <Badge variant="outline" className="text-[10px] border-amber-500/50 text-amber-600">
+                        <Pencil className="h-2.5 w-2.5 mr-0.5" /> რედაქტირებული
+                      </Badge>
+                    ) : null}
                     {meta?.tone && (
                       <Badge variant="outline" className="text-[10px]">
                         {tones.find(t => t.value === meta.tone)?.icon} {tones.find(t => t.value === meta.tone)?.label || meta.tone}
@@ -448,11 +461,20 @@ const AIGeneratePage = () => {
                   </div>
                 </div>
 
-                <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
-                  {result.body_ka}
-                </p>
+                {isEditing ? (
+                  <Textarea
+                    value={editedBody}
+                    onChange={(e) => setEditedBody(e.target.value)}
+                    className="text-sm leading-relaxed min-h-[120px]"
+                    rows={6}
+                  />
+                ) : (
+                  <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
+                    {editedBody}
+                  </p>
+                )}
 
-                {result.body_en && (
+                {!isEditing && result.body_en && (
                   <div className="border-t border-border pt-3">
                     <p className="text-xs text-muted-foreground italic">{result.body_en}</p>
                   </div>
@@ -461,6 +483,15 @@ const AIGeneratePage = () => {
                 {/* Actions + Feedback */}
                 <div className="flex items-center justify-between gap-2 flex-wrap">
                   <div className="flex gap-2 flex-wrap">
+                    {isEditing ? (
+                      <Button variant="default" size="sm" onClick={() => setIsEditing(false)}>
+                        <Check className="h-3.5 w-3.5 mr-1.5" /> მზადაა
+                      </Button>
+                    ) : (
+                      <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
+                        <Pencil className="h-3.5 w-3.5 mr-1.5" /> რედაქტირება
+                      </Button>
+                    )}
                     <Button variant="outline" size="sm" onClick={copyToClipboard}>
                       <Copy className="h-3.5 w-3.5 mr-1.5" /> კოპირება
                     </Button>
