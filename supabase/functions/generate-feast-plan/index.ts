@@ -560,7 +560,7 @@ CRITICAL INSTRUCTION — TOAST COUNT:
         generation_type: isSingleRegen ? "feast_toast_regen" : "feast_plan",
         input_params: { occasion_type, formality_level, duration_minutes, guest_count, region, single_toast_type },
         output_text: JSON.stringify(toasts),
-        model_used: "google/gemini-3-flash-preview",
+        model_used: "google/gemini-3-pro-preview",
         latency_ms: latencyMs,
         tokens_used: aiData.usage?.total_tokens || null,
       });

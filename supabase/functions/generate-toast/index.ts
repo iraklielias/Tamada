@@ -200,7 +200,7 @@ ${topic ? `- თემა/სურვილი: ${topic}` : ""}
     // Update log with output
     if (userId) {
       await supabase.from("ai_generation_log")
-        .update({ output_text: parsed.body_ka, model_used: "google/gemini-3-flash-preview" })
+        .update({ output_text: parsed.body_ka, model_used: "google/gemini-3-pro-preview" })
         .eq("user_id", userId)
         .order("created_at", { ascending: false })
         .limit(1);
