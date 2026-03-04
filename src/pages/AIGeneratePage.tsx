@@ -7,11 +7,12 @@ import ProUpsellModal from "@/components/ProUpsellModal";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Sparkles, Copy, Heart, Loader2, Wine, RefreshCw, Lock } from "lucide-react";
+import { Sparkles, Copy, Heart, Loader2, Wine, RefreshCw, Lock, MapPin, User, Clock, Volume2, Hand } from "lucide-react";
 import { toast as sonnerToast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -34,16 +35,62 @@ const formalities = [
   { value: "casual", label: "არაფორმალური" },
 ];
 
+const regions = [
+  { value: "general", label: "ზოგადი ქართული" },
+  { value: "kakheti", label: "კახეთი — პოეტური, ვაზის მეტაფორები" },
+  { value: "imereti", label: "იმერეთი — მახვილგონივრული, იუმორი" },
+  { value: "kartli", label: "ქართლი — ღირსეული, ისტორიული" },
+  { value: "racha", label: "რაჭა-ლეჩხუმი — გულწრფელი, მთიური" },
+  { value: "samegrelo", label: "სამეგრელო — ვნებიანი, ემოციური" },
+  { value: "guria", label: "გურია — ენერგიული, მუსიკალური" },
+  { value: "adjara", label: "აჭარა — სტუმართმოყვარე, ინკლუზიური" },
+  { value: "svaneti", label: "სვანეთი — უძველესი, მისტიკური" },
+  { value: "meskheti", label: "მესხეთი — გამძლე, მემორიალური" },
+];
+
+interface DeliveryGuidance {
+  recommended_pace?: string;
+  emotional_peak_location?: string;
+  pause_suggestions?: string[];
+  glass_raise_moment?: string;
+  estimated_duration_minutes?: number;
+}
+
+interface ToastMetadata {
+  toast_type?: string;
+  region_style?: string;
+  tone?: string;
+  complexity?: string;
+  generation_type?: string;
+}
+
 interface GeneratedToast {
   title_ka: string;
   body_ka: string;
   title_en?: string;
   body_en?: string;
+  metadata?: ToastMetadata;
+  delivery_guidance?: DeliveryGuidance;
 }
+
+const paceLabels: Record<string, string> = {
+  slow: "ნელა — საზეიმო ტემპი",
+  moderate: "ზომიერი ტემპი",
+  conversational: "საუბრისებური ტემპი",
+};
+
+const peakLabels: Record<string, string> = {
+  beginning: "დასაწყისში",
+  middle: "შუაში",
+  end: "ბოლოს",
+};
 
 const AIGeneratePage = () => {
   const [occasion, setOccasion] = useState("supra");
   const [formality, setFormality] = useState("formal");
+  const [region, setRegion] = useState("general");
+  const [personName, setPersonName] = useState("");
+  const [personDetails, setPersonDetails] = useState("");
   const [topic, setTopic] = useState("");
   const [result, setResult] = useState<GeneratedToast | null>(null);
   const [showUpsell, setShowUpsell] = useState(false);
@@ -67,6 +114,9 @@ const AIGeneratePage = () => {
           generation_params: {
             occasion_type: occasion,
             formality_level: formality,
+            region: region !== "general" ? region : undefined,
+            person_name: personName || undefined,
+            person_details: personDetails || undefined,
             freeform_comment: topic,
             language: "both",
           },
@@ -106,7 +156,7 @@ const AIGeneratePage = () => {
           body_en: result.body_en,
           occasion_type: occasion,
           is_ai_generated: true,
-          ai_generation_params: { occasion, formality, topic } as any,
+          ai_generation_params: { occasion, formality, region, personName, personDetails, topic } as any,
         })
         .select()
         .single();
@@ -133,6 +183,9 @@ const AIGeneratePage = () => {
     sonnerToast.success("დაკოპირდა!");
   };
 
+  const dg = result?.delivery_guidance;
+  const meta = result?.metadata;
+
   return (
     <div className="p-4 md:p-6 max-w-3xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
@@ -153,6 +206,7 @@ const AIGeneratePage = () => {
       {/* Form */}
       <Card>
         <CardContent className="p-5 space-y-4">
+          {/* Row 1: Occasion + Formality */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="text-caption text-muted-foreground mb-1.5 block">წვეულების ტიპი</label>
@@ -178,6 +232,46 @@ const AIGeneratePage = () => {
             </div>
           </div>
 
+          {/* Row 2: Region */}
+          <div>
+            <label className="text-caption text-muted-foreground mb-1.5 flex items-center gap-1.5">
+              <MapPin className="h-3.5 w-3.5" /> რეგიონული სტილი
+            </label>
+            <Select value={region} onValueChange={setRegion}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {regions.map((r) => (
+                  <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Row 3: Person */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="text-caption text-muted-foreground mb-1.5 flex items-center gap-1.5">
+                <User className="h-3.5 w-3.5" /> ვისთვის (არასავალდებულო)
+              </label>
+              <Input
+                placeholder="მაგ: გიორგი"
+                value={personName}
+                onChange={(e) => setPersonName(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="text-caption text-muted-foreground mb-1.5 block">
+                დეტალები პიროვნებაზე
+              </label>
+              <Input
+                placeholder="მაგ: ექიმი თელავიდან, ფეხბურთის მოყვარული"
+                value={personDetails}
+                onChange={(e) => setPersonDetails(e.target.value)}
+              />
+            </div>
+          </div>
+
+          {/* Row 4: Freeform */}
           <div>
             <label className="text-caption text-muted-foreground mb-1.5 block">
               თემა / დამატებითი სურვილი (არასავალდებულო)
@@ -213,7 +307,9 @@ const AIGeneratePage = () => {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
+            className="space-y-4"
           >
+            {/* Toast card */}
             <Card className="border-primary/20 shadow-card-hover">
               <CardContent className="p-5 space-y-4">
                 <div className="flex items-center justify-between">
@@ -221,7 +317,15 @@ const AIGeneratePage = () => {
                     <Wine className="h-5 w-5 text-primary" />
                     <h3 className="font-semibold text-foreground">{result.title_ka}</h3>
                   </div>
-                  <Badge variant="secondary" className="text-[10px]">AI</Badge>
+                  <div className="flex items-center gap-1.5">
+                    {meta?.region_style && meta.region_style !== "general" && (
+                      <Badge variant="outline" className="text-[10px]">
+                        <MapPin className="h-2.5 w-2.5 mr-0.5" />
+                        {regions.find(r => r.value === meta.region_style)?.label.split(" —")[0] || meta.region_style}
+                      </Badge>
+                    )}
+                    <Badge variant="secondary" className="text-[10px]">AI</Badge>
+                  </div>
                 </div>
 
                 <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
@@ -255,6 +359,71 @@ const AIGeneratePage = () => {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Delivery Guidance */}
+            {dg && (dg.recommended_pace || dg.emotional_peak_location || dg.glass_raise_moment) && (
+              <Card className="border-accent/30 bg-accent/5">
+                <CardContent className="p-4 space-y-3">
+                  <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                    <Volume2 className="h-4 w-4 text-primary" />
+                    წარმოთქმის გზამკვლევი
+                  </h4>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                    {dg.recommended_pace && (
+                      <div className="flex items-start gap-2 p-2 rounded-md bg-background border border-border">
+                        <Clock className="h-3.5 w-3.5 text-muted-foreground mt-0.5 shrink-0" />
+                        <div>
+                          <span className="font-medium text-foreground block">ტემპი</span>
+                          <span className="text-muted-foreground">
+                            {paceLabels[dg.recommended_pace] || dg.recommended_pace}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
+                    {dg.emotional_peak_location && (
+                      <div className="flex items-start gap-2 p-2 rounded-md bg-background border border-border">
+                        <Sparkles className="h-3.5 w-3.5 text-muted-foreground mt-0.5 shrink-0" />
+                        <div>
+                          <span className="font-medium text-foreground block">ემოციური პიკი</span>
+                          <span className="text-muted-foreground">
+                            {peakLabels[dg.emotional_peak_location] || dg.emotional_peak_location}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
+                    {dg.glass_raise_moment && (
+                      <div className="flex items-start gap-2 p-2 rounded-md bg-background border border-border">
+                        <Hand className="h-3.5 w-3.5 text-muted-foreground mt-0.5 shrink-0" />
+                        <div>
+                          <span className="font-medium text-foreground block">ბოკალი აწიეთ</span>
+                          <span className="text-muted-foreground">{dg.glass_raise_moment}</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {dg.pause_suggestions && dg.pause_suggestions.length > 0 && (
+                    <div className="text-xs space-y-1 pt-1">
+                      <span className="font-medium text-foreground">პაუზების ადგილები:</span>
+                      <ul className="list-disc list-inside text-muted-foreground space-y-0.5">
+                        {dg.pause_suggestions.map((p, i) => (
+                          <li key={i}>{p}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {dg.estimated_duration_minutes && (
+                    <p className="text-[11px] text-muted-foreground">
+                      სავარაუდო ხანგრძლივობა: ~{dg.estimated_duration_minutes} წუთი
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
