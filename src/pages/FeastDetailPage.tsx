@@ -109,7 +109,7 @@ const SortableToastCard: React.FC<SortableToastCardProps> = ({
               <p className="text-sm font-semibold text-foreground truncate">{(typeof window !== 'undefined' && localStorage.getItem('tamada-lang') === 'en') ? (ft.title_en || ft.title_ka) : ft.title_ka}</p>
               <span className="text-xs">{toastStatusIcon[ft.status || "pending"]}</span>
             </div>
-            {ft.description_ka && <p className="text-xs text-muted-foreground truncate mt-0.5">{ft.description_ka}</p>}
+            {(ft.description_ka || ft.description_en) && <p className="text-xs text-muted-foreground truncate mt-0.5">{(typeof window !== 'undefined' && localStorage.getItem('tamada-lang') === 'en') ? (ft.description_en || ft.description_ka) : ft.description_ka}</p>}
             <div className="flex items-center gap-2 mt-0.5">
               <Badge variant="outline" className="text-[10px]">{t(`live.toastType.${ft.toast_type}`, ft.toast_type)}</Badge>
               {ft.duration_minutes && <span className="text-[10px] text-muted-foreground">{ft.duration_minutes}m</span>}
