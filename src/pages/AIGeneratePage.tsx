@@ -619,7 +619,7 @@ const AIGeneratePage = () => {
 
                   {dg.estimated_duration_minutes && (
                     <p className="text-[11px] text-muted-foreground">
-                      სავარაუდო ხანგრძლივობა: ~{dg.estimated_duration_minutes} წუთი
+                      {t("ai.delivery.estimatedDuration")}: ~{dg.estimated_duration_minutes} {t("ai.delivery.minutes")}
                     </p>
                   )}
                 </CardContent>
