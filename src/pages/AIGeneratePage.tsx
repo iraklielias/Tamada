@@ -587,9 +587,9 @@ const AIGeneratePage = () => {
                       <div className="flex items-start gap-2 p-2 rounded-md bg-background border border-border">
                         <Sparkles className="h-3.5 w-3.5 text-muted-foreground mt-0.5 shrink-0" />
                         <div>
-                          <span className="font-medium text-foreground block">ემოციური პიკი</span>
+                          <span className="font-medium text-foreground block">{t("ai.delivery.emotionalPeak")}</span>
                           <span className="text-muted-foreground">
-                            {peakLabels[dg.emotional_peak_location] || dg.emotional_peak_location}
+                            {t(`ai.delivery.${dg.emotional_peak_location}`, dg.emotional_peak_location)}
                           </span>
                         </div>
                       </div>
