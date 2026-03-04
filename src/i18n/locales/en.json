@@ -233,17 +233,21 @@
   "profile": {
     "title": "Profile",
     "settings": "Settings",
+    "displayName": "Name",
     "name": "Name",
     "namePlaceholder": "Your name",
     "region": "Region",
     "experience": "Experience",
     "language": "Language",
     "chooseOption": "Choose",
+    "saved": "Profile updated!",
     "updated": "Profile updated!",
     "saveFailed": "Save failed",
     "avatarUpdated": "Avatar updated!",
     "avatarFailed": "Upload failed",
+    "uploadFailed": "Upload failed",
     "fileTooLarge": "File too large (max 5MB)",
+    "logout": "Log out",
     "regions": {
       "kakheti": "Kakheti",
       "kartli": "Kartli",
@@ -266,6 +270,8 @@
   "favorites": {
     "title": "Favorites",
     "subtitle": "Your saved toasts",
+    "empty": "No favorites yet",
+    "emptyDesc": "Add toasts from the toasts page",
     "noFavorites": "No favorites yet",
     "addSome": "Add toasts to your favorites",
     "removed": "Removed from favorites"
