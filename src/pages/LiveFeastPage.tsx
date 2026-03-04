@@ -74,7 +74,18 @@ const LiveFeastPage: React.FC = () => {
       if (error) throw error;
       return data;
     },
-    enabled: !!currentToast?.assigned_toast_id,
+    enabled: !!currentToast?.assigned_toast_id && !currentToast?.assigned_custom_toast_id,
+  });
+
+  // Fetch custom toast body when assigned_custom_toast_id is set (AI-generated feast toasts)
+  const { data: customToastBody } = useQuery({
+    queryKey: ["custom-toast-body", currentToast?.assigned_custom_toast_id],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("custom_toasts").select("body_ka, body_en").eq("id", currentToast!.assigned_custom_toast_id!).single();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!currentToast?.assigned_custom_toast_id,
   });
 
   const isHost = feast?.host_id === user?.id;
