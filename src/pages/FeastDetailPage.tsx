@@ -90,7 +90,7 @@ const SortableToastCard: React.FC<SortableToastCardProps> = ({
       transition={{ delay: index * 0.02 }}
     >
       <Card
-        className={`transition-shadow cursor-pointer hover:shadow-card-hover ${ft.status === "completed" ? "opacity-60" : ""} ${isDragging ? "shadow-lg ring-2 ring-primary/30" : ""}`}
+        className={`card-interactive cursor-pointer ${ft.status === "completed" ? "opacity-60" : ""} ${isDragging ? "shadow-elevated ring-2 ring-primary/30" : ""}`}
         onClick={() => onSelect(ft)}
       >
         <CardContent className="p-3 flex items-center gap-3">
@@ -103,16 +103,16 @@ const SortableToastCard: React.FC<SortableToastCardProps> = ({
               <GripVertical className="h-4 w-4" />
             </div>
           )}
-          <div className="h-8 w-8 rounded-full bg-accent flex items-center justify-center shrink-0 text-sm font-bold text-accent-foreground">{ft.position}</div>
+          <div className="h-9 w-9 rounded-lg bg-wine-light flex items-center justify-center shrink-0 text-sm font-bold text-primary">{ft.position}</div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
               <p className="text-sm font-semibold text-foreground truncate">{(typeof window !== 'undefined' && localStorage.getItem('tamada-lang') === 'en') ? (ft.title_en || ft.title_ka) : ft.title_ka}</p>
               <span className="text-xs">{toastStatusIcon[ft.status || "pending"]}</span>
             </div>
             {(ft.description_ka || ft.description_en) && <p className="text-xs text-muted-foreground truncate mt-0.5">{(typeof window !== 'undefined' && localStorage.getItem('tamada-lang') === 'en') ? (ft.description_en || ft.description_ka) : ft.description_ka}</p>}
-            <div className="flex items-center gap-2 mt-0.5">
+            <div className="flex items-center gap-2 mt-1">
               <Badge variant="outline" className="text-[10px]">{t(`live.toastType.${ft.toast_type}`, ft.toast_type)}</Badge>
-              {ft.duration_minutes && <span className="text-[10px] text-muted-foreground">{ft.duration_minutes}m</span>}
+              {ft.duration_minutes && <span className="text-[10px] text-muted-foreground flex items-center gap-0.5"><Clock className="h-2.5 w-2.5" />{ft.duration_minutes}m</span>}
               {ft.alaverdi_assigned_to && <Badge variant="secondary" className="text-[10px]">{t("feastDetail.alaverdi")}: {ft.alaverdi_assigned_to}</Badge>}
             </div>
           </div>
@@ -931,12 +931,13 @@ const FeastDetailPage: React.FC = () => {
 
   return (
     <div className="p-4 md:p-6 max-w-4xl mx-auto space-y-5 pb-24">
+      {/* Hero header */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/feasts")}><ArrowLeft className="h-5 w-5" /></Button>
+          <Button variant="ghost" size="icon" className="rounded-xl bg-surface-1 hover:bg-surface-2" onClick={() => navigate("/feasts")}><ArrowLeft className="h-5 w-5" /></Button>
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-heading-2 text-foreground truncate">{feast.title}</h1>
+              <h1 className="text-heading-2 font-display text-foreground truncate">{feast.title}</h1>
               <Badge className={`text-[10px] ${statusColors[feast.status || "draft"]}`}>{t(`feasts.status.${feast.status || "draft"}`)}</Badge>
             </div>
             <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
@@ -948,19 +949,20 @@ const FeastDetailPage: React.FC = () => {
         </div>
         {isHost && (
           <div className="flex gap-2 shrink-0">
-            {(feast.status === "active" || feast.status === "paused") && <Button size="sm" onClick={() => navigate(`/feasts/${id}/live`)}><Play className="h-3.5 w-3.5 mr-1.5" />LIVE</Button>}
-            {canStart && <Button size="sm" onClick={() => { updateStatus.mutate("active"); navigate(`/feasts/${id}/live`); }}><Play className="h-3.5 w-3.5 mr-1.5" />{feast.status === "paused" ? t("common.resume") : t("common.start")}</Button>}
+            {(feast.status === "active" || feast.status === "paused") && <Button size="sm" className="shadow-wine" onClick={() => navigate(`/feasts/${id}/live`)}><Play className="h-3.5 w-3.5 mr-1.5" />LIVE</Button>}
+            {canStart && <Button size="sm" variant="wine" className="shadow-wine" onClick={() => { updateStatus.mutate("active"); navigate(`/feasts/${id}/live`); }}><Play className="h-3.5 w-3.5 mr-1.5" />{feast.status === "paused" ? t("common.resume") : t("common.start")}</Button>}
             {canPause && <Button size="sm" variant="outline" onClick={() => updateStatus.mutate("paused")}><Pause className="h-3.5 w-3.5 mr-1.5" />{t("common.pause")}</Button>}
             {(feast.status === "active" || feast.status === "paused") && <Button size="sm" variant="outline" onClick={() => updateStatus.mutate("completed")}><Square className="h-3.5 w-3.5 mr-1.5" />{t("common.complete")}</Button>}
           </div>
         )}
       </div>
 
+      {/* Tabs with improved styling */}
       <Tabs defaultValue="plan">
-        <TabsList className="w-full grid grid-cols-3">
-          <TabsTrigger value="plan">📋 {t("feastDetail.plan")}</TabsTrigger>
-          <TabsTrigger value="guests">👥 {t("feastDetail.guestsTab")}</TabsTrigger>
-          <TabsTrigger value="details">ℹ️ {t("feastDetail.detailsTab")}</TabsTrigger>
+        <TabsList className="w-full grid grid-cols-3 bg-surface-1 p-1 rounded-xl">
+          <TabsTrigger value="plan" className="rounded-lg data-[state=active]:shadow-card data-[state=active]:bg-card">📋 {t("feastDetail.plan")}</TabsTrigger>
+          <TabsTrigger value="guests" className="rounded-lg data-[state=active]:shadow-card data-[state=active]:bg-card">👥 {t("feastDetail.guestsTab")}</TabsTrigger>
+          <TabsTrigger value="details" className="rounded-lg data-[state=active]:shadow-card data-[state=active]:bg-card">ℹ️ {t("feastDetail.detailsTab")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="plan" className="mt-4 space-y-3">
@@ -1102,17 +1104,18 @@ const FeastDetailPage: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="details" className="mt-4 space-y-4">
-          <Card>
+          <Card className="overflow-hidden">
+            <div className="h-0.5 surface-gradient" />
             <CardContent className="p-4 space-y-3">
               {editMode ? (
                 <div className="space-y-3">
                   <div>
                     <label className="text-xs text-muted-foreground mb-1 block">{t("feasts.feastName")}</label>
-                    <Input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} />
+                    <Input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} className="bg-surface-1" />
                   </div>
                   <div>
                     <label className="text-xs text-muted-foreground mb-1 block">{t("feasts.notes")}</label>
-                    <Textarea value={editNotes} onChange={(e) => setEditNotes(e.target.value)} rows={2} />
+                    <Textarea value={editNotes} onChange={(e) => setEditNotes(e.target.value)} rows={2} className="bg-surface-1" />
                   </div>
                   <div className="flex gap-2">
                     <Button size="sm" onClick={() => updateFeast.mutate()} disabled={updateFeast.isPending || !editTitle.trim()}>
@@ -1124,13 +1127,25 @@ const FeastDetailPage: React.FC = () => {
               ) : (
                 <>
                   <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div><p className="text-muted-foreground text-xs">{t("feastDetail.occasionType")}</p><p className="font-medium text-foreground">{t(`feasts.occasion.${feast.occasion_type}`, feast.occasion_type)}</p></div>
-                    <div><p className="text-muted-foreground text-xs">{t("feasts.formality")}</p><p className="font-medium text-foreground">{t(`feasts.formalityOptions.${feast.formality_level || "formal"}`)}</p></div>
-                    <div><p className="text-muted-foreground text-xs">{t("feastDetail.guestCount")}</p><p className="font-medium text-foreground">{feast.guest_count || "—"}</p></div>
-                    <div><p className="text-muted-foreground text-xs">{t("feasts.duration")}</p><p className="font-medium text-foreground">{formatDuration(feast.estimated_duration_minutes)}</p></div>
-                    {feast.region && <div><p className="text-muted-foreground text-xs">{t("profile.region")}</p><p className="font-medium text-foreground">{t(`profile.regions.${feast.region}`, feast.region)}</p></div>}
+                    {[
+                      { label: t("feastDetail.occasionType"), value: t(`feasts.occasion.${feast.occasion_type}`, feast.occasion_type) },
+                      { label: t("feasts.formality"), value: t(`feasts.formalityOptions.${feast.formality_level || "formal"}`) },
+                      { label: t("feastDetail.guestCount"), value: feast.guest_count || "—" },
+                      { label: t("feasts.duration"), value: formatDuration(feast.estimated_duration_minutes) },
+                    ].map((item, i) => (
+                      <div key={i} className="p-2.5 rounded-lg bg-surface-1">
+                        <p className="text-muted-foreground text-caption mb-0.5">{item.label}</p>
+                        <p className="font-medium text-foreground">{item.value}</p>
+                      </div>
+                    ))}
+                    {feast.region && (
+                      <div className="p-2.5 rounded-lg bg-surface-1">
+                        <p className="text-muted-foreground text-caption mb-0.5">{t("profile.region")}</p>
+                        <p className="font-medium text-foreground">{t(`profile.regions.${feast.region}`, feast.region)}</p>
+                      </div>
+                    )}
                   </div>
-                  {feast.notes && <div><p className="text-muted-foreground text-xs mb-1">{t("feasts.notes")}</p><p className="text-sm text-foreground">{feast.notes}</p></div>}
+                  {feast.notes && <div className="p-3 rounded-lg bg-surface-1"><p className="text-muted-foreground text-caption mb-1">{t("feasts.notes")}</p><p className="text-sm text-foreground">{feast.notes}</p></div>}
                   {isHost && (
                     <Button size="sm" variant="outline" onClick={() => { setEditTitle(feast.title); setEditNotes(feast.notes || ""); setEditMode(true); }}>
                       <Pencil className="h-3.5 w-3.5 mr-1.5" />{t("feastDetail.editFeast")}
