@@ -43,6 +43,17 @@ const ProfilePage = () => {
   const [language, setLanguage] = useState<string>(profile?.preferred_language || "ka");
   const [isDirty, setIsDirty] = useState(false);
 
+  // Sync state when profile loads asynchronously
+  React.useEffect(() => {
+    if (profile) {
+      setDisplayName(profile.display_name || "");
+      setRegion(profile.region || "");
+      setExperience(profile.experience_level || "");
+      setLanguage(profile.preferred_language || "ka");
+      setIsDirty(false);
+    }
+  }, [profile]);
+
   const markDirty = () => setIsDirty(true);
 
   const updateProfile = useMutation({
