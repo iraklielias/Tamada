@@ -179,7 +179,7 @@ const ToastsPage = () => {
           {selectedToast && (
             <>
               <DialogHeader>
-                <DialogTitle className="text-lg">{selectedToast.title_ka}</DialogTitle>
+                <DialogTitle className="text-lg">{isEn ? (selectedToast.title_en || selectedToast.title_ka) : selectedToast.title_ka}</DialogTitle>
                 <DialogDescription className="flex items-center gap-2 flex-wrap pt-1">
                   <Badge variant="outline" className="text-xs">
                     {String(t(`feasts.occasion.${selectedToast.occasion_type}`, selectedToast.occasion_type))}
