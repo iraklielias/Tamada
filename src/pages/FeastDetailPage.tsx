@@ -300,8 +300,8 @@ const ToastDetailDialog: React.FC<ToastDetailDialogProps> = ({
                   >
                     <CardContent className="p-2.5 flex items-center gap-2">
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-foreground truncate">{lt.title_ka}</p>
-                        {lt.body_ka && <p className="text-xs text-muted-foreground truncate mt-0.5">{lt.body_ka.substring(0, 80)}…</p>}
+                        <p className="text-sm font-medium text-foreground truncate">{(typeof window !== 'undefined' && localStorage.getItem('tamada-lang') === 'en') ? (lt.title_en || lt.title_ka) : lt.title_ka}</p>
+                        {(lt.body_ka || lt.body_en) && <p className="text-xs text-muted-foreground truncate mt-0.5">{((typeof window !== 'undefined' && localStorage.getItem('tamada-lang') === 'en') ? (lt.body_en || lt.body_ka) : lt.body_ka)?.substring(0, 80)}…</p>}
                       </div>
                       <Check className="h-4 w-4 text-muted-foreground shrink-0" />
                     </CardContent>
