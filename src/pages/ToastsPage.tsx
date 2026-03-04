@@ -166,9 +166,9 @@ const ToastsPage = () => {
       ) : (
         <div className="text-center py-12 text-muted-foreground">
           <Wine className="h-10 w-10 mx-auto mb-3 opacity-40" />
-          <p className="text-body-sm">{t("toasts.noToasts")}</p>
+          <p className="text-body-sm">{t("toasts.noToasts") as string}</p>
           <Button variant="outline" size="sm" className="mt-3" onClick={() => navigate("/ai-generate")}>
-            <Sparkles className="h-4 w-4 mr-1" /> {t("nav.aiGenerator")}
+            <Sparkles className="h-4 w-4 mr-1" /> {t("nav.aiGenerator") as string}
           </Button>
         </div>
       )}
