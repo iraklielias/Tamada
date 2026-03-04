@@ -464,7 +464,7 @@ const AIGeneratePage = () => {
                               </div>
                             )}
                             <div className="text-xs">
-                              <span className="font-medium text-muted-foreground block mb-1">ტექსტი:</span>
+                              <span className="font-medium text-muted-foreground block mb-1">{t("common.textLabel")}:</span>
                               <p className="leading-relaxed whitespace-pre-wrap">
                                 {computeWordDiff(originalResult.body_ka, editedBody).map((seg, i) =>
                                   seg.type === "same" ? (
