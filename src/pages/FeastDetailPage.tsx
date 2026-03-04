@@ -524,6 +524,67 @@ const ToastDetailDialog: React.FC<ToastDetailDialogProps> = ({
                   </Button>
                 )}
               </div>
+
+              {/* Version History toggle + panel */}
+              {versions && versions.length > 0 && (
+                <div className="space-y-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full justify-start text-xs text-muted-foreground"
+                    onClick={() => setShowVersions(!showVersions)}
+                  >
+                    <History className="h-3.5 w-3.5 mr-1.5" />
+                    {t("feastDetail.versionHistory", "ვერსიების ისტორია")} ({versions.length})
+                  </Button>
+
+                  {showVersions && (
+                    <ScrollArea className="max-h-[200px]">
+                      <div className="space-y-2 pr-2">
+                        {versions.map((v: any) => {
+                          const isEnLang = typeof window !== 'undefined' && localStorage.getItem('tamada-lang') === 'en';
+                          const vBody = isEnLang ? (v.body_en || v.body_ka) : v.body_ka;
+                          return (
+                            <Card key={v.id} className="border-dashed">
+                              <CardContent className="p-2.5 space-y-1.5">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-1.5">
+                                    <Badge variant="outline" className="text-[10px]">v{v.version_number}</Badge>
+                                    <span className="text-[10px] text-muted-foreground">
+                                      {new Date(v.created_at).toLocaleDateString()}
+                                    </span>
+                                  </div>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-6 px-2 text-xs"
+                                    onClick={() => restoreVersion.mutate(v)}
+                                    disabled={restoreVersion.isPending}
+                                  >
+                                    <RotateCcw className="h-3 w-3 mr-1" />
+                                    {t("common.restore")}
+                                  </Button>
+                                </div>
+                                <p className="text-xs text-foreground leading-relaxed line-clamp-3">{vBody}</p>
+                                {v.user_instructions && (
+                                  <p className="text-[10px] text-muted-foreground italic">💬 {v.user_instructions}</p>
+                                )}
+                                {v.style_overrides && (
+                                  <div className="flex gap-1 flex-wrap">
+                                    {Object.entries(v.style_overrides as Record<string, string>).map(([k, val]) => (
+                                      <Badge key={k} variant="secondary" className="text-[9px] px-1.5 py-0">{val}</Badge>
+                                    ))}
+                                  </div>
+                                )}
+                              </CardContent>
+                            </Card>
+                          );
+                        })}
+                      </div>
+                    </ScrollArea>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </div>

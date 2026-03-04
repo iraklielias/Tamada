@@ -152,6 +152,8 @@
     "aiConfirmTitle": "Regenerate plan?",
     "aiConfirmDesc": "This will replace all existing toasts with a new AI-generated plan. This action cannot be undone.",
     "aiConfirmAction": "Generate",
+    "versionHistory": "Version History",
+    "versionRestored": "Version restored!",
     "editFeast": "Edit Feast",
     "editFeastDesc": "Update feast details",
     "undoSkip": "Undo skip",
