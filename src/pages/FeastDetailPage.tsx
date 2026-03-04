@@ -183,7 +183,7 @@ const ToastDetailDialog: React.FC<ToastDetailDialogProps> = ({
   const { data: libraryToasts } = useQuery({
     queryKey: ["library-toasts", librarySearch],
     queryFn: async () => {
-      let query = supabase.from("toasts").select("id, title_ka, title_en, body_ka, occasion_type, toast_order_position").eq("is_system", true).order("toast_order_position", { ascending: true }).limit(50);
+      let query = supabase.from("toasts").select("id, title_ka, title_en, body_ka, body_en, occasion_type, toast_order_position").eq("is_system", true).order("toast_order_position", { ascending: true }).limit(50);
       if (librarySearch.trim()) {
         query = query.ilike("title_ka", `%${librarySearch.trim()}%`);
       }
