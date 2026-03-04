@@ -136,7 +136,7 @@ const FavoritesPage = () => {
             <DialogDescription>
               {"occasion_type" in (selectedToast || {}) && selectedToast?.occasion_type && (
                 <Badge variant="outline" className="text-xs mt-1">
-                  {t(`feasts.occasion.${selectedToast.occasion_type}`, selectedToast.occasion_type)}
+                  {String(t(`feasts.occasion.${selectedToast.occasion_type}`, selectedToast.occasion_type))}
                 </Badge>
               )}
             </DialogDescription>
