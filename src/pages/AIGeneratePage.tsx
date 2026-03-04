@@ -532,7 +532,7 @@ const AIGeneratePage = () => {
                       onClick={() => generate.mutate()}
                       disabled={generate.isPending}
                     >
-                      <RefreshCw className="h-3.5 w-3.5 mr-1.5" /> ხელახლა
+                      <RefreshCw className="h-3.5 w-3.5 mr-1.5" /> {t("ai.regenerate")}
                     </Button>
                   </div>
 
