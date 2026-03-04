@@ -608,7 +608,7 @@ const AIGeneratePage = () => {
 
                   {dg.pause_suggestions && dg.pause_suggestions.length > 0 && (
                     <div className="text-xs space-y-1 pt-1">
-                      <span className="font-medium text-foreground">პაუზების ადგილები:</span>
+                      <span className="font-medium text-foreground">{t("ai.delivery.pausePoints")}:</span>
                       <ul className="list-disc list-inside text-muted-foreground space-y-0.5">
                         {dg.pause_suggestions.map((p, i) => (
                           <li key={i}>{p}</li>
