@@ -8,7 +8,8 @@
     "favorites": "Favorites",
     "profile": "Profile",
     "navigation": "Navigation",
-    "ai": "AI"
+    "ai": "AI",
+    "telemetry": "Telemetry"
   },
   "common": {
     "save": "Save",
