@@ -182,7 +182,7 @@ const ToastsPage = () => {
                 <DialogTitle className="text-lg">{selectedToast.title_ka}</DialogTitle>
                 <DialogDescription className="flex items-center gap-2 flex-wrap pt-1">
                   <Badge variant="outline" className="text-xs">
-                    {t(`feasts.occasion.${selectedToast.occasion_type}`, selectedToast.occasion_type)}
+                    {String(t(`feasts.occasion.${selectedToast.occasion_type}`, selectedToast.occasion_type))}
                   </Badge>
                   {selectedToast.formality_level && (
                     <Badge variant="secondary" className="text-xs">
