@@ -187,7 +187,11 @@ const AIHistoryPage = () => {
           <div className="space-y-3 pr-3">
             {logs.map((log, index) => {
               const params = log.input_params as Record<string, unknown> | null;
-              const genParams = (params?.generation_params || params?.feedback_params?.generation_params || params?.edit_delta_params?.generation_params) as Record<string, string> | undefined;
+              const genParams = (
+                (params?.generation_params as Record<string, string>) ||
+                ((params?.feedback_params as Record<string, unknown>)?.generation_params as Record<string, string>) ||
+                ((params?.edit_delta_params as Record<string, unknown>)?.generation_params as Record<string, string>)
+              );
               const typeInfo = typeLabels[log.generation_type] || { label: log.generation_type, icon: <Sparkles className="h-3 w-3" /> };
               const isGeneration = log.generation_type === "generate_toast";
               const isFeedback = log.generation_type === "submit_feedback";
