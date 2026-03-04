@@ -96,14 +96,8 @@ interface GeneratedToast {
   delivery_guidance?: DeliveryGuidance;
 }
 
-const paceLabels: Record<string, string> = {
-  slow: "ნელა — საზეიმო ტემპი",
-  moderate: "ზომიერი ტემპი",
-  conversational: "საუბრისებური ტემპი",
-};
-
-const peakLabels: Record<string, string> = {
-  beginning: "დასაწყისში",
+const paceKeys = ["slow", "moderate", "conversational"] as const;
+const peakKeys = ["beginning", "middle", "end"] as const;
   middle: "შუაში",
   end: "ბოლოს",
 };
