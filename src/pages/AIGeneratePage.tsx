@@ -514,7 +514,7 @@ const AIGeneratePage = () => {
                       </>
                     ) : (
                       <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
-                        <Pencil className="h-3.5 w-3.5 mr-1.5" /> რედაქტირება
+                        <Pencil className="h-3.5 w-3.5 mr-1.5" /> {t("common.edit")}
                       </Button>
                     )}
                     <Button variant="outline" size="sm" onClick={copyToClipboard}>
