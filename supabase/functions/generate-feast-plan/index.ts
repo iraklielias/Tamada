@@ -217,14 +217,27 @@ serve(async (req) => {
 
     let userPrompt: string;
     if (isSingleRegen) {
+      const existingTypes = existing_toast_types?.length
+        ? `- სუფრაში უკვე არსებული სადღეგრძელოები: ${existing_toast_types.join(", ")}`
+        : "";
+      const feastContext = feast_title ? `- სუფრის სახელი: ${feast_title}` : "";
+      const feastNotesCtx = feast_notes ? `- სუფრის შენიშვნები: ${feast_notes}` : "";
+      const guestNamesCtx = guest_names?.length ? `- სტუმრების სახელები: ${guest_names.join(", ")}` : "";
+
       userPrompt = `შექმენი ერთი სრული სადღეგრძელო:
 - სადღეგრძელოს ტიპი: ${single_toast_type}
 - სადღეგრძელოს სათაური: ${single_toast_title || single_toast_type}
 - წვეულების ტიპი: ${occasionKa} (${occasion_type})
 - ფორმალურობა: ${formalityKa}
+- ხანგრძლივობა: ${duration_minutes} წუთი
+- სტუმრების რაოდენობა: ${guest_count || "უცნობი"}
 ${regionKa ? `- რეგიონული სტილი: ${regionKa}` : ""}
+${feastContext}
+${feastNotesCtx}
+${guestNamesCtx}
+${existingTypes}
 
-შექმენი ახალი, განსხვავებული ვერსია ამ სადღეგრძელოსი. სრული ტექსტი (body_ka, body_en) — 3-7 წინადადება.
+შექმენი ახალი, განსხვავებული ვერსია ამ სადღეგრძელოსი რომელიც თემატურად ჰარმონიაშია ამ სუფრის კონტექსტთან. სრული ტექსტი (body_ka, body_en) — 3-7 წინადადება.
 დააბრუნე JSON მასივი ერთი ობიექტით. არანაირი markdown.`;
     } else {
       userPrompt = `შექმენი სუფრის სრული სადღეგრძელოების გეგმა სრული ტექსტებით:

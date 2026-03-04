@@ -192,16 +192,26 @@ const ToastDetailDialog: React.FC<ToastDetailDialogProps> = ({
   const regenSingleToast = useMutation({
     mutationFn: async () => {
       if (!selectedToast || !feast) throw new Error("No toast/feast");
+      // Gather enriched supra context for single regen
+      const allToasts = queryClient.getQueryData<any[]>(["feast-toasts", feastId]) || [];
+      const existingToastTypes = allToasts
+        .filter((ft: any) => ft.id !== selectedToast.id)
+        .map((ft: any) => ft.toast_type);
+      const guestList = queryClient.getQueryData<any[]>(["feast-guests", feastId]) || [];
+      const guestNames = guestList.map((g: any) => g.name);
+
       const { data, error } = await supabase.functions.invoke("generate-feast-plan", {
         body: {
           feast_id: feastId,
           occasion_type: feast.occasion_type,
           formality_level: feast.formality_level,
-          duration_minutes: selectedToast.duration_minutes || 5,
+          duration_minutes: feast.estimated_duration_minutes,
           guest_count: feast.guest_count,
           region: feast.region,
-          guest_names: [],
-          // Signal to generate only 1 toast of this type
+          guest_names: guestNames,
+          feast_title: feast.title,
+          feast_notes: feast.notes,
+          existing_toast_types: existingToastTypes,
           single_toast_type: selectedToast.toast_type,
           single_toast_title: selectedToast.title_ka,
         },
