@@ -153,6 +153,7 @@ const AIGeneratePage = () => {
   const [editedTitle, setEditedTitle] = useState("");
   const [editedBody, setEditedBody] = useState("");
   const [isEditing, setIsEditing] = useState(false);
+  const [showDiff, setShowDiff] = useState(false);
   const [showUpsell, setShowUpsell] = useState(false);
   const [upsellMessage, setUpsellMessage] = useState("");
   const [feedbackGiven, setFeedbackGiven] = useState<"positive" | "negative" | null>(null);
