@@ -7,7 +7,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Wine, Heart, Trash2 } from "lucide-react";
 import EmptyState from "@/components/EmptyState";
@@ -53,62 +57,99 @@ const FavoritesPage = () => {
   });
 
   return (
-    <div className="p-4 md:p-6 max-w-4xl mx-auto space-y-5 pb-24">
-      <div>
-        <h1 className="text-heading-1 text-foreground">{t("favorites.title")}</h1>
-        <p className="text-body-sm text-muted-foreground mt-1">
-          {t("favorites.subtitle")}
-        </p>
+    <div className="p-4 md:p-8 max-w-5xl mx-auto space-y-6 pb-24">
+      {/* Header */}
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="font-display text-heading-1 text-foreground">
+            {t("favorites.title")}
+          </h1>
+          <p className="text-body-sm text-muted-foreground mt-1">
+            {t("favorites.subtitle")}
+          </p>
+        </div>
+        {favorites && favorites.length > 0 && (
+          <Badge variant="secondary" className="text-xs shrink-0 mt-2">
+            {favorites.length} შენახული
+          </Badge>
+        )}
       </div>
 
+      {/* List */}
       {isLoading ? (
-        <div className="grid gap-3">
+        <div className="space-y-3">
           {[1, 2, 3].map((i) => (
-            <Card key={i} className="animate-pulse"><CardContent className="p-4 h-24" /></Card>
+            <div
+              key={i}
+              className="rounded-xl border border-border bg-card p-5 animate-pulse"
+            >
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-xl bg-surface-2" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-3 w-28 bg-surface-2 rounded" />
+                  <div className="h-2 w-full bg-surface-2 rounded" />
+                </div>
+              </div>
+            </div>
           ))}
         </div>
       ) : favorites && favorites.length > 0 ? (
         <AnimatePresence mode="popLayout">
-          <div className="grid gap-3">
-            {favorites.map((fav) => {
+          <div className="space-y-3">
+            {favorites.map((fav, i) => {
               const toastData = fav.toasts || fav.custom_toasts;
               if (!toastData) return null;
               return (
                 <motion.div
                   key={fav.id}
                   layout
-                  initial={{ opacity: 0, y: 8 }}
+                  initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, x: -100 }}
+                  exit={{ opacity: 0, x: -80, transition: { duration: 0.2 } }}
+                  transition={{ delay: i * 0.04 }}
                 >
                   <Card
-                    className="hover:shadow-card-hover transition-shadow cursor-pointer"
+                    className="card-interactive cursor-pointer group"
                     onClick={() => setSelectedToast(toastData)}
                   >
-                    <CardContent className="p-4 flex items-start gap-3">
-                      <div className="h-9 w-9 rounded-lg bg-accent flex items-center justify-center shrink-0 mt-0.5">
-                        <Heart className="h-4 w-4 text-primary fill-primary" />
+                    <CardContent className="p-5 flex items-start gap-3">
+                      <div className="h-10 w-10 rounded-xl bg-wine-light flex items-center justify-center shrink-0 mt-0.5">
+                        <Heart className="h-5 w-5 text-wine fill-wine" />
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
                           <h3 className="font-semibold text-sm text-foreground">
-                            {isEn ? (toastData.title_en || toastData.title_ka) : toastData.title_ka}
+                            {isEn
+                              ? toastData.title_en || toastData.title_ka
+                              : toastData.title_ka}
                           </h3>
-                          {"occasion_type" in toastData && toastData.occasion_type && (
-                            <Badge variant="outline" className="text-[10px]">
-                              {t(`feasts.occasion.${toastData.occasion_type}`, toastData.occasion_type)}
-                            </Badge>
-                          )}
+                          {"occasion_type" in toastData &&
+                            toastData.occasion_type && (
+                              <Badge
+                                variant="outline"
+                                className="text-[10px]"
+                              >
+                                {t(
+                                  `feasts.occasion.${toastData.occasion_type}`,
+                                  toastData.occasion_type
+                                )}
+                              </Badge>
+                            )}
                         </div>
-                        <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-                          {isEn ? (toastData.body_en || toastData.body_ka) : toastData.body_ka}
+                        <p className="text-sm text-muted-foreground mt-1.5 line-clamp-2 leading-relaxed">
+                          {isEn
+                            ? toastData.body_en || toastData.body_ka
+                            : toastData.body_ka}
                         </p>
                       </div>
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="shrink-0 text-muted-foreground hover:text-destructive"
-                        onClick={(e) => { e.stopPropagation(); removeFav.mutate(fav.id); }}
+                        className="shrink-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeFav.mutate(fav.id);
+                        }}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -130,41 +171,68 @@ const FavoritesPage = () => {
       )}
 
       {/* Toast Detail Dialog */}
-      <Dialog open={!!selectedToast} onOpenChange={(open) => !open && setSelectedToast(null)}>
-        <DialogContent className="max-w-md">
+      <Dialog
+        open={!!selectedToast}
+        onOpenChange={(open) => !open && setSelectedToast(null)}
+      >
+        <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{isEn ? (selectedToast?.title_en || selectedToast?.title_ka) : selectedToast?.title_ka || t("favorites.title")}</DialogTitle>
+            <DialogTitle className="font-display text-lg">
+              {isEn
+                ? selectedToast?.title_en || selectedToast?.title_ka
+                : selectedToast?.title_ka || t("favorites.title")}
+            </DialogTitle>
             <DialogDescription>
-              {"occasion_type" in (selectedToast || {}) && selectedToast?.occasion_type && (
-                <Badge variant="outline" className="text-xs mt-1">
-                  {String(t(`feasts.occasion.${selectedToast.occasion_type}`, selectedToast.occasion_type))}
-                </Badge>
-              )}
+              {"occasion_type" in (selectedToast || {}) &&
+                selectedToast?.occasion_type && (
+                  <Badge variant="outline" className="text-xs mt-1">
+                    {String(
+                      t(
+                        `feasts.occasion.${selectedToast.occasion_type}`,
+                        selectedToast.occasion_type
+                      )
+                    )}
+                  </Badge>
+                )}
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-3">
+          <div className="space-y-3 mt-2">
             {(() => {
-              const primaryBody = isEn ? (selectedToast?.body_en || selectedToast?.body_ka) : selectedToast?.body_ka;
-              const secondaryBody = isEn ? selectedToast?.body_ka : selectedToast?.body_en;
+              const primaryBody = isEn
+                ? selectedToast?.body_en || selectedToast?.body_ka
+                : selectedToast?.body_ka;
+              const secondaryBody = isEn
+                ? selectedToast?.body_ka
+                : selectedToast?.body_en;
               return (
                 <>
                   {primaryBody && (
-                    <div>
-                      <p className="text-xs text-muted-foreground mb-1">{isEn ? "🇬🇧" : "🇬🇪"}</p>
-                      <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">{primaryBody}</p>
+                    <div className="p-4 rounded-xl bg-surface-1">
+                      <p className="text-caption text-muted-foreground mb-2 font-semibold">
+                        {isEn ? "🇬🇧 English" : "🇬🇪 ქართულად"}
+                      </p>
+                      <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">
+                        {primaryBody}
+                      </p>
                     </div>
                   )}
                   {secondaryBody && (
-                    <div>
-                      <p className="text-xs text-muted-foreground mb-1">{isEn ? "🇬🇪" : "🇬🇧"}</p>
-                      <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">{secondaryBody}</p>
+                    <div className="p-4 rounded-xl bg-surface-1">
+                      <p className="text-caption text-muted-foreground mb-2 font-semibold">
+                        {isEn ? "🇬🇪 ქართულად" : "🇬🇧 English"}
+                      </p>
+                      <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">
+                        {secondaryBody}
+                      </p>
                     </div>
                   )}
                 </>
               );
             })()}
             {selectedToast?.title_en && (
-              <p className="text-xs text-muted-foreground italic">{selectedToast.title_en}</p>
+              <p className="text-xs text-muted-foreground italic">
+                {selectedToast.title_en}
+              </p>
             )}
           </div>
         </DialogContent>
