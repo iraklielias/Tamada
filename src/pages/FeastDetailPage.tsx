@@ -271,7 +271,7 @@ const ToastDetailDialog: React.FC<ToastDetailDialogProps> = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <span className="h-7 w-7 rounded-full bg-accent flex items-center justify-center text-xs font-bold text-accent-foreground">{selectedToast?.position}</span>
-            {selectedToast?.title_ka}
+            {(typeof window !== 'undefined' && localStorage.getItem('tamada-lang') === 'en') ? (selectedToast?.title_en || selectedToast?.title_ka) : selectedToast?.title_ka}
           </DialogTitle>
           <DialogDescription>
             <Badge variant="outline" className="text-xs mt-1">{String(t(`live.toastType.${selectedToast?.toast_type}`, selectedToast?.toast_type || ""))}</Badge>
