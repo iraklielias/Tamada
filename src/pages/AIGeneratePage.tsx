@@ -319,87 +319,33 @@ const AIGeneratePage = () => {
           {/* Row 1: Occasion + Formality */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="text-caption text-muted-foreground mb-1.5 block">{t("ai.occasionType")}</label>
-              <Select value={occasion} onValueChange={setOccasion}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {occasionKeys.map((o) => (
-                    <SelectItem key={o} value={o}>{t(`feasts.occasion.${o}`)}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <label className="text-caption text-muted-foreground mb-1.5 block">{t("ai.formality")}</label>
-              <Select value={formality} onValueChange={setFormality}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {formalityKeys.map((f) => (
-                    <SelectItem key={f} value={f}>{t(`ai.${f}`)}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div>
-            <label className="text-caption text-muted-foreground mb-1.5 flex items-center gap-1.5">
-              <Palette className="h-3.5 w-3.5" /> {t("ai.tone")}
-            </label>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {toneKeys.map((tk) => (
-                <button
-                  key={tk}
-                  type="button"
-                  onClick={() => setTone(tk)}
-                  className={`flex items-center gap-2 px-3 py-2.5 rounded-lg border text-sm transition-all ${
-                    tone === tk
-                      ? "border-primary bg-primary/10 text-primary font-medium shadow-sm"
-                      : "border-border bg-background text-muted-foreground hover:border-primary/40 hover:bg-accent/50"
-                  }`}
-                >
-                  <span className="text-base">{toneIcons[tk]}</span>
-                  <span className="truncate">{t(`ai.tones.${tk}`)}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-          <div>
-            <label className="text-caption text-muted-foreground mb-1.5 flex items-center gap-1.5">
-              <MapPin className="h-3.5 w-3.5" /> {t("ai.region")}
-            </label>
-            <Select value={region} onValueChange={setRegion}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {regionKeys.map((r) => (
-                  <SelectItem key={r} value={r}>{t(`ai.regions.${r}`)}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+              <label className="text-caption text-muted-foreground mb-1.5 flex items-center gap-1.5">
+                <User className="h-3.5 w-3.5" /> {t("ai.personName")}
+              </label>
+              <Input
+                placeholder={t("ai.personNamePlaceholder")}
                 value={personName}
                 onChange={(e) => setPersonName(e.target.value)}
               />
             </div>
             <div>
               <label className="text-caption text-muted-foreground mb-1.5 block">
-                დეტალები პიროვნებაზე
+                {t("ai.personDetails")}
               </label>
               <Input
-                placeholder="მაგ: ექიმი თელავიდან, ფეხბურთის მოყვარული"
+                placeholder={t("ai.personDetailsPlaceholder")}
                 value={personDetails}
                 onChange={(e) => setPersonDetails(e.target.value)}
               />
             </div>
           </div>
 
-          {/* Row 5: Freeform */}
           <div>
             <label className="text-caption text-muted-foreground mb-1.5 block">
-              თემა / დამატებითი სურვილი (არასავალდებულო)
+              {t("ai.topic")}
             </label>
             <Textarea
-              placeholder="მაგ: სიყვარულზე, ოჯახურ ღირებულებებზე, წარმატებაზე..."
+              placeholder={t("ai.topicPlaceholder")}
               value={topic}
               onChange={(e) => setTopic(e.target.value)}
               rows={2}
