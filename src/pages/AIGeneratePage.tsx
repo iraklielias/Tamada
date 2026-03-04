@@ -575,9 +575,9 @@ const AIGeneratePage = () => {
                       <div className="flex items-start gap-2 p-2 rounded-md bg-background border border-border">
                         <Clock className="h-3.5 w-3.5 text-muted-foreground mt-0.5 shrink-0" />
                         <div>
-                          <span className="font-medium text-foreground block">ტემპი</span>
+                          <span className="font-medium text-foreground block">{t("ai.delivery.pace")}</span>
                           <span className="text-muted-foreground">
-                            {paceLabels[dg.recommended_pace] || dg.recommended_pace}
+                            {t(`ai.delivery.${dg.recommended_pace}`, dg.recommended_pace)}
                           </span>
                         </div>
                       </div>
