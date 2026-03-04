@@ -407,7 +407,7 @@ const AIGeneratePage = () => {
                     {meta?.region_style && meta.region_style !== "general" && (
                       <Badge variant="outline" className="text-[10px]">
                         <MapPin className="h-2.5 w-2.5 mr-0.5" />
-                        {regions.find(r => r.value === meta.region_style)?.label.split(" —")[0] || meta.region_style}
+                        {t(`profile.regions.${meta.region_style}`, meta.region_style)}
                       </Badge>
                     )}
                     <Badge variant="secondary" className="text-[10px]">AI</Badge>
