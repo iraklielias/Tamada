@@ -296,7 +296,7 @@ const FeastDetailPage: React.FC = () => {
       if (feastToasts?.length) {
         await supabase.from("feast_toasts").delete().eq("feast_id", id!);
       }
-      const rows = toasts.map((toast, i) => ({
+      const rows = toasts.map((toast: any, i: number) => ({
         feast_id: id!,
         position: i + 1,
         toast_type: toast.toast_type || "custom",
@@ -306,6 +306,7 @@ const FeastDetailPage: React.FC = () => {
         description_en: toast.description_en || null,
         duration_minutes: toast.duration_minutes || 5,
         status: "pending",
+        assigned_custom_toast_id: toast.assigned_custom_toast_id || null,
       }));
       const { error } = await supabase.from("feast_toasts").insert(rows);
       if (error) throw error;
