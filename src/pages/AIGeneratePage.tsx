@@ -117,6 +117,7 @@ const AIGeneratePage = () => {
         throw new Error(check.message);
       }
 
+      const startTime = performance.now();
       const { data, error } = await supabase.functions.invoke("tamada-ai", {
         body: {
           action: "generate_toast",
@@ -132,8 +133,19 @@ const AIGeneratePage = () => {
           },
         },
       });
+      const latencyMs = Math.round(performance.now() - startTime);
       if (error) throw error;
       if (data.error) throw new Error(data.error);
+
+      // Track latency asynchronously
+      supabase
+        .from("ai_generation_log")
+        .update({ latency_ms: latencyMs })
+        .eq("user_id", user?.id || "")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .then(() => {});
+
       return data as GeneratedToast;
     },
     onSuccess: (data) => {

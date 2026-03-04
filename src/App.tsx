@@ -71,6 +71,7 @@ const App = () => (
                 <Route path="/favorites" element={<FavoritesPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/upgrade" element={<UpgradePage />} />
+                <Route path="/admin/telemetry" element={<AdminTelemetryPage />} />
               </Route>
 
               {/* Join feast via share code (outside app shell but requires auth) */}
