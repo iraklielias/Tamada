@@ -730,7 +730,7 @@ ${fc.skipped_count ? `- გამოტოვებული: ${fc.skipped_count
         generation_type: action,
         input_params: generation_params || refinement_params || feast_context || {},
         output_text: parsed.body_ka || JSON.stringify(parsed),
-        model_used: "google/gemini-2.5-flash",
+        model_used: "google/gemini-3-flash-preview",
       });
     }
 
