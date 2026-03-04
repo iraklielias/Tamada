@@ -538,6 +538,15 @@ ${fc.skipped_count ? `- გამოტოვებული: ${fc.skipped_count
         }
       }
 
+      // Log edit delta to ai_generation_log
+      await supabase.from("ai_generation_log").insert({
+        user_id: userId,
+        generation_type: "analyze_edit_delta",
+        input_params: { edit_pattern: editPattern, length_delta: lengthDelta, occasion: gp.occasion_type },
+        output_text: null,
+        model_used: null,
+      });
+
       return new Response(
         JSON.stringify({ success: true, edit_pattern: editPattern, length_delta: lengthDelta }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
