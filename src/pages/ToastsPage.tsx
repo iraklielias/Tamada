@@ -138,7 +138,7 @@ const ToastsPage = () => {
                               {t(`feasts.occasion.${toast.occasion_type}`, toast.occasion_type)}
                             </Badge>
                           </div>
-                          <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{toast.body_ka}</p>
+                          <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{isEn ? (toast.body_en || toast.body_ka) : toast.body_ka}</p>
                           {toast.tags && toast.tags.length > 0 && (
                             <div className="flex gap-1 mt-2 flex-wrap">
                               {toast.tags.map((tag: string) => (
