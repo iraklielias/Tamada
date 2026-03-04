@@ -143,18 +143,26 @@ const FavoritesPage = () => {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
-            {selectedToast?.body_ka && (
-              <div>
-                <p className="text-xs text-muted-foreground mb-1">🇬🇪</p>
-                <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">{selectedToast.body_ka}</p>
-              </div>
-            )}
-            {selectedToast?.body_en && (
-              <div>
-                <p className="text-xs text-muted-foreground mb-1">🇬🇧</p>
-                <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">{selectedToast.body_en}</p>
-              </div>
-            )}
+            {(() => {
+              const primaryBody = isEn ? (selectedToast?.body_en || selectedToast?.body_ka) : selectedToast?.body_ka;
+              const secondaryBody = isEn ? selectedToast?.body_ka : selectedToast?.body_en;
+              return (
+                <>
+                  {primaryBody && (
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">{isEn ? "🇬🇧" : "🇬🇪"}</p>
+                      <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">{primaryBody}</p>
+                    </div>
+                  )}
+                  {secondaryBody && (
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">{isEn ? "🇬🇪" : "🇬🇧"}</p>
+                      <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">{secondaryBody}</p>
+                    </div>
+                  )}
+                </>
+              );
+            })()}
             {selectedToast?.title_en && (
               <p className="text-xs text-muted-foreground italic">{selectedToast.title_en}</p>
             )}

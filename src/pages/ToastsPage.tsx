@@ -197,21 +197,19 @@ const ToastsPage = () => {
 
               <div className="space-y-4 mt-2">
                 <div>
-                  <p className="text-caption text-muted-foreground mb-1">ქართულად</p>
-                  <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{selectedToast.body_ka}</p>
+                  <p className="text-caption text-muted-foreground mb-1">{isEn ? "English" : "ქართულად"}</p>
+                  <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{isEn ? (selectedToast.body_en || selectedToast.body_ka) : selectedToast.body_ka}</p>
                 </div>
 
-                {selectedToast.body_en && (
+                {isEn ? selectedToast.body_ka && (
+                  <div>
+                    <p className="text-caption text-muted-foreground mb-1">ქართულად</p>
+                    <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{selectedToast.body_ka}</p>
+                  </div>
+                ) : selectedToast.body_en && (
                   <div>
                     <p className="text-caption text-muted-foreground mb-1">English</p>
                     <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{selectedToast.body_en}</p>
-                  </div>
-                )}
-
-                {selectedToast.title_en && (
-                  <div>
-                    <p className="text-caption text-muted-foreground mb-1">Title (EN)</p>
-                    <p className="text-sm text-foreground">{selectedToast.title_en}</p>
                   </div>
                 )}
 

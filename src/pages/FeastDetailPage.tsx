@@ -318,18 +318,29 @@ const ToastDetailDialog: React.FC<ToastDetailDialogProps> = ({
           </div>
         ) : (
           <div className="space-y-3">
-            {bodyKa && (
-              <div className="p-3 rounded-lg bg-accent/50 border border-border">
-                <p className="text-xs text-muted-foreground mb-1.5 font-medium">🇬🇪 {t("feastDetail.fullToast", "სრული სადღეგრძელო")}</p>
-                <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">{bodyKa}</p>
-              </div>
-            )}
-            {bodyEn && (
-              <div className="p-3 rounded-lg bg-muted/50 border border-border">
-                <p className="text-xs text-muted-foreground mb-1.5 font-medium">🇬🇧 English</p>
-                <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">{bodyEn}</p>
-              </div>
-            )}
+            {(() => {
+              const isEnLang = typeof window !== 'undefined' && localStorage.getItem('tamada-lang') === 'en';
+              const primaryBody = isEnLang ? (bodyEn || bodyKa) : bodyKa;
+              const secondaryBody = isEnLang ? bodyKa : bodyEn;
+              const primaryLabel = isEnLang ? "🇬🇧 English" : `🇬🇪 ${t("feastDetail.fullToast", "სრული სადღეგრძელო")}`;
+              const secondaryLabel = isEnLang ? `🇬🇪 ქართულად` : "🇬🇧 English";
+              return (
+                <>
+                  {primaryBody && (
+                    <div className="p-3 rounded-lg bg-accent/50 border border-border">
+                      <p className="text-xs text-muted-foreground mb-1.5 font-medium">{primaryLabel}</p>
+                      <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">{primaryBody}</p>
+                    </div>
+                  )}
+                  {secondaryBody && (
+                    <div className="p-3 rounded-lg bg-muted/50 border border-border">
+                      <p className="text-xs text-muted-foreground mb-1.5 font-medium">{secondaryLabel}</p>
+                      <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">{secondaryBody}</p>
+                    </div>
+                  )}
+                </>
+              );
+            })()}
 
             {/* Prominent Generate Body CTA when no body exists */}
             {!hasBody && isHost && isDraft && (
