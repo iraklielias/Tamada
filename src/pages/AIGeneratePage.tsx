@@ -12,9 +12,57 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Sparkles, Copy, Heart, Loader2, Wine, RefreshCw, Lock, MapPin, User, Clock, Volume2, Hand, ThumbsUp, ThumbsDown, Palette, Pencil, Check } from "lucide-react";
+import { Sparkles, Copy, Heart, Loader2, Wine, RefreshCw, Lock, MapPin, User, Clock, Volume2, Hand, ThumbsUp, ThumbsDown, Palette, Pencil, Check, Eye, EyeOff } from "lucide-react";
 import { toast as sonnerToast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
+
+// Simple word-level diff
+function computeWordDiff(original: string, edited: string): { type: "same" | "added" | "removed"; text: string }[] {
+  const origWords = original.split(/(\s+)/);
+  const editWords = edited.split(/(\s+)/);
+  const result: { type: "same" | "added" | "removed"; text: string }[] = [];
+
+  // LCS-based diff for reasonable lengths
+  const m = origWords.length, n = editWords.length;
+  if (m + n > 2000) {
+    // fallback: show full removal + addition
+    return [
+      { type: "removed", text: original },
+      { type: "added", text: edited },
+    ];
+  }
+
+  const dp: number[][] = Array.from({ length: m + 1 }, () => Array(n + 1).fill(0));
+  for (let i = 1; i <= m; i++)
+    for (let j = 1; j <= n; j++)
+      dp[i][j] = origWords[i - 1] === editWords[j - 1] ? dp[i - 1][j - 1] + 1 : Math.max(dp[i - 1][j], dp[i][j - 1]);
+
+  let i = m, j = n;
+  const ops: { type: "same" | "added" | "removed"; text: string }[] = [];
+  while (i > 0 || j > 0) {
+    if (i > 0 && j > 0 && origWords[i - 1] === editWords[j - 1]) {
+      ops.push({ type: "same", text: origWords[i - 1] });
+      i--; j--;
+    } else if (j > 0 && (i === 0 || dp[i][j - 1] >= dp[i - 1][j])) {
+      ops.push({ type: "added", text: editWords[j - 1] });
+      j--;
+    } else {
+      ops.push({ type: "removed", text: origWords[i - 1] });
+      i--;
+    }
+  }
+  ops.reverse();
+
+  // Merge consecutive same-type segments
+  for (const op of ops) {
+    if (result.length > 0 && result[result.length - 1].type === op.type) {
+      result[result.length - 1].text += op.text;
+    } else {
+      result.push({ ...op });
+    }
+  }
+  return result;
+}
 
 const occasions = [
   { value: "supra", label: "სუფრა" },
