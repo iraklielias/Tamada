@@ -142,7 +142,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { occasion_type, formality_level, duration_minutes, guest_count, region, guest_names, feast_id, single_toast_type, single_toast_title } = await req.json();
+    const { occasion_type, formality_level, duration_minutes, guest_count, region, guest_names, feast_id, single_toast_type, single_toast_title, feast_title, feast_notes, existing_toast_types } = await req.json();
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
@@ -217,14 +217,27 @@ serve(async (req) => {
 
     let userPrompt: string;
     if (isSingleRegen) {
+      const existingTypes = existing_toast_types?.length
+        ? `- სუფრაში უკვე არსებული სადღეგრძელოები: ${existing_toast_types.join(", ")}`
+        : "";
+      const feastContext = feast_title ? `- სუფრის სახელი: ${feast_title}` : "";
+      const feastNotesCtx = feast_notes ? `- სუფრის შენიშვნები: ${feast_notes}` : "";
+      const guestNamesCtx = guest_names?.length ? `- სტუმრების სახელები: ${guest_names.join(", ")}` : "";
+
       userPrompt = `შექმენი ერთი სრული სადღეგრძელო:
 - სადღეგრძელოს ტიპი: ${single_toast_type}
 - სადღეგრძელოს სათაური: ${single_toast_title || single_toast_type}
 - წვეულების ტიპი: ${occasionKa} (${occasion_type})
 - ფორმალურობა: ${formalityKa}
+- ხანგრძლივობა: ${duration_minutes} წუთი
+- სტუმრების რაოდენობა: ${guest_count || "უცნობი"}
 ${regionKa ? `- რეგიონული სტილი: ${regionKa}` : ""}
+${feastContext}
+${feastNotesCtx}
+${guestNamesCtx}
+${existingTypes}
 
-შექმენი ახალი, განსხვავებული ვერსია ამ სადღეგრძელოსი. სრული ტექსტი (body_ka, body_en) — 3-7 წინადადება.
+შექმენი ახალი, განსხვავებული ვერსია ამ სადღეგრძელოსი რომელიც თემატურად ჰარმონიაშია ამ სუფრის კონტექსტთან. სრული ტექსტი (body_ka, body_en) — 3-7 წინადადება.
 დააბრუნე JSON მასივი ერთი ობიექტით. არანაირი markdown.`;
     } else {
       userPrompt = `შექმენი სუფრის სრული სადღეგრძელოების გეგმა სრული ტექსტებით:
