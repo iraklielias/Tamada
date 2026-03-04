@@ -145,7 +145,7 @@ const Dashboard: React.FC = () => {
         ) : recentFeasts && recentFeasts.length > 0 ? (
           <div className="grid gap-3">
             {recentFeasts.map((feast) => (
-              <Card key={feast.id} className="hover:shadow-card-hover transition-shadow cursor-pointer">
+              <Card key={feast.id} className="hover:shadow-card-hover transition-shadow cursor-pointer" onClick={() => navigate(`/feasts/${feast.id}`)}>
                 <CardContent className="p-4 flex items-center justify-between">
                   <div className="flex items-center gap-3 min-w-0">
                     <div className="h-10 w-10 rounded-lg bg-accent flex items-center justify-center shrink-0">
@@ -206,7 +206,7 @@ const Dashboard: React.FC = () => {
         ) : recentToasts && recentToasts.length > 0 ? (
           <div className="grid gap-2">
             {recentToasts.map((toast) => (
-              <Card key={toast.id} className="hover:shadow-card-hover transition-shadow">
+              <Card key={toast.id} className="hover:shadow-card-hover transition-shadow cursor-pointer" onClick={() => navigate("/toasts")}>
                 <CardContent className="p-3 flex items-start gap-3">
                   <div className="h-8 w-8 rounded-lg bg-accent flex items-center justify-center shrink-0 mt-0.5">
                     <Wine className="h-4 w-4 text-accent-foreground" />

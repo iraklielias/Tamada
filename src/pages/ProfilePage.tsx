@@ -1,3 +1,4 @@
+import React from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useRef } from "react";
 import { useMutation } from "@tanstack/react-query";
@@ -29,7 +30,7 @@ const regionOptions = [
 const levelOptions = [
   { value: "beginner", label: "დამწყები" },
   { value: "intermediate", label: "საშუალო" },
-  { value: "advanced", label: "გამოცდილი" },
+  { value: "experienced", label: "გამოცდილი" },
   { value: "master", label: "ოსტატი" },
 ];
 
@@ -42,6 +43,17 @@ const ProfilePage = () => {
   const [experience, setExperience] = useState(profile?.experience_level || "");
   const [language, setLanguage] = useState<string>(profile?.preferred_language || "ka");
   const [isDirty, setIsDirty] = useState(false);
+
+  // Sync state when profile loads asynchronously
+  React.useEffect(() => {
+    if (profile) {
+      setDisplayName(profile.display_name || "");
+      setRegion(profile.region || "");
+      setExperience(profile.experience_level || "");
+      setLanguage(profile.preferred_language || "ka");
+      setIsDirty(false);
+    }
+  }, [profile]);
 
   const markDirty = () => setIsDirty(true);
 

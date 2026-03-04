@@ -1,128 +1,109 @@
 
 
-# Comprehensive Audit: TAMADA Application — Leaks, Gaps, and Missing Pieces
+## TAMADA — Status Audit & Master Execution Plan
 
-After thorough analysis of the entire codebase, here is a systematic breakdown of every issue, categorized by severity and domain.
+### What Is Built
 
----
+| Area | Status |
+|------|--------|
+| Landing page (`/`) | Done — hero, features, how-it-works, footer |
+| Auth (login, signup, callback) | Done — email/password, onAuthStateChange, protected routes |
+| Onboarding wizard (`/onboarding`) | Done — 4 steps: name, region, experience, occasions |
+| App shell (sidebar + bottom nav) | Done — collapsible sidebar, mobile bottom nav, profile footer |
+| Dashboard (`/dashboard`) | Done — greeting, quick actions, recent feasts, popular toasts |
+| Toasts browse (`/toasts`) | Done — search, occasion/formality filters, favorite toggle |
+| AI Generator (`/ai-generate`) | Done — occasion/formality/topic form, edge function, save to favorites |
+| Favorites (`/favorites`) | Done — list system + custom favorites, remove |
+| Library (`/library`) | Done — reads toast_templates (currently 0 rows) |
+| Profile (`/profile`) | Done — read-only display, logout |
+| Edge function: `generate-toast` | Done — Lovable AI gateway, JSON parse |
+| Database schema + RLS | Done — all 11 tables, policies in place |
+| Seed data: toasts | Done — 11 system toasts |
 
-## 1. CRITICAL UX GAPS
+### What Is NOT Built
 
-### 1.1 Toasts Page — No "View More" / Detail View
-**Problem**: `ToastsPage.tsx` shows toast body with `line-clamp-2`, but there is no way to expand or view the full text. Users see truncated content with no interaction to read the complete toast.
-**Fix**: Add a Dialog or expandable card that shows full `body_ka`, `body_en`, delivery context, and occasion metadata when a toast card is clicked.
-
-### 1.2 Dashboard Toast Cards — Not Clickable
-**Problem**: `Dashboard.tsx` displays popular toasts but they are not clickable — no `onClick`, no navigation. Dead-end cards.
-**Fix**: Make toast cards clickable, linking to the Toasts page or opening a detail dialog.
-
-### 1.3 Dashboard Feast Cards — Not Clickable
-**Problem**: Feast cards on the Dashboard have `hover:shadow-card-hover` and `cursor-pointer` but no `onClick` handler. Visual affordance with no action.
-**Fix**: Add `onClick={() => navigate(`/feasts/${feast.id}`)}`.
-
-### 1.4 Occasion Type Badge Shows Raw Enum
-**Problem**: In `ToastsPage.tsx` line 127, the occasion badge displays `{t.occasion_type}` — the raw enum string like `supra` or `wedding` — instead of the translated label.
-**Fix**: Use `t(`feasts.occasion.${t.occasion_type}`)` for translated display.
-
----
-
-## 2. AI & KNOWLEDGE SYSTEM ISSUES
-
-### 2.1 Latency Tracking is Unreliable
-**Problem**: `AIGeneratePage.tsx` lines 194-200 try to update the most recent `ai_generation_log` entry by filtering on `user_id` and ordering — but `.update()` with `.order().limit()` doesn't work as intended in Supabase JS (order/limit are ignored on update). The latency is likely never saved.
-**Fix**: The edge function should record latency directly, or the frontend should get the log ID from the response and update that specific row.
-
-### 2.2 No DB Triggers Active
-**Problem**: The `<db-triggers>` section says "There are no triggers in the database." But the codebase defines trigger functions like `on_favorite_added`, `on_favorite_removed`, `on_custom_toast_saved`, `on_feast_toast_completed`, and `on_ai_generation_logged`. These functions exist but **no triggers are attached**, meaning the entire adaptive learning pipeline via database events is **completely non-functional**.
-**Fix**: Create migration to attach triggers:
-- `user_favorites` AFTER INSERT → `on_favorite_added()`
-- `user_favorites` AFTER DELETE → `on_favorite_removed()`
-- `custom_toasts` AFTER INSERT → `on_custom_toast_saved()`
-- `feast_toasts` AFTER UPDATE → `on_feast_toast_completed()`
-- `ai_generation_log` AFTER INSERT → `on_ai_generation_logged()`
-
-### 2.3 Feedback Signal Never Logged to `ai_generation_log`
-**Problem**: The `submit_feedback` action in `tamada-ai` edge function updates knowledge but doesn't create an `ai_generation_log` entry. The telemetry dashboard therefore has no visibility into feedback volume.
-**Fix**: Log feedback actions to `ai_generation_log` with `generation_type: 'feedback'`.
-
-### 2.4 Edit Delta Analysis Not Logged
-**Problem**: Similarly, `analyze_edit_delta` action doesn't log to `ai_generation_log`, making edit analysis invisible in telemetry.
+| Area | Spec Section |
+|------|-------------|
+| **Feast CRUD** — `/feasts`, `/feasts/new`, `/feasts/:id` | Sections 3, 4, 5 |
+| **Live Feast Mode** — `/feasts/:id/live` with timer, toast progression, alerts, audio | Section 6 |
+| **Alaverdi tracking** — FAB, guest assignment, count increment | Section 6 |
+| **Co-Tamada / Realtime** — share code, join link, Supabase Realtime sync | Section 6 + Realtime spec |
+| **Toast template seeding** — 7 templates with JSONB sequences | Seed Data |
+| **More sample toasts** — spec calls for 50-100; we have 11 | Seed Data |
+| **Feast plan from template** — selecting a template populates feast_toasts | Section 4 |
+| **AI Feast Plan generator** — `generate-feast-plan` edge function | AI Integration |
+| **Pro gating / useProGate hook** — daily limits, feature locks, upsell modals | Free vs Pro |
+| **Upgrade page** (`/upgrade`) — comparison table, Stripe checkout | Section 11 |
+| **Stripe integration** — checkout session, webhook, subscription management | Edge Functions |
+| **Profile editing** — avatar upload, edit name/region/experience/language | Section 10 |
+| **PDF export** — jsPDF feast plan export (Pro) | Section 5 |
+| **i18n** — i18next setup, language toggle, all strings externalized | i18n spec |
+| **Dark mode** | Design System |
+| **Keyboard shortcuts** | Desktop spec |
+| **Additional occasion types** in filters (christening, guest_reception, friendly_gathering) | Throughout |
+| **config.toml** — `generate-toast` function entry with `verify_jwt = false` | Edge function config |
 
 ---
 
-## 3. NAVIGATION & ROUTING LEAKS
+### Master Execution Plan (8 Phases)
 
-### 3.1 Admin Telemetry Has No Access Control
-**Problem**: `/admin/telemetry` is accessible to every authenticated user. No role check, no `is_pro` check, nothing.
-**Fix**: Add role-based access or at minimum restrict to specific user IDs.
+#### Phase 8 — Seed Data & Config Fixes
+- Seed 7 toast templates into `toast_templates` table (wedding, birthday, memorial, guest reception, holiday, corporate, friendly gathering) with proper `toast_sequence` JSONB arrays
+- Add `[functions.generate-toast]` with `verify_jwt = false` to `supabase/config.toml`
+- Add missing occasion types to all filter dropdowns across pages (christening, guest_reception, friendly_gathering, other)
 
-### 3.2 AI History Has No Access Control
-**Problem**: `/ai-history` shows all AI generation logs for the current user, which is fine, but the sidebar navigation exposes both "AI History" and "Telemetry" to all users equally with no distinction.
+#### Phase 9 — Feast CRUD (Core)
+- Create `/feasts` page — list user's feasts with status filter pills + search
+- Create `/feasts/new` page — multi-section form: basic info, details (guest count, formality, region, duration), template selection, optional guest list
+- Create `/feasts/:id` page — tabbed view (Plan, Guests, Details) with toast timeline, guest management, edit metadata, delete
+- Add routes to `App.tsx`, add "სუფრები" nav item to sidebar and bottom nav
+- Dashboard "ახალი სუფრა" quick action routes to `/feasts/new`; feast cards link to `/feasts/:id`
 
-### 3.3 Realtime Not Enabled on Tables
-**Problem**: `LiveFeastPage` subscribes to `postgres_changes` on `feast_toasts`, `feast_guests`, and `feasts`, but there is no migration that runs `ALTER PUBLICATION supabase_realtime ADD TABLE ...` for any of these tables. Realtime subscriptions will silently fail.
-**Fix**: Add migration to enable realtime on `feasts`, `feast_toasts`, `feast_guests`.
+#### Phase 10 — Live Feast Mode
+- Create `/feasts/:id/live` — full-screen immersive view
+- Current toast display with complete text, toast number, type
+- Next-up preview (2 upcoming toasts)
+- Elapsed time tracker + progress bar
+- "Completed" and "Skip" buttons that update `feast_toasts` status
+- Pause/Resume/End feast controls updating `feasts.status`
+- Timer alert system: amber glow + audio chime at configurable intervals before next toast (Web Audio API)
+- Alaverdi FAB: bottom sheet with guest list, tap to assign, increment `alaverdi_count` via `increment_alaverdi` RPC
 
----
+#### Phase 11 — Co-Tamada & Realtime
+- Generate `share_code` on feast, build `/feasts/:id/join/:shareCode` route
+- Add user as `feast_collaborator` on join
+- Subscribe to Supabase Realtime channels for `feast_toasts`, `feast_guests`, `feasts` changes
+- Enable realtime publication on relevant tables (`ALTER PUBLICATION supabase_realtime ADD TABLE ...`)
+- Co-Tamada sees live view with read-only controls (can assign alaverdi, cannot pause/end)
+- Online indicator for connected collaborators
 
-## 4. UPGRADE & MONETIZATION GAPS
+#### Phase 12 — Profile Editing & Pro Gating
+- Make profile page editable: avatar upload (to `avatars` bucket), display name, region, experience, language
+- Build `useProGate` hook checking `is_pro` + `pro_expires_at`
+- Enforce free limits: 5 AI generations/day (server + client), 10 favorites, 1 active feast
+- Add server-side rate limit check in `generate-toast` edge function using `get_daily_ai_count`
+- Soft upsell modals when limits reached; gold lock icons on Pro features
+- Create `/upgrade` page with feature comparison table and pricing
 
-### 4.1 Upgrade Button Does Nothing
-**Problem**: `UpgradePage.tsx` line 81 — the "გააქტიურე PRO" button has no `onClick` handler. It's a dead button.
-**Fix**: Either implement Stripe integration or show a "coming soon" state.
+#### Phase 13 — Stripe & Subscriptions
+- Enable Stripe integration
+- Create `create-checkout-session` edge function
+- Create `stripe-webhook` edge function handling subscription lifecycle events
+- Wire `/upgrade` page CTA to checkout session
+- Add `/profile/subscription` route for managing active subscription
 
-### 4.2 Pro Gating is Client-Side Only
-**Problem**: `useProGate.ts` checks `profile.is_pro` from the client. A user could modify localStorage or the Supabase response to bypass limits. Edge functions should validate Pro status server-side.
+#### Phase 14 — i18n & Polish
+- Set up i18next with `ka` (default) and `en` locales
+- Extract all hardcoded Georgian strings to locale JSON files
+- Add language toggle to sidebar footer and profile settings
+- Persist language choice to `profiles.preferred_language`
+- Toast content displays `_ka` or `_en` based on selected language
 
----
-
-## 5. DATA INTEGRITY ISSUES
-
-### 5.1 Feast Share Code Join is Broken
-**Problem**: `/feasts/join/:shareCode` route exists and `JoinFeastPage` is imported, but there's no mechanism to generate share codes reliably (the mutation in `FeastDetailPage` generates one but it's not shown to work end-to-end, and the join flow inserts into `feast_collaborators` which requires `collaborators_self_insert` policy — but that policy only checks `user_id = auth.uid()` on INSERT, not whether the share code is valid).
-
-### 5.2 Profile State Initialization Race
-**Problem**: `ProfilePage.tsx` initializes form state from `profile` on mount: `useState(profile?.display_name || "")`. If `profile` is null initially and loads later, the form stays empty. There's no `useEffect` to sync when profile arrives.
-
-### 5.3 RLS Policy Type: All Restrictive (DENY by default)
-**Problem**: Every RLS policy is `Permissive: No` (restrictive). In PostgreSQL, restrictive policies require ALL to pass. This means if you have two restrictive SELECT policies on `toasts` (`toasts_select_system` and `toasts_select_own`), a user must satisfy BOTH — they can only see system toasts they also created. This is likely unintended.
-**Fix**: Change policies to PERMISSIVE so they act as OR conditions.
-
----
-
-## 6. MISSING FEATURES (Promised but Not Built)
-
-| Feature | Status |
-|---------|--------|
-| PDF Export | Not implemented (listed in upgrade page) |
-| Stripe Integration | Not implemented (dead button) |
-| Dark Mode Toggle | ThemeProvider exists but no toggle visible in app shell |
-| i18n Language Switching at Runtime | LanguageToggle component exists but not used in app layout |
-| Keyboard Shortcuts | Not implemented |
-| Co-Tamada Realtime Collaboration | Partially — collaborators can be added but no live collaboration UI |
-| `supra` Occasion Type Mismatch | OnboardingWizard uses `corporate`, but AI Generate page uses `business` for the same concept |
-
----
-
-## 7. MINOR UX POLISH ISSUES
-
-- **Bottom nav padding**: `pb-24` added inconsistently — some pages have it (Library, Profile, Upgrade) and others don't (Toasts, Feasts, Dashboard)
-- **Empty state on Toasts page**: Uses Georgian text but no action button to navigate to AI generator
-- **Loading states**: Skeleton cards have no border/background distinction, appearing as invisible rectangles
-- **Profile page**: `levelOptions` uses `"advanced"` but the type system defines `"experienced"` — mismatch at line 33
-
----
-
-## Recommended Priority Order
-
-1. **Attach all database triggers** — the adaptive learning pipeline is entirely broken without them
-2. **Enable realtime on feast tables** — live feast mode doesn't actually work in realtime
-3. **Fix RLS policy types** (restrictive → permissive) — users likely can't see system toasts
-4. **Add toast detail/expand view** — core UX gap
-5. **Fix Dashboard clickability** — dead cards
-6. **Fix latency tracking** — telemetry data is hollow
-7. **Fix occasion badge translation** on Toasts page
-8. **Fix profile form state sync**
-9. **Add access control** to admin pages
-10. **Fix occasion type mismatches** across codebase
+#### Phase 15 — Advanced Features & Hardening
+- `generate-feast-plan` edge function — AI-generated toast schedule based on occasion/duration/formality
+- PDF export of feast plan using jsPDF (Pro only)
+- Dark mode support
+- Keyboard shortcuts in live feast mode (Space = complete, Esc = pause)
+- Additional seed toasts (expand from 11 to 50+)
+- Error boundary components, offline queue for failed writes, optimistic updates throughout
 

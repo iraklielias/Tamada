@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useProGate } from "@/hooks/useProGate";
 import { Star, Check, Zap, ArrowLeft } from "lucide-react";
+import { toast as sonnerToast } from "sonner";
 
 const features = [
   { name: "AI სადღეგრძელო გენერაცია", free: "5/დღეში", pro: "100/დღეში" },
@@ -78,7 +79,7 @@ const UpgradePage: React.FC = () => {
               <p className="text-display text-foreground">₾9.99<span className="text-body text-muted-foreground">/თვეში</span></p>
               <p className="text-body-sm text-muted-foreground mt-1">ან ₾99/წელიწადში (2 თვე უფასო)</p>
             </div>
-            <Button className="w-full gold-gradient text-foreground border-0" size="lg">
+            <Button className="w-full gold-gradient text-foreground border-0" size="lg" onClick={() => sonnerToast.info("მალე დაემატება! Stripe ინტეგრაცია მზადდება.")}>
               <Zap className="h-4 w-4 mr-2" /> გააქტიურე PRO
             </Button>
             <p className="text-caption text-muted-foreground">
