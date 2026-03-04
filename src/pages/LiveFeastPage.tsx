@@ -156,7 +156,17 @@ const LiveFeastPage: React.FC = () => {
   if (feastLoading) return <div className="min-h-screen bg-background flex items-center justify-center"><div className="animate-pulse text-muted-foreground">{t("common.loading")}</div></div>;
   if (!feast) return <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4"><p className="text-muted-foreground">{t("common.notFound")}</p><Button variant="outline" onClick={() => navigate("/feasts")}>{t("common.back")}</Button></div>;
 
-  const allCompleted = totalCount > 0 && completedCount === totalCount;
+  const elapsedMinutes = Math.floor(elapsedSeconds / 60);
+  const completedToastsData = useMemo(() =>
+    (feastToasts || []).filter(t => t.status === "completed").map(t => ({
+      position: t.position,
+      title_ka: t.title_ka,
+      toast_type: t.toast_type,
+    })), [feastToasts]);
+  const skippedCount = feastToasts?.filter(t => t.status === "skipped").length ?? 0;
+  const guestsForAdvisory = useMemo(() =>
+    (guests || []).map(g => ({ name: g.name, alaverdi_count: g.alaverdi_count })), [guests]);
+
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
