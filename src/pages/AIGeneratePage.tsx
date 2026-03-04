@@ -269,8 +269,8 @@ const AIGeneratePage = () => {
   });
 
   const copyToClipboard = () => {
-    if (!result) return;
-    navigator.clipboard.writeText(result.body_ka);
+    if (!editedBody) return;
+    navigator.clipboard.writeText(editedBody);
     sonnerToast.success("დაკოპირდა!");
   };
 
