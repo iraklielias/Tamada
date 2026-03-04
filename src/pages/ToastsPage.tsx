@@ -133,7 +133,7 @@ const ToastsPage = () => {
                         </div>
                         <div className="min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <h3 className="font-semibold text-sm text-foreground">{toast.title_ka}</h3>
+                            <h3 className="font-semibold text-sm text-foreground">{isEn ? (toast.title_en || toast.title_ka) : toast.title_ka}</h3>
                             <Badge variant="outline" className="text-[10px]">
                               {t(`feasts.occasion.${toast.occasion_type}`, toast.occasion_type)}
                             </Badge>
