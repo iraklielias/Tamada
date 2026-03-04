@@ -142,7 +142,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { occasion_type, formality_level, duration_minutes, guest_count, region, guest_names, feast_id } = await req.json();
+    const { occasion_type, formality_level, duration_minutes, guest_count, region, guest_names, feast_id, single_toast_type, single_toast_title } = await req.json();
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
@@ -212,7 +212,22 @@ serve(async (req) => {
     const formalityKa = formalityMapKa[formality_level] || formality_level || "ფორმალური";
     const regionKa = regionMapKa[region] || "";
 
-    const userPrompt = `შექმენი სუფრის სრული სადღეგრძელოების გეგმა სრული ტექსტებით:
+    // Single toast regeneration mode
+    const isSingleRegen = !!single_toast_type;
+
+    let userPrompt: string;
+    if (isSingleRegen) {
+      userPrompt = `შექმენი ერთი სრული სადღეგრძელო:
+- სადღეგრძელოს ტიპი: ${single_toast_type}
+- სადღეგრძელოს სათაური: ${single_toast_title || single_toast_type}
+- წვეულების ტიპი: ${occasionKa} (${occasion_type})
+- ფორმალურობა: ${formalityKa}
+${regionKa ? `- რეგიონული სტილი: ${regionKa}` : ""}
+
+შექმენი ახალი, განსხვავებული ვერსია ამ სადღეგრძელოსი. სრული ტექსტი (body_ka, body_en) — 3-7 წინადადება.
+დააბრუნე JSON მასივი ერთი ობიექტით. არანაირი markdown.`;
+    } else {
+      userPrompt = `შექმენი სუფრის სრული სადღეგრძელოების გეგმა სრული ტექსტებით:
 - წვეულების ტიპი: ${occasionKa} (${occasion_type})
 - ფორმალურობა: ${formalityKa}
 - ხანგრძლივობა: ${duration_minutes} წუთი
@@ -225,6 +240,7 @@ ${guest_names?.length ? `- სტუმრების სახელები:
 დაიწყე ყველაზე მნიშვნელოვანი/სავალდებულო სადღეგრძელოებით.
 
 დააბრუნე ᲛᲮᲝᲚᲝᲓ JSON მასივი. არანაირი markdown, არანაირი ახსნა.`;
+    }
 
     const fullSystemPrompt = FEAST_PLAN_SYSTEM_PROMPT + userContextBlock;
 
@@ -337,8 +353,8 @@ ${guest_names?.length ? `- სტუმრების სახელები:
     if (userId) {
       await supabase.from("ai_generation_log").insert({
         user_id: userId,
-        generation_type: "feast_plan",
-        input_params: { occasion_type, formality_level, duration_minutes, guest_count, region },
+        generation_type: isSingleRegen ? "feast_toast_regen" : "feast_plan",
+        input_params: { occasion_type, formality_level, duration_minutes, guest_count, region, single_toast_type },
         output_text: JSON.stringify(toasts),
         model_used: "google/gemini-3-flash-preview",
         latency_ms: latencyMs,

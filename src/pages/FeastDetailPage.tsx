@@ -23,8 +23,9 @@ import {
 import EmptyState from "@/components/EmptyState";
 import {
   ArrowLeft, Play, Pause, Square, Plus, Trash2, Users, Clock, Wine, Share2, Copy, Link, Sparkles, Loader2, Pencil,
-  GripVertical,
+  GripVertical, BookOpen, RefreshCw, Search, Check,
 } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast as sonnerToast } from "sonner";
 import { motion } from "framer-motion";
 import {
@@ -115,8 +116,25 @@ const SortableToastCard: React.FC<SortableToastCardProps> = ({
   );
 };
 
-// ── Toast Detail Dialog (fetches custom_toast body) ──
-const ToastDetailDialog: React.FC<{ selectedToast: any; onClose: () => void; t: (key: string, fallback?: any) => string }> = ({ selectedToast, onClose, t }) => {
+// ── Toast Detail Dialog (fetches custom_toast body, library browse, single regen) ──
+interface ToastDetailDialogProps {
+  selectedToast: any;
+  onClose: () => void;
+  t: (key: string, fallback?: any) => string;
+  isHost: boolean;
+  isDraft: boolean;
+  feastId: string | undefined;
+  feast: any;
+  onToastUpdated: () => void;
+}
+
+const ToastDetailDialog: React.FC<ToastDetailDialogProps> = ({
+  selectedToast, onClose, t, isHost, isDraft, feastId, feast, onToastUpdated,
+}) => {
+  const [showLibrary, setShowLibrary] = useState(false);
+  const [librarySearch, setLibrarySearch] = useState("");
+  const queryClient = useQueryClient();
+
   const { data: customToastBody } = useQuery({
     queryKey: ["custom-toast-body", selectedToast?.assigned_custom_toast_id],
     queryFn: async () => {
@@ -137,12 +155,87 @@ const ToastDetailDialog: React.FC<{ selectedToast: any; onClose: () => void; t: 
     enabled: !!selectedToast?.assigned_toast_id && !selectedToast?.assigned_custom_toast_id,
   });
 
+  // Library toasts for browsing
+  const { data: libraryToasts } = useQuery({
+    queryKey: ["library-toasts", librarySearch],
+    queryFn: async () => {
+      let query = supabase.from("toasts").select("id, title_ka, title_en, body_ka, occasion_type, toast_order_position").eq("is_system", true).order("toast_order_position", { ascending: true }).limit(50);
+      if (librarySearch.trim()) {
+        query = query.ilike("title_ka", `%${librarySearch.trim()}%`);
+      }
+      const { data, error } = await query;
+      if (error) throw error;
+      return data;
+    },
+    enabled: showLibrary,
+  });
+
+  // Assign library toast
+  const assignLibraryToast = useMutation({
+    mutationFn: async (libraryToastId: string) => {
+      const { error } = await supabase.from("feast_toasts")
+        .update({ assigned_toast_id: libraryToastId, assigned_custom_toast_id: null })
+        .eq("id", selectedToast!.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      sonnerToast.success(t("feastDetail.toastAssigned", "სადღეგრძელო მიბმულია"));
+      setShowLibrary(false);
+      onToastUpdated();
+      // Refresh the body queries
+      queryClient.invalidateQueries({ queryKey: ["assigned-toast-body"] });
+      queryClient.invalidateQueries({ queryKey: ["custom-toast-body"] });
+    },
+  });
+
+  // Regenerate single toast via AI
+  const regenSingleToast = useMutation({
+    mutationFn: async () => {
+      if (!selectedToast || !feast) throw new Error("No toast/feast");
+      const { data, error } = await supabase.functions.invoke("generate-feast-plan", {
+        body: {
+          feast_id: feastId,
+          occasion_type: feast.occasion_type,
+          formality_level: feast.formality_level,
+          duration_minutes: selectedToast.duration_minutes || 5,
+          guest_count: feast.guest_count,
+          region: feast.region,
+          guest_names: [],
+          // Signal to generate only 1 toast of this type
+          single_toast_type: selectedToast.toast_type,
+          single_toast_title: selectedToast.title_ka,
+        },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      const toasts = data.toasts;
+      if (!toasts?.length) throw new Error("No toast generated");
+      const generated = toasts[0];
+
+      // Update the feast_toast to link to the new custom toast
+      if (generated.assigned_custom_toast_id) {
+        const { error: updateErr } = await supabase.from("feast_toasts")
+          .update({ assigned_custom_toast_id: generated.assigned_custom_toast_id, assigned_toast_id: null })
+          .eq("id", selectedToast.id);
+        if (updateErr) throw updateErr;
+      }
+      return generated;
+    },
+    onSuccess: () => {
+      sonnerToast.success(t("feastDetail.toastRegenerated", "სადღეგრძელო განახლდა"));
+      onToastUpdated();
+      queryClient.invalidateQueries({ queryKey: ["custom-toast-body"] });
+      queryClient.invalidateQueries({ queryKey: ["assigned-toast-body"] });
+    },
+    onError: () => sonnerToast.error(t("ai.generateFailed")),
+  });
+
   const bodyKa = customToastBody?.body_ka || assignedToastBody?.body_ka || null;
   const bodyEn = customToastBody?.body_en || assignedToastBody?.body_en || null;
 
   return (
-    <Dialog open={!!selectedToast} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
+    <Dialog open={!!selectedToast} onOpenChange={(open) => { if (!open) { setShowLibrary(false); onClose(); } }}>
+      <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <span className="h-7 w-7 rounded-full bg-accent flex items-center justify-center text-xs font-bold text-accent-foreground">{selectedToast?.position}</span>
@@ -153,44 +246,113 @@ const ToastDetailDialog: React.FC<{ selectedToast: any; onClose: () => void; t: 
             {selectedToast?.duration_minutes && <span className="text-xs text-muted-foreground ml-2">{selectedToast.duration_minutes}m</span>}
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-3">
-          {bodyKa && (
-            <div className="p-3 rounded-lg bg-accent/50 border border-border">
-              <p className="text-xs text-muted-foreground mb-1.5 font-medium">🇬🇪 {t("feastDetail.fullToast", "სრული სადღეგრძელო")}</p>
-              <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">{bodyKa}</p>
+
+        {showLibrary ? (
+          <div className="space-y-3">
+            <div className="relative">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                className="pl-8"
+                placeholder={t("feastDetail.searchLibrary", "ძიება ბიბლიოთეკაში...")}
+                value={librarySearch}
+                onChange={(e) => setLibrarySearch(e.target.value)}
+              />
             </div>
-          )}
-          {bodyEn && (
-            <div className="p-3 rounded-lg bg-muted/50 border border-border">
-              <p className="text-xs text-muted-foreground mb-1.5 font-medium">🇬🇧 English</p>
-              <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">{bodyEn}</p>
-            </div>
-          )}
-          {!bodyKa && selectedToast?.description_ka && (
-            <div>
-              <p className="text-xs text-muted-foreground mb-1">🇬🇪</p>
-              <p className="text-sm text-foreground leading-relaxed">{selectedToast.description_ka}</p>
-            </div>
-          )}
-          {!bodyEn && selectedToast?.description_en && (
-            <div>
-              <p className="text-xs text-muted-foreground mb-1">🇬🇧</p>
-              <p className="text-sm text-foreground leading-relaxed">{selectedToast.description_en}</p>
-            </div>
-          )}
-          {selectedToast?.title_en && (
-            <div>
-              <p className="text-xs text-muted-foreground mb-1">{t("feastDetail.toastDetail")}</p>
-              <p className="text-sm text-foreground">{selectedToast.title_en}</p>
-            </div>
-          )}
-          {selectedToast?.alaverdi_assigned_to && (
-            <Badge variant="secondary">{t("feastDetail.alaverdi")}: {selectedToast.alaverdi_assigned_to}</Badge>
-          )}
-          {selectedToast?.notes && (
-            <p className="text-xs text-muted-foreground">{selectedToast.notes}</p>
-          )}
-        </div>
+            <ScrollArea className="h-[300px]">
+              <div className="space-y-1.5 pr-2">
+                {libraryToasts?.map((lt) => (
+                  <Card
+                    key={lt.id}
+                    className="cursor-pointer hover:bg-accent/50 transition-colors"
+                    onClick={() => assignLibraryToast.mutate(lt.id)}
+                  >
+                    <CardContent className="p-2.5 flex items-center gap-2">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-foreground truncate">{lt.title_ka}</p>
+                        {lt.body_ka && <p className="text-xs text-muted-foreground truncate mt-0.5">{lt.body_ka.substring(0, 80)}…</p>}
+                      </div>
+                      <Check className="h-4 w-4 text-muted-foreground shrink-0" />
+                    </CardContent>
+                  </Card>
+                ))}
+                {libraryToasts?.length === 0 && (
+                  <p className="text-sm text-muted-foreground text-center py-4">{t("common.notFound")}</p>
+                )}
+              </div>
+            </ScrollArea>
+            <Button variant="outline" size="sm" className="w-full" onClick={() => setShowLibrary(false)}>
+              {t("common.back")}
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {bodyKa && (
+              <div className="p-3 rounded-lg bg-accent/50 border border-border">
+                <p className="text-xs text-muted-foreground mb-1.5 font-medium">🇬🇪 {t("feastDetail.fullToast", "სრული სადღეგრძელო")}</p>
+                <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">{bodyKa}</p>
+              </div>
+            )}
+            {bodyEn && (
+              <div className="p-3 rounded-lg bg-muted/50 border border-border">
+                <p className="text-xs text-muted-foreground mb-1.5 font-medium">🇬🇧 English</p>
+                <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">{bodyEn}</p>
+              </div>
+            )}
+            {!bodyKa && selectedToast?.description_ka && (
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">🇬🇪</p>
+                <p className="text-sm text-foreground leading-relaxed">{selectedToast.description_ka}</p>
+              </div>
+            )}
+            {!bodyEn && selectedToast?.description_en && (
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">🇬🇧</p>
+                <p className="text-sm text-foreground leading-relaxed">{selectedToast.description_en}</p>
+              </div>
+            )}
+            {selectedToast?.title_en && (
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">{t("feastDetail.toastDetail")}</p>
+                <p className="text-sm text-foreground">{selectedToast.title_en}</p>
+              </div>
+            )}
+            {selectedToast?.alaverdi_assigned_to && (
+              <Badge variant="secondary">{t("feastDetail.alaverdi")}: {selectedToast.alaverdi_assigned_to}</Badge>
+            )}
+            {selectedToast?.notes && (
+              <p className="text-xs text-muted-foreground">{selectedToast.notes}</p>
+            )}
+
+            {/* Host actions: regen + library assign */}
+            {isHost && isDraft && (
+              <div className="flex gap-2 pt-2 border-t border-border">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => regenSingleToast.mutate()}
+                  disabled={regenSingleToast.isPending}
+                >
+                  {regenSingleToast.isPending ? (
+                    <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                  ) : (
+                    <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
+                  )}
+                  {t("feastDetail.regenerateToast", "ხელახლა გენერაცია")}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => setShowLibrary(true)}
+                >
+                  <BookOpen className="h-3.5 w-3.5 mr-1.5" />
+                  {t("feastDetail.fromLibrary", "ბიბლიოთეკიდან")}
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );
@@ -637,6 +799,11 @@ const FeastDetailPage: React.FC = () => {
         selectedToast={selectedToast}
         onClose={() => setSelectedToast(null)}
         t={t}
+        isHost={isHost}
+        isDraft={isDraft}
+        feastId={id}
+        feast={feast}
+        onToastUpdated={() => queryClient.invalidateQueries({ queryKey: ["feast-toasts", id] })}
       />
 
       {/* AI Plan Confirmation Dialog */}
