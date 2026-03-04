@@ -1,0 +1,1 @@
+ALTER TABLE public.ai_generation_log ADD COLUMN latency_ms integer DEFAULT NULL;

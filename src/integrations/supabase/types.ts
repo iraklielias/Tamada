@@ -20,6 +20,7 @@ export type Database = {
           generation_type: string
           id: string
           input_params: Json
+          latency_ms: number | null
           model_used: string | null
           output_text: string | null
           tokens_used: number | null
@@ -30,6 +31,7 @@ export type Database = {
           generation_type: string
           id?: string
           input_params: Json
+          latency_ms?: number | null
           model_used?: string | null
           output_text?: string | null
           tokens_used?: number | null
@@ -40,6 +42,7 @@ export type Database = {
           generation_type?: string
           id?: string
           input_params?: Json
+          latency_ms?: number | null
           model_used?: string | null
           output_text?: string | null
           tokens_used?: number | null
