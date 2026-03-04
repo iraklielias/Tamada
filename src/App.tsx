@@ -69,6 +69,7 @@ const App = () => (
                 <Route path="/toasts" element={<ToastsPage />} />
                 <Route path="/library" element={<LibraryPage />} />
                 <Route path="/ai-generate" element={<AIGeneratePage />} />
+                <Route path="/ai-history" element={<AIHistoryPage />} />
                 <Route path="/favorites" element={<FavoritesPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/upgrade" element={<UpgradePage />} />

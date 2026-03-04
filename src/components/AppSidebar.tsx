@@ -27,6 +27,7 @@ const mainNav = [
   { titleKey: "nav.toasts", url: "/toasts", icon: Wine },
   { titleKey: "nav.library", url: "/library", icon: BookOpen },
   { titleKey: "nav.aiGenerator", url: "/ai-generate", icon: Sparkles },
+  { titleKey: "nav.aiHistory", url: "/ai-history", icon: History },
   { titleKey: "nav.favorites", url: "/favorites", icon: Star },
   { titleKey: "nav.telemetry", url: "/admin/telemetry", icon: Activity },
 ];

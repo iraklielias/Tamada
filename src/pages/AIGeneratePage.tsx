@@ -591,9 +591,24 @@ const AIGeneratePage = () => {
                 <div className="flex items-center justify-between gap-2 flex-wrap">
                   <div className="flex gap-2 flex-wrap">
                     {isEditing ? (
-                      <Button variant="default" size="sm" onClick={() => setIsEditing(false)}>
-                        <Check className="h-3.5 w-3.5 mr-1.5" /> მზადაა
-                      </Button>
+                      <>
+                        <Button variant="default" size="sm" onClick={() => setIsEditing(false)}>
+                          <Check className="h-3.5 w-3.5 mr-1.5" /> მზადაა
+                        </Button>
+                        {originalResult && (editedTitle !== originalResult.title_ka || editedBody !== originalResult.body_ka) && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setEditedTitle(originalResult.title_ka);
+                              setEditedBody(originalResult.body_ka);
+                              setShowDiff(false);
+                            }}
+                          >
+                            <Undo2 className="h-3.5 w-3.5 mr-1.5" /> აღდგენა
+                          </Button>
+                        )}
+                      </>
                     ) : (
                       <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
                         <Pencil className="h-3.5 w-3.5 mr-1.5" /> რედაქტირება
