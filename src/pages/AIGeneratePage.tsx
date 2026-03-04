@@ -290,7 +290,7 @@ const AIGeneratePage = () => {
   const copyToClipboard = () => {
     if (!editedBody) return;
     navigator.clipboard.writeText(editedBody);
-    sonnerToast.success("დაკოპირდა!");
+    sonnerToast.success(t("common.copied"));
   };
 
   const dg = result?.delivery_guidance;
