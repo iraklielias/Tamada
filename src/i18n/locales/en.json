@@ -183,6 +183,17 @@
     "formal": "Formal",
     "semi_formal": "Semi-formal",
     "casual": "Casual",
+    "tone": "Tone / Style",
+    "tones": {
+      "traditional": "Traditional",
+      "humorous": "Humorous",
+      "emotional": "Emotional",
+      "philosophical": "Philosophical"
+    },
+    "feedback": {
+      "thanks": "Thank you! 👍",
+      "noted": "Noted 📝"
+    },
     "delivery": {
       "title": "Delivery Guide",
       "pace": "Pace",
