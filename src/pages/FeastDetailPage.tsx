@@ -375,48 +375,25 @@ const FeastDetailPage: React.FC = () => {
 
         <TabsContent value="plan" className="mt-4 space-y-3">
           {feastToasts && feastToasts.length > 0 ? (
-            <div className="space-y-2">
-              {feastToasts.map((ft, i) => (
-                <motion.div key={ft.id} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.02 }}>
-                  <Card
-                    className={`transition-shadow cursor-pointer hover:shadow-card-hover ${ft.status === "completed" ? "opacity-60" : ""}`}
-                    onClick={() => setSelectedToast(ft)}
-                  >
-                    <CardContent className="p-3 flex items-center gap-3">
-                      {/* Reorder buttons — only in draft */}
-                      {isHost && isDraft && (
-                        <div className="flex flex-col gap-0.5 shrink-0">
-                          <Button
-                            variant="ghost" size="icon" className="h-6 w-6"
-                            disabled={i === 0 || reorderToast.isPending}
-                            onClick={(e) => { e.stopPropagation(); reorderToast.mutate({ toastId: ft.id, direction: "up" }); }}
-                          ><ChevronUp className="h-3.5 w-3.5" /></Button>
-                          <Button
-                            variant="ghost" size="icon" className="h-6 w-6"
-                            disabled={i === feastToasts.length - 1 || reorderToast.isPending}
-                            onClick={(e) => { e.stopPropagation(); reorderToast.mutate({ toastId: ft.id, direction: "down" }); }}
-                          ><ChevronDown className="h-3.5 w-3.5" /></Button>
-                        </div>
-                      )}
-                      <div className="h-8 w-8 rounded-full bg-accent flex items-center justify-center shrink-0 text-sm font-bold text-accent-foreground">{ft.position}</div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <p className="text-sm font-semibold text-foreground truncate">{ft.title_ka}</p>
-                          <span className="text-xs">{toastStatusIcon[ft.status || "pending"]}</span>
-                        </div>
-                        {ft.description_ka && <p className="text-xs text-muted-foreground truncate mt-0.5">{ft.description_ka}</p>}
-                        <div className="flex items-center gap-2 mt-0.5">
-                          <Badge variant="outline" className="text-[10px]">{t(`live.toastType.${ft.toast_type}`, ft.toast_type)}</Badge>
-                          {ft.duration_minutes && <span className="text-[10px] text-muted-foreground">{ft.duration_minutes}m</span>}
-                          {ft.alaverdi_assigned_to && <Badge variant="secondary" className="text-[10px]">{t("feastDetail.alaverdi")}: {ft.alaverdi_assigned_to}</Badge>}
-                        </div>
-                      </div>
-                      {isHost && <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={(e) => { e.stopPropagation(); removeToast.mutate(ft.id); }}><Trash2 className="h-3.5 w-3.5 text-muted-foreground" /></Button>}
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
-            </div>
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+              <SortableContext items={feastToasts.map((ft) => ft.id)} strategy={verticalListSortingStrategy}>
+                <div className="space-y-2">
+                  {feastToasts.map((ft, i) => (
+                    <SortableToastCard
+                      key={ft.id}
+                      ft={ft}
+                      index={i}
+                      isDraft={isDraft}
+                      isHost={isHost}
+                      toastStatusIcon={toastStatusIcon}
+                      onSelect={setSelectedToast}
+                      onRemove={(toastId) => removeToast.mutate(toastId)}
+                      t={t}
+                    />
+                  ))}
+                </div>
+              </SortableContext>
+            </DndContext>
           ) : (
             <EmptyState icon={<Wine className="h-10 w-10" />} title={t("feastDetail.planEmpty")} description={t("feastDetail.planEmptyDesc")} />
           )}
