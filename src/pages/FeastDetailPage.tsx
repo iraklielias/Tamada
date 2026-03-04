@@ -23,7 +23,7 @@ import {
 import EmptyState from "@/components/EmptyState";
 import {
   ArrowLeft, Play, Pause, Square, Plus, Trash2, Users, Clock, Wine, Share2, Copy, Link, Sparkles, Loader2, Pencil,
-  GripVertical, BookOpen, RefreshCw, Search, Check, ArrowDown,
+  GripVertical, RefreshCw, ArrowDown, Heart,
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast as sonnerToast } from "sonner";
