@@ -50,6 +50,71 @@ const toastStatusIcon: Record<string, string> = {
 
 const guestRoleKeys = ["guest", "mejavare", "honored_guest", "family"];
 
+// ── Sortable Toast Card ──
+interface SortableToastCardProps {
+  ft: any;
+  index: number;
+  isDraft: boolean;
+  isHost: boolean;
+  toastStatusIcon: Record<string, string>;
+  onSelect: (ft: any) => void;
+  onRemove: (id: string) => void;
+  t: (key: string, fallback?: string) => string;
+}
+
+const SortableToastCard: React.FC<SortableToastCardProps> = ({
+  ft, index, isDraft, isHost, toastStatusIcon, onSelect, onRemove, t,
+}) => {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: ft.id });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 50 : undefined,
+    opacity: isDragging ? 0.8 : undefined,
+  };
+
+  return (
+    <motion.div
+      ref={setNodeRef}
+      style={style}
+      initial={{ opacity: 0, x: -8 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: index * 0.02 }}
+    >
+      <Card
+        className={`transition-shadow cursor-pointer hover:shadow-card-hover ${ft.status === "completed" ? "opacity-60" : ""} ${isDragging ? "shadow-lg ring-2 ring-primary/30" : ""}`}
+        onClick={() => onSelect(ft)}
+      >
+        <CardContent className="p-3 flex items-center gap-3">
+          {isHost && isDraft && (
+            <div
+              className="shrink-0 cursor-grab active:cursor-grabbing touch-none text-muted-foreground hover:text-foreground transition-colors"
+              {...attributes}
+              {...listeners}
+            >
+              <GripVertical className="h-4 w-4" />
+            </div>
+          )}
+          <div className="h-8 w-8 rounded-full bg-accent flex items-center justify-center shrink-0 text-sm font-bold text-accent-foreground">{ft.position}</div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <p className="text-sm font-semibold text-foreground truncate">{ft.title_ka}</p>
+              <span className="text-xs">{toastStatusIcon[ft.status || "pending"]}</span>
+            </div>
+            {ft.description_ka && <p className="text-xs text-muted-foreground truncate mt-0.5">{ft.description_ka}</p>}
+            <div className="flex items-center gap-2 mt-0.5">
+              <Badge variant="outline" className="text-[10px]">{t(`live.toastType.${ft.toast_type}`, ft.toast_type)}</Badge>
+              {ft.duration_minutes && <span className="text-[10px] text-muted-foreground">{ft.duration_minutes}m</span>}
+              {ft.alaverdi_assigned_to && <Badge variant="secondary" className="text-[10px]">{t("feastDetail.alaverdi")}: {ft.alaverdi_assigned_to}</Badge>}
+            </div>
+          </div>
+          {isHost && <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={(e) => { e.stopPropagation(); onRemove(ft.id); }}><Trash2 className="h-3.5 w-3.5 text-muted-foreground" /></Button>}
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+};
+
 const FeastDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
