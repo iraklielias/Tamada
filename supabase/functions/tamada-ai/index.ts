@@ -412,20 +412,39 @@ ${r.adjustment_type ? `მოთხოვნილი ცვლილება: 
 }`;
     } else if (action === "feast_advisory") {
       const fc = feast_context || {};
+      const occasionKaAdv = occasionMapKa[fc.occasion_type] || fc.occasion_type || "სუფრა";
+      const completedToastsList = (fc.completed_toasts || []).map((t: any) => `${t.position}. ${t.title_ka} (${t.toast_type})`).join("\n");
+      const guestListStr = (fc.guests || []).map((g: any) => `${g.name} — ალავერდი: ${g.alaverdi_count ?? 0}`).join(", ");
+      
       userMessage = `ვმართავ სუფრას. მიმდინარე მდგომარეობა:
-- წვეულების ტიპი: ${occasionMapKa[fc.occasion_type] || fc.occasion_type || "სუფრა"}
+- წვეულების ტიპი: ${occasionKaAdv}
 - მიმდინარე სადღეგრძელოს ინდექსი: ${fc.current_toast_index ?? 0}
+- სულ სადღეგრძელოები: ${fc.total_toasts ?? 0}
 - გასული დრო (წუთი): ${fc.elapsed_minutes ?? 0}
+- სავარაუდო ხანგრძლივობა (წუთი): ${fc.total_duration_minutes ?? 0}
 - სტუმრების რაოდენობა: ${fc.guest_count ?? "უცნობი"}
+${fc.current_toast_title ? `- მიმდინარე სადღეგრძელო: ${fc.current_toast_title} (${fc.current_toast_type || ""})` : ""}
+${completedToastsList ? `- უკვე შესრულებული:\n${completedToastsList}` : ""}
+${guestListStr ? `- სტუმრები: ${guestListStr}` : ""}
+${fc.skipped_count ? `- გამოტოვებული: ${fc.skipped_count}` : ""}
 
-გთხოვ, მომეცი რჩევა JSON ფორმატში:
+მომეცი 1-2 რჩევა JSON ფორმატში. რჩევა შეიძლება იყოს:
+- pacing: ტემპის შესახებ
+- alaverdi_suggestion: ვის მიეცეს ალავერდი
+- transition: გარდამავალი ფრაზა
+- toast_order: რჩევა რიგითობაზე
+- mood_reading: განწყობის შეფასება
+
+პასუხი მკაცრად JSON:
 {
-  "advisory": {
-    "type": "pacing|toast_order|alaverdi_suggestion|mood_reading|transition",
-    "message_ka": "რჩევა ქართულად",
-    "message_en": "Advisory in English",
-    "priority": "low|medium|high"
-  }
+  "advisories": [
+    {
+      "type": "pacing|alaverdi_suggestion|transition|toast_order|mood_reading",
+      "message_ka": "რჩევა ქართულად",
+      "message_en": "Advisory in English",
+      "priority": "low|medium|high"
+    }
+  ]
 }`;
     } else {
       return new Response(
