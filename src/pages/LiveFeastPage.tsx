@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { toast as sonnerToast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
+import FeastAdvisory from "@/components/FeastAdvisory";
 
 const LiveFeastPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -152,10 +153,20 @@ const LiveFeastPage: React.FC = () => {
     return h > 0 ? `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}` : `${m}:${String(s).padStart(2, "0")}`;
   };
 
+  const elapsedMinutes = Math.floor(elapsedSeconds / 60);
+  const completedToastsData = useMemo(() =>
+    (feastToasts || []).filter(t => t.status === "completed").map(t => ({
+      position: t.position,
+      title_ka: t.title_ka,
+      toast_type: t.toast_type,
+    })), [feastToasts]);
+  const skippedCount = feastToasts?.filter(t => t.status === "skipped").length ?? 0;
+  const guestsForAdvisory = useMemo(() =>
+    (guests || []).map(g => ({ name: g.name, alaverdi_count: g.alaverdi_count })), [guests]);
+  const allCompleted = totalCount > 0 && completedCount === totalCount;
+
   if (feastLoading) return <div className="min-h-screen bg-background flex items-center justify-center"><div className="animate-pulse text-muted-foreground">{t("common.loading")}</div></div>;
   if (!feast) return <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4"><p className="text-muted-foreground">{t("common.notFound")}</p><Button variant="outline" onClick={() => navigate("/feasts")}>{t("common.back")}</Button></div>;
-
-  const allCompleted = totalCount > 0 && completedCount === totalCount;
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -246,6 +257,24 @@ const LiveFeastPage: React.FC = () => {
               </Card>
             ))}
           </div>
+        )}
+
+        {/* AI Advisory */}
+        {isLive && isHost && feast && (
+          <FeastAdvisory
+            feastId={feast.id}
+            occasionType={feast.occasion_type}
+            currentToastIndex={currentToastIndex}
+            totalToasts={totalCount}
+            elapsedMinutes={elapsedMinutes}
+            totalDurationMinutes={feast.estimated_duration_minutes}
+            guestCount={feast.guest_count ?? guests?.length ?? 0}
+            currentToastTitle={currentToast?.title_ka}
+            currentToastType={currentToast?.toast_type}
+            completedToasts={completedToastsData}
+            guests={guestsForAdvisory}
+            skippedCount={skippedCount}
+          />
         )}
       </div>
 
