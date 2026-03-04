@@ -1,109 +1,80 @@
 
 
-## TAMADA — Status Audit & Master Execution Plan
+# Plan: Full Toast Generation in Feast Plan + Supra Experience Audit
 
-### What Is Built
+## What the User Wants
 
-| Area | Status |
-|------|--------|
-| Landing page (`/`) | Done — hero, features, how-it-works, footer |
-| Auth (login, signup, callback) | Done — email/password, onAuthStateChange, protected routes |
-| Onboarding wizard (`/onboarding`) | Done — 4 steps: name, region, experience, occasions |
-| App shell (sidebar + bottom nav) | Done — collapsible sidebar, mobile bottom nav, profile footer |
-| Dashboard (`/dashboard`) | Done — greeting, quick actions, recent feasts, popular toasts |
-| Toasts browse (`/toasts`) | Done — search, occasion/formality filters, favorite toggle |
-| AI Generator (`/ai-generate`) | Done — occasion/formality/topic form, edge function, save to favorites |
-| Favorites (`/favorites`) | Done — list system + custom favorites, remove |
-| Library (`/library`) | Done — reads toast_templates (currently 0 rows) |
-| Profile (`/profile`) | Done — read-only display, logout |
-| Edge function: `generate-toast` | Done — Lovable AI gateway, JSON parse |
-| Database schema + RLS | Done — all 11 tables, policies in place |
-| Seed data: toasts | Done — 11 system toasts |
+When the AI generates a feast plan, each toast slot should also get a **full toast text** (same quality as the standalone AI toast generator) — not just a title and brief description. The tamada should be able to read actual toast content during live mode.
 
-### What Is NOT Built
+## Current State
 
-| Area | Spec Section |
-|------|-------------|
-| **Feast CRUD** — `/feasts`, `/feasts/new`, `/feasts/:id` | Sections 3, 4, 5 |
-| **Live Feast Mode** — `/feasts/:id/live` with timer, toast progression, alerts, audio | Section 6 |
-| **Alaverdi tracking** — FAB, guest assignment, count increment | Section 6 |
-| **Co-Tamada / Realtime** — share code, join link, Supabase Realtime sync | Section 6 + Realtime spec |
-| **Toast template seeding** — 7 templates with JSONB sequences | Seed Data |
-| **More sample toasts** — spec calls for 50-100; we have 11 | Seed Data |
-| **Feast plan from template** — selecting a template populates feast_toasts | Section 4 |
-| **AI Feast Plan generator** — `generate-feast-plan` edge function | AI Integration |
-| **Pro gating / useProGate hook** — daily limits, feature locks, upsell modals | Free vs Pro |
-| **Upgrade page** (`/upgrade`) — comparison table, Stripe checkout | Section 11 |
-| **Stripe integration** — checkout session, webhook, subscription management | Edge Functions |
-| **Profile editing** — avatar upload, edit name/region/experience/language | Section 10 |
-| **PDF export** — jsPDF feast plan export (Pro) | Section 5 |
-| **i18n** — i18next setup, language toggle, all strings externalized | i18n spec |
-| **Dark mode** | Design System |
-| **Keyboard shortcuts** | Desktop spec |
-| **Additional occasion types** in filters (christening, guest_reception, friendly_gathering) | Throughout |
-| **config.toml** — `generate-toast` function entry with `verify_jwt = false` | Edge function config |
+- `generate-feast-plan` returns: `title_ka`, `title_en`, `toast_type`, `duration_minutes`, `description_ka`, `description_en`
+- These are **slot descriptions** ("what to say about"), NOT actual toasts
+- `feast_toasts` table has `description_ka`/`description_en` (short) but no `body_ka`/`body_en` columns
+- The only way to attach full toast text is via `assigned_toast_id` (→ `toasts` table) or `assigned_custom_toast_id` (→ `custom_toasts` table)
+- In live mode, `description_ka` shows as the content — which is just a 1-sentence guidance note
+
+## Architecture Decision
+
+**Use `custom_toasts` as the storage for AI-generated feast toast bodies.** For each toast in the plan:
+1. The edge function generates both the slot metadata AND the full toast body
+2. Insert each full toast into `custom_toasts` (with `is_ai_generated = true`)
+3. Link it to the `feast_toasts` row via `assigned_custom_toast_id`
+
+This avoids schema changes and reuses existing infrastructure. Live mode already fetches `assigned_toast_id` body — we extend it to also fetch `assigned_custom_toast_id`.
+
+## Implementation
+
+### Task 1: Upgrade `generate-feast-plan` Edge Function
+
+Rewrite the prompt to generate full toast texts alongside plan structure. Two-phase approach in one AI call:
+
+- Update the system prompt to require `body_ka` and `body_en` fields in each toast object (full 3-5 sentence toast text, not just description)
+- After parsing the AI response, for each toast:
+  - Insert into `custom_toasts` with `user_id`, `body_ka`, `body_en`, `title_ka`, `occasion_type`, `is_ai_generated = true`
+  - Use the returned `custom_toast_id` as `assigned_custom_toast_id` on the `feast_toasts` row
+- The `description_ka`/`description_en` remain as brief guidance; `body_ka`/`body_en` live in `custom_toasts`
+
+### Task 2: Update FeastDetailPage to Show Full Toast Body
+
+- In the toast detail dialog, fetch `body_ka`/`body_en` from `custom_toasts` when `assigned_custom_toast_id` is set (same pattern as LiveFeastPage does for `assigned_toast_id`)
+- Display the full body text in the dialog
+
+### Task 3: Update LiveFeastPage to Fetch Custom Toast Body
+
+- Extend the `assignedToastBody` query to also handle `assigned_custom_toast_id` → fetch from `custom_toasts` table
+- Display `body_ka`/`body_en` as the delivery content for the tamada
+
+### Task 4: Fix DB Triggers (Still Not Attached)
+
+The trigger functions exist but are NOT connected to tables. Create a migration to:
+- `CREATE TRIGGER IF NOT EXISTS trg_favorite_added AFTER INSERT ON user_favorites FOR EACH ROW EXECUTE FUNCTION on_favorite_added()`
+- Same for `on_favorite_removed`, `on_custom_toast_saved`, `on_feast_toast_completed`, `on_ai_generation_logged`
+
+### Task 5: Fix RLS Policies (Still Restrictive)
+
+The `toasts` SELECT policies and `feast_collaborators` INSERT policies and `feasts_select_by_share_code` are all still RESTRICTIVE. Create a migration to drop and recreate them as PERMISSIVE.
 
 ---
 
-### Master Execution Plan (8 Phases)
+## Remaining Supra Experience Leaks
 
-#### Phase 8 — Seed Data & Config Fixes
-- Seed 7 toast templates into `toast_templates` table (wedding, birthday, memorial, guest reception, holiday, corporate, friendly gathering) with proper `toast_sequence` JSONB arrays
-- Add `[functions.generate-toast]` with `verify_jwt = false` to `supabase/config.toml`
-- Add missing occasion types to all filter dropdowns across pages (christening, guest_reception, friendly_gathering, other)
+| # | Leak | Impact |
+|---|------|--------|
+| 1 | **DB triggers not attached** — adaptive learning pipeline is dead | AI never learns from user behavior |
+| 2 | **RLS still restrictive** — toasts SELECT, collaborator INSERT, feast share_code SELECT | Join feast flow broken, toast browsing broken for non-creators |
+| 3 | **No toast body in feast plan** — only brief descriptions generated | Tamada has no content to read during live feast |
+| 4 | **FeastDetailPage dialog shows no body text** — only description_ka/en | Can't preview actual toast content |
+| 5 | **LiveFeastPage doesn't fetch custom_toast body** — only checks `assigned_toast_id`, not `assigned_custom_toast_id` | AI-generated feast toasts show no body |
+| 6 | **No "regenerate single toast" in feast plan** — can only regenerate entire plan | Can't fix one bad toast without losing all |
+| 7 | **No way to assign existing library toasts to feast slots** — can't browse toasts and link them | Limits reuse of curated content |
+| 8 | **Guest notes not editable** — field exists but no edit UI | Can't add dietary/drinking preferences |
+| 9 | **Alaverdi can't be unassigned** — once set, permanent | Mistakes can't be corrected |
+| 10 | **No feast clone/duplicate** — can't reuse a successful plan | Common use case ignored |
 
-#### Phase 9 — Feast CRUD (Core)
-- Create `/feasts` page — list user's feasts with status filter pills + search
-- Create `/feasts/new` page — multi-section form: basic info, details (guest count, formality, region, duration), template selection, optional guest list
-- Create `/feasts/:id` page — tabbed view (Plan, Guests, Details) with toast timeline, guest management, edit metadata, delete
-- Add routes to `App.tsx`, add "სუფრები" nav item to sidebar and bottom nav
-- Dashboard "ახალი სუფრა" quick action routes to `/feasts/new`; feast cards link to `/feasts/:id`
+## Execution Order
 
-#### Phase 10 — Live Feast Mode
-- Create `/feasts/:id/live` — full-screen immersive view
-- Current toast display with complete text, toast number, type
-- Next-up preview (2 upcoming toasts)
-- Elapsed time tracker + progress bar
-- "Completed" and "Skip" buttons that update `feast_toasts` status
-- Pause/Resume/End feast controls updating `feasts.status`
-- Timer alert system: amber glow + audio chime at configurable intervals before next toast (Web Audio API)
-- Alaverdi FAB: bottom sheet with guest list, tap to assign, increment `alaverdi_count` via `increment_alaverdi` RPC
-
-#### Phase 11 — Co-Tamada & Realtime
-- Generate `share_code` on feast, build `/feasts/:id/join/:shareCode` route
-- Add user as `feast_collaborator` on join
-- Subscribe to Supabase Realtime channels for `feast_toasts`, `feast_guests`, `feasts` changes
-- Enable realtime publication on relevant tables (`ALTER PUBLICATION supabase_realtime ADD TABLE ...`)
-- Co-Tamada sees live view with read-only controls (can assign alaverdi, cannot pause/end)
-- Online indicator for connected collaborators
-
-#### Phase 12 — Profile Editing & Pro Gating
-- Make profile page editable: avatar upload (to `avatars` bucket), display name, region, experience, language
-- Build `useProGate` hook checking `is_pro` + `pro_expires_at`
-- Enforce free limits: 5 AI generations/day (server + client), 10 favorites, 1 active feast
-- Add server-side rate limit check in `generate-toast` edge function using `get_daily_ai_count`
-- Soft upsell modals when limits reached; gold lock icons on Pro features
-- Create `/upgrade` page with feature comparison table and pricing
-
-#### Phase 13 — Stripe & Subscriptions
-- Enable Stripe integration
-- Create `create-checkout-session` edge function
-- Create `stripe-webhook` edge function handling subscription lifecycle events
-- Wire `/upgrade` page CTA to checkout session
-- Add `/profile/subscription` route for managing active subscription
-
-#### Phase 14 — i18n & Polish
-- Set up i18next with `ka` (default) and `en` locales
-- Extract all hardcoded Georgian strings to locale JSON files
-- Add language toggle to sidebar footer and profile settings
-- Persist language choice to `profiles.preferred_language`
-- Toast content displays `_ka` or `_en` based on selected language
-
-#### Phase 15 — Advanced Features & Hardening
-- `generate-feast-plan` edge function — AI-generated toast schedule based on occasion/duration/formality
-- PDF export of feast plan using jsPDF (Pro only)
-- Dark mode support
-- Keyboard shortcuts in live feast mode (Space = complete, Esc = pause)
-- Additional seed toasts (expand from 11 to 50+)
-- Error boundary components, offline queue for failed writes, optimistic updates throughout
+1. **Task 4 + 5** — DB migration (triggers + RLS) — unblocks everything
+2. **Task 1** — Upgrade edge function with full toast generation
+3. **Task 2 + 3** — Update FeastDetailPage + LiveFeastPage to show body text
 
