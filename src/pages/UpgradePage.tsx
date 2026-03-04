@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useProGate } from "@/hooks/useProGate";
 import { Star, Check, Zap, ArrowLeft } from "lucide-react";
+import { toast as sonnerToast } from "sonner";
 
 const features = [
   { name: "AI სადღეგრძელო გენერაცია", free: "5/დღეში", pro: "100/დღეში" },
