@@ -205,7 +205,8 @@ Generate an authentic, culturally rich toast. The body should be substantial (80
     const successCount = results.filter(r => r.status === "success").length;
     return new Response(
       JSON.stringify({
-        message: `Regenerated ${successCount}/${toasts.length} toasts`,
+        message: `Regenerated ${successCount}/${toasts.length} toasts (offset ${offset})`,
+        next_offset: offset + toasts.length,
         results,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
