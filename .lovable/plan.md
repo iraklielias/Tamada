@@ -1,109 +1,87 @@
 
 
-## TAMADA — Status Audit & Master Execution Plan
+# Supra (Feast) Feature Audit — All Leaks and Gaps
 
-### What Is Built
-
-| Area | Status |
-|------|--------|
-| Landing page (`/`) | Done — hero, features, how-it-works, footer |
-| Auth (login, signup, callback) | Done — email/password, onAuthStateChange, protected routes |
-| Onboarding wizard (`/onboarding`) | Done — 4 steps: name, region, experience, occasions |
-| App shell (sidebar + bottom nav) | Done — collapsible sidebar, mobile bottom nav, profile footer |
-| Dashboard (`/dashboard`) | Done — greeting, quick actions, recent feasts, popular toasts |
-| Toasts browse (`/toasts`) | Done — search, occasion/formality filters, favorite toggle |
-| AI Generator (`/ai-generate`) | Done — occasion/formality/topic form, edge function, save to favorites |
-| Favorites (`/favorites`) | Done — list system + custom favorites, remove |
-| Library (`/library`) | Done — reads toast_templates (currently 0 rows) |
-| Profile (`/profile`) | Done — read-only display, logout |
-| Edge function: `generate-toast` | Done — Lovable AI gateway, JSON parse |
-| Database schema + RLS | Done — all 11 tables, policies in place |
-| Seed data: toasts | Done — 11 system toasts |
-
-### What Is NOT Built
-
-| Area | Spec Section |
-|------|-------------|
-| **Feast CRUD** — `/feasts`, `/feasts/new`, `/feasts/:id` | Sections 3, 4, 5 |
-| **Live Feast Mode** — `/feasts/:id/live` with timer, toast progression, alerts, audio | Section 6 |
-| **Alaverdi tracking** — FAB, guest assignment, count increment | Section 6 |
-| **Co-Tamada / Realtime** — share code, join link, Supabase Realtime sync | Section 6 + Realtime spec |
-| **Toast template seeding** — 7 templates with JSONB sequences | Seed Data |
-| **More sample toasts** — spec calls for 50-100; we have 11 | Seed Data |
-| **Feast plan from template** — selecting a template populates feast_toasts | Section 4 |
-| **AI Feast Plan generator** — `generate-feast-plan` edge function | AI Integration |
-| **Pro gating / useProGate hook** — daily limits, feature locks, upsell modals | Free vs Pro |
-| **Upgrade page** (`/upgrade`) — comparison table, Stripe checkout | Section 11 |
-| **Stripe integration** — checkout session, webhook, subscription management | Edge Functions |
-| **Profile editing** — avatar upload, edit name/region/experience/language | Section 10 |
-| **PDF export** — jsPDF feast plan export (Pro) | Section 5 |
-| **i18n** — i18next setup, language toggle, all strings externalized | i18n spec |
-| **Dark mode** | Design System |
-| **Keyboard shortcuts** | Desktop spec |
-| **Additional occasion types** in filters (christening, guest_reception, friendly_gathering) | Throughout |
-| **config.toml** — `generate-toast` function entry with `verify_jwt = false` | Edge function config |
+After reviewing all 5 feast-related pages (`FeastsPage`, `NewFeastPage`, `FeastDetailPage`, `LiveFeastPage`, `JoinFeastPage`), plus `FeastAdvisory`, routing, and RLS policies, here is every issue found.
 
 ---
 
-### Master Execution Plan (8 Phases)
+## CRITICAL: Data Access & Security
 
-#### Phase 8 — Seed Data & Config Fixes
-- Seed 7 toast templates into `toast_templates` table (wedding, birthday, memorial, guest reception, holiday, corporate, friendly gathering) with proper `toast_sequence` JSONB arrays
-- Add `[functions.generate-toast]` with `verify_jwt = false` to `supabase/config.toml`
-- Add missing occasion types to all filter dropdowns across pages (christening, guest_reception, friendly_gathering, other)
+### 1. Join Feast RLS Blocks the Lookup
+`JoinFeastPage` queries `feasts` by `share_code` (line 28-32), but the `feasts_select` RLS policy only allows `host_id = auth.uid() OR is_feast_collaborator(id, auth.uid())`. A new user trying to join has neither — **the lookup will always return null**, making the entire join flow non-functional. Needs a permissive policy allowing SELECT when `share_code` matches.
 
-#### Phase 9 — Feast CRUD (Core)
-- Create `/feasts` page — list user's feasts with status filter pills + search
-- Create `/feasts/new` page — multi-section form: basic info, details (guest count, formality, region, duration), template selection, optional guest list
-- Create `/feasts/:id` page — tabbed view (Plan, Guests, Details) with toast timeline, guest management, edit metadata, delete
-- Add routes to `App.tsx`, add "სუფრები" nav item to sidebar and bottom nav
-- Dashboard "ახალი სუფრა" quick action routes to `/feasts/new`; feast cards link to `/feasts/:id`
+### 2. Collaborator INSERT Policies are Both Restrictive
+`feast_collaborators` has two restrictive INSERT policies: `collaborators_insert` (requires host) and `collaborators_self_insert` (requires `user_id = auth.uid()`). Since both are restrictive, **both must pass**. A joining user satisfies `self_insert` but not `host_insert` — insert fails. The previous migration recreated these but kept them restrictive. Must make them permissive.
 
-#### Phase 10 — Live Feast Mode
-- Create `/feasts/:id/live` — full-screen immersive view
-- Current toast display with complete text, toast number, type
-- Next-up preview (2 upcoming toasts)
-- Elapsed time tracker + progress bar
-- "Completed" and "Skip" buttons that update `feast_toasts` status
-- Pause/Resume/End feast controls updating `feasts.status`
-- Timer alert system: amber glow + audio chime at configurable intervals before next toast (Web Audio API)
-- Alaverdi FAB: bottom sheet with guest list, tap to assign, increment `alaverdi_count` via `increment_alaverdi` RPC
+### 3. No Feast Edit Capability
+`FeastDetailPage` has no way to edit feast details (title, occasion, duration, formality, region, notes). Once created, these are frozen. The only mutation is status changes and delete.
 
-#### Phase 11 — Co-Tamada & Realtime
-- Generate `share_code` on feast, build `/feasts/:id/join/:shareCode` route
-- Add user as `feast_collaborator` on join
-- Subscribe to Supabase Realtime channels for `feast_toasts`, `feast_guests`, `feasts` changes
-- Enable realtime publication on relevant tables (`ALTER PUBLICATION supabase_realtime ADD TABLE ...`)
-- Co-Tamada sees live view with read-only controls (can assign alaverdi, cannot pause/end)
-- Online indicator for connected collaborators
+---
 
-#### Phase 12 — Profile Editing & Pro Gating
-- Make profile page editable: avatar upload (to `avatars` bucket), display name, region, experience, language
-- Build `useProGate` hook checking `is_pro` + `pro_expires_at`
-- Enforce free limits: 5 AI generations/day (server + client), 10 favorites, 1 active feast
-- Add server-side rate limit check in `generate-toast` edge function using `get_daily_ai_count`
-- Soft upsell modals when limits reached; gold lock icons on Pro features
-- Create `/upgrade` page with feature comparison table and pricing
+## UX Gaps
 
-#### Phase 13 — Stripe & Subscriptions
-- Enable Stripe integration
-- Create `create-checkout-session` edge function
-- Create `stripe-webhook` edge function handling subscription lifecycle events
-- Wire `/upgrade` page CTA to checkout session
-- Add `/profile/subscription` route for managing active subscription
+### 4. No Toast Reordering (Drag & Drop)
+Feast toasts have a `position` field but no UI to reorder them. The list is static — users cannot drag toasts up or down to rearrange the sequence.
 
-#### Phase 14 — i18n & Polish
-- Set up i18next with `ka` (default) and `en` locales
-- Extract all hardcoded Georgian strings to locale JSON files
-- Add language toggle to sidebar footer and profile settings
-- Persist language choice to `profiles.preferred_language`
-- Toast content displays `_ka` or `_en` based on selected language
+### 5. No Toast Detail View in Feast Plan
+`FeastDetailPage` toast cards show `title_ka` truncated and `description_ka` truncated (line 238, 241). No way to click/expand to read full description or see `title_en`/`description_en`. Same gap as the main toasts page had.
 
-#### Phase 15 — Advanced Features & Hardening
-- `generate-feast-plan` edge function — AI-generated toast schedule based on occasion/duration/formality
-- PDF export of feast plan using jsPDF (Pro only)
-- Dark mode support
-- Keyboard shortcuts in live feast mode (Space = complete, Esc = pause)
-- Additional seed toasts (expand from 11 to 50+)
-- Error boundary components, offline queue for failed writes, optimistic updates throughout
+### 6. Toast Type Badge Shows Raw Enum
+In `FeastDetailPage` line 243, `{ft.toast_type}` displays raw strings like `mandatory`, `traditional`, `custom` instead of translated labels. Similarly in `LiveFeastPage` line 219, it uses `t('live.toastType.${toast.toast_type}')` which is better, but these translation keys likely don't all exist.
+
+### 7. AI-Generated Plan Replaces Without Confirmation
+`FeastDetailPage` line 156-158: clicking "AI გეგმა" **silently deletes all existing toasts** before inserting AI-generated ones. No confirmation dialog, no undo. Destructive action without warning.
+
+### 8. LiveFeastPage — Timer Drift Issue
+The elapsed timer (line 94) initializes from `actual_start_time` on mount, but doesn't account for paused time. If a feast was paused for 30 minutes, the timer shows 30 minutes more than actual active time.
+
+### 9. LiveFeastPage — No Way to Go Back to a Skipped Toast
+Once a toast is skipped, it's permanently marked `skipped`. No undo button. If the tamada accidentally skips, they can't recover.
+
+### 10. LiveFeastPage — No Toast Content for Delivery
+The live view shows `title_ka` and `description_ka` for the current toast, but if the toast was linked from the `toasts` table (via `assigned_toast_id`), the actual toast body text (`body_ka`) is never fetched. The tamada has no delivery content to read.
+
+### 11. Guest Role is Always "guest"
+`NewFeastPage` line 103 and `FeastDetailPage` line 109 hardcode `role: "guest"` for all added guests. No way to set roles like "mejavare" (co-tamada), "maspindzeli" (host), etc. The field exists in the schema but the UI ignores it.
+
+### 12. No Guest Notes
+`feast_guests` has a `notes` field but the UI never shows or edits it. Useful for "vegetarian", "doesn't drink", etc.
+
+### 13. Alaverdi Assignment UX is Confusing
+In `LiveFeastPage`, assigning alaverdi both sets `alaverdi_assigned_to` on the toast AND increments the guest's `alaverdi_count` in a single click (line 304). But there's no way to unassign or change the assignment. Also, the alaverdi sheet only appears when there are guests — if guests weren't added, the entire alaverdi feature is invisible.
+
+### 14. Feast Status "scheduled" Exists in Colors but Not in Flow
+`FeastsPage` defines `scheduled` in `statusColors` (line 17) but the status filter tabs don't include it, and no code path ever sets a feast to "scheduled" status.
+
+### 15. Completed Feast Has No Summary View
+When a feast is completed, there's no summary/stats screen — total duration, number of toasts completed vs skipped, alaverdi leaderboard, etc. The feast just goes back to the detail page.
+
+### 16. No Feast Duplicate/Clone
+Users can't clone a completed feast as a template for a new one. Common use case: "use same toast plan for next wedding."
+
+---
+
+## Data Integrity
+
+### 17. Region "none" Stored as String
+`NewFeastPage` line 63 stores `region: region || null`, but `region` state starts as `""` (line 37). Selecting "none" from the Select (line 160, value `"none"`) stores the string `"none"` in the database, not null.
+
+### 18. Occasion Type Mismatch: "business" vs "corporate"
+`NewFeastPage` line 19 uses `"business"` in `occasionKeys`, but `OnboardingWizard` uses `"corporate"`. The `OccasionType` type (from types/index.ts) needs to be checked for which is canonical. This causes inconsistent data.
+
+---
+
+## Recommended Fix Priority
+
+1. **Fix RLS for feast join flow** — SELECT policy on `feasts` for share_code lookup + make collaborator INSERT policies permissive (blocks entire co-tamada feature)
+2. **Fix occasion type mismatch** — standardize `business`/`corporate` across all pages
+3. **Fix region "none" storage** — map "none" to null before insert
+4. **Add confirmation dialog before AI plan regeneration** — prevents data loss
+5. **Add toast detail/expand in FeastDetailPage** — same pattern as ToastsPage fix
+6. **Translate toast_type badges** — add missing i18n keys
+7. **Add feast editing** — allow updating title, occasion, duration after creation
+8. **Add completed feast summary** — show stats after feast ends
+9. **Fetch assigned toast body** for live delivery — join `toasts` table when `assigned_toast_id` is set
+10. **Fix timer drift** for paused feasts
 
