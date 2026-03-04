@@ -166,6 +166,23 @@
       "honored_guest": "Honored Guest",
       "family": "Family"
     },
+    "customizeRetry": "Customize & Retry",
+    "retryComment": "Instructions for regeneration...",
+    "toneLabel": "Tone",
+    "lengthLabel": "Length",
+    "styleLabel": "Style",
+    "saveToFavorites": "Save to Favorites",
+    "lengths": {
+      "short": "Short",
+      "medium": "Medium",
+      "long": "Long"
+    },
+    "styles": {
+      "poetic": "Poetic",
+      "storytelling": "Storytelling",
+      "proverbial": "Proverbial",
+      "direct": "Direct"
+    },
     "toastTypes": {
       "god": "Toast to God",
       "homeland": "Toast to Homeland",

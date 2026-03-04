@@ -336,7 +336,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { occasion_type, formality_level, duration_minutes, guest_count, region, guest_names, feast_id, single_toast_type, single_toast_title, feast_title, feast_notes, existing_toast_types } = await req.json();
+    const { occasion_type, formality_level, duration_minutes, guest_count, region, guest_names, feast_id, single_toast_type, single_toast_title, feast_title, feast_notes, existing_toast_types, user_instructions, style_overrides } = await req.json();
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
@@ -419,8 +419,12 @@ ${feastContext}
 ${feastNotesCtx}
 ${guestNamesCtx}
 ${existingTypes}
+${user_instructions ? `- მომხმარებლის მითითება: ${user_instructions}` : ""}
+${style_overrides?.tone ? `- სასურველი ტონი: ${style_overrides.tone}` : ""}
+${style_overrides?.length === "short" ? "- სიგრძე: მოკლე (2-3 წინადადება)" : style_overrides?.length === "long" ? "- სიგრძე: გრძელი (6-8 წინადადება)" : ""}
+${style_overrides?.style ? `- სტილი: ${style_overrides.style}` : ""}
 
-შექმენი ახალი, განსხვავებული ვერსია ამ სადღეგრძელოსი რომელიც თემატურად ჰარმონიაშია ამ სუფრის კონტექსტთან. სრული ტექსტი (body_ka, body_en) — 3-7 წინადადება.
+შექმენი ახალი, განსხვავებული ვერსია ამ სადღეგრძელოსი რომელიც თემატურად ჰარმონიაშია ამ სუფრის კონტექსტთან. სრული ტექსტი (body_ka, body_en).
 დააბრუნე JSON მასივი ერთი ობიექტით. არანაირი markdown.`;
     } else {
       // Dynamic toast count based on occasion + duration
