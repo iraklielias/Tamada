@@ -166,6 +166,23 @@
       "honored_guest": "საპატიო სტუმარი",
       "family": "ოჯახი"
     },
+    "customizeRetry": "მორგება და ხელახლა",
+    "retryComment": "მითითებები გენერაციისთვის...",
+    "toneLabel": "ტონი",
+    "lengthLabel": "სიგრძე",
+    "styleLabel": "სტილი",
+    "saveToFavorites": "ფავორიტებში შენახვა",
+    "lengths": {
+      "short": "მოკლე",
+      "medium": "საშუალო",
+      "long": "გრძელი"
+    },
+    "styles": {
+      "poetic": "პოეტური",
+      "storytelling": "მოთხრობითი",
+      "proverbial": "ანდაზური",
+      "direct": "პირდაპირი"
+    },
     "toastTypes": {
       "god": "ღვთის სადღეგრძელო",
       "homeland": "სამშობლოს სადღეგრძელო",
