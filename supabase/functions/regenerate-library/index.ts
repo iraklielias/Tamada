@@ -55,29 +55,29 @@ serve(async (req) => {
   }
 
   try {
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
+    const { offset = 0, limit = 5 } = await req.json().catch(() => ({ offset: 0, limit: 5 }));
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
-    // Fetch all system toasts
+    // Fetch batch of system toasts
     const { data: toasts, error: fetchErr } = await supabase
       .from("toasts")
       .select("id, title_ka, occasion_type, formality_level, region, toast_order_position, tags")
       .eq("is_system", true)
       .order("occasion_type")
-      .order("toast_order_position", { ascending: true });
+      .order("toast_order_position", { ascending: true })
+      .range(offset, offset + limit - 1);
 
     if (fetchErr) throw fetchErr;
     if (!toasts || toasts.length === 0) {
-      return new Response(JSON.stringify({ message: "No system toasts found" }), {
+      return new Response(JSON.stringify({ message: "No more toasts to process", offset }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    console.log(`Found ${toasts.length} system toasts to regenerate`);
+    console.log(`Processing batch: offset=${offset}, count=${toasts.length}`);
     const results: { id: string; status: string; title?: string }[] = [];
 
     for (let i = 0; i < toasts.length; i++) {
