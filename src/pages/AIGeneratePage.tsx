@@ -366,26 +366,17 @@ const AIGeneratePage = () => {
           </div>
           <div>
             <label className="text-caption text-muted-foreground mb-1.5 flex items-center gap-1.5">
-              <MapPin className="h-3.5 w-3.5" /> რეგიონული სტილი
+              <MapPin className="h-3.5 w-3.5" /> {t("ai.region")}
             </label>
             <Select value={region} onValueChange={setRegion}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                {regions.map((r) => (
-                  <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
+                {regionKeys.map((r) => (
+                  <SelectItem key={r} value={r}>{t(`ai.regions.${r}`)}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
-
-          {/* Row 4: Person */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="text-caption text-muted-foreground mb-1.5 flex items-center gap-1.5">
-                <User className="h-3.5 w-3.5" /> ვისთვის (არასავალდებულო)
-              </label>
-              <Input
-                placeholder="მაგ: გიორგი"
                 value={personName}
                 onChange={(e) => setPersonName(e.target.value)}
               />
