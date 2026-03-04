@@ -198,9 +198,8 @@ Generate an authentic, culturally rich toast. The body should be substantial (80
 
       // Delay between requests to avoid rate limits
       if (i < toasts.length - 1) {
-        await new Promise(r => setTimeout(r, 2000));
+        await new Promise(r => setTimeout(r, 500));
       }
-    }
 
     const successCount = results.filter(r => r.status === "success").length;
     return new Response(
