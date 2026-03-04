@@ -8,15 +8,17 @@ const corsHeaders = {
 };
 
 // ============================================================
-// FEAST PLAN SYSTEM PROMPT — Uses the same cultural depth as tamada-ai
+// FEAST PLAN SYSTEM PROMPT — Full toast bodies + plan structure
 // ============================================================
 
-const FEAST_PLAN_SYSTEM_PROMPT = `TAMADA AI — FEAST PLAN GENERATOR v2.0
+const FEAST_PLAN_SYSTEM_PROMPT = `TAMADA AI — FEAST PLAN GENERATOR v3.0
 
-You are TAMADA AI (თამადა AI) — a culturally authoritative digital feastmaster intelligence specialized in creating FEAST TOAST PLANS. You are NOT generating individual toasts — you are designing the entire ARC of a Georgian supra.
+You are TAMADA AI (თამადა AI) — a culturally authoritative digital feastmaster intelligence. You generate COMPLETE FEAST PLANS with FULL TOAST TEXTS for each slot. Every toast must be ready for the tamada to read aloud.
 
 LAYER 0: MISSION
-Generate a culturally correct, emotionally well-paced sequence of toasts for a Georgian feast. Each toast in the sequence represents a SLOT in the feast — it defines WHAT should be toasted, not the full toast text.
+Generate a culturally correct, emotionally well-paced sequence of toasts for a Georgian feast. For EACH toast you must produce:
+1. The plan slot (title, type, duration)
+2. A FULL TOAST TEXT (body_ka, body_en) — 3-7 sentences, poetic, culturally authentic, ready to deliver
 
 LAYER 1: CANONICAL TOAST TYPE VOCABULARY
 You MUST use ONLY these canonical toast_type values:
@@ -65,26 +67,37 @@ CORPORATE (კორპორატიული/საქმიანი): God (
 FRIENDLY GATHERING (მეგობრული შეკრება): God (optional) → Friends → Memories → Future. Most flexible, can include humor. 5-8 toasts.
 
 LAYER 4: REGIONAL STYLE MODIFIERS
-- KAKHETI: More elaborate descriptions, wine metaphors, vineyard imagery
-- IMERETI: Wittier, shorter descriptions, proverbs
+- KAKHETI: More elaborate, wine metaphors, vineyard imagery
+- IMERETI: Wittier, shorter, proverbs
 - KARTLI: Dignified, historical references
 - RACHA: Heartfelt, mountain imagery
-- SAMEGRELO: Passionate, dramatic descriptions
+- SAMEGRELO: Passionate, dramatic
 - GURIA: Lively, rhythmic, performance-like
 - ADJARA: Welcoming, bridge-building
 - SVANETI: Archaic, ceremonial, ancestral
 - MESKHETI: Dignified, heritage-focused
 
 LAYER 5: FORMALITY CALIBRATION
-- formal: Full traditional sequence, longer duration per toast (5-7 min), honorific language
+- formal: Full traditional sequence, longer duration per toast (5-7 min), honorific language, elaborate body text
 - semi_formal: Core mandatory toasts + flexible additions, moderate duration (3-5 min)
 - casual: Abbreviated sequence, shorter duration (2-4 min), relaxed tone
 
-LAYER 6: ANTI-HALLUCINATION
+LAYER 6: TOAST BODY TEXT REQUIREMENTS
+Each toast body (body_ka, body_en) MUST:
+- Be 3-7 sentences long — enough for a tamada to deliver with gravitas
+- Start with a thematic opening (metaphor, proverb reference, or emotional hook)
+- Build toward a climactic wish or blessing
+- End with "გაუმარჯოს!" (or equivalent for the occasion — NOT for memorial)
+- Be culturally authentic, not generic platitudes
+- Use the regional style modifier if one is specified
+- body_ka must be in proper Georgian
+- body_en must be a faithful English translation, not a separate text
+
+LAYER 7: ANTI-HALLUCINATION
 - NEVER invent Georgian proverbs or cultural rules
 - NEVER use toast_type values outside the canonical list above
 - For memorial feasts, NEVER include celebratory or humorous language
-- Each toast MUST have both Georgian and English titles/descriptions
+- Each toast MUST have both Georgian and English content
 
 RESPONSE FORMAT:
 Return ONLY a JSON array. No markdown, no explanation, no code blocks.
@@ -93,8 +106,10 @@ Each object must have exactly these fields:
 - "title_en": string (English title)
 - "toast_type": string (one of the canonical values above)
 - "duration_minutes": number (3-7)
-- "description_ka": string (brief Georgian description of what to say)
-- "description_en": string (brief English description)`;
+- "description_ka": string (brief 1-sentence Georgian guidance note for tamada)
+- "description_en": string (brief 1-sentence English guidance)
+- "body_ka": string (FULL Georgian toast text, 3-7 sentences, ready to deliver)
+- "body_en": string (FULL English translation of the toast)`;
 
 // Maps for prompt enrichment
 const occasionMapKa: Record<string, string> = {
@@ -127,7 +142,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { occasion_type, formality_level, duration_minutes, guest_count, region, guest_names } = await req.json();
+    const { occasion_type, formality_level, duration_minutes, guest_count, region, guest_names, feast_id } = await req.json();
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
@@ -197,7 +212,7 @@ serve(async (req) => {
     const formalityKa = formalityMapKa[formality_level] || formality_level || "ფორმალური";
     const regionKa = regionMapKa[region] || "";
 
-    const userPrompt = `შექმენი სუფრის სადღეგრძელოების გეგმა:
+    const userPrompt = `შექმენი სუფრის სრული სადღეგრძელოების გეგმა სრული ტექსტებით:
 - წვეულების ტიპი: ${occasionKa} (${occasion_type})
 - ფორმალურობა: ${formalityKa}
 - ხანგრძლივობა: ${duration_minutes} წუთი
@@ -206,7 +221,8 @@ ${regionKa ? `- რეგიონული სტილი: ${regionKa}` : ""}
 ${guest_names?.length ? `- სტუმრების სახელები: ${guest_names.join(", ")}` : ""}
 
 სადღეგრძელოების ჯამური ხანგრძლივობა უნდა ჯდებოდეს ${duration_minutes} წუთში.
-დაიწყე ყველაზე მნიშვნელოვანი/სავალდებულო სადღეგრძელოებით, შემდეგ ტრადიციული, ბოლოს თავისუფალი.
+თითოეული სადღეგრძელო უნდა შეიცავდეს სრულ ტექსტს (body_ka, body_en) — 3-7 წინადადება, მზად წარმოსათქმელად.
+დაიწყე ყველაზე მნიშვნელოვანი/სავალდებულო სადღეგრძელოებით.
 
 დააბრუნე ᲛᲮᲝᲚᲝᲓ JSON მასივი. არანაირი markdown, არანაირი ახსნა.`;
 
@@ -251,7 +267,7 @@ ${guest_names?.length ? `- სტუმრების სახელები:
     const raw = aiData.choices?.[0]?.message?.content || "[]";
 
     // Parse JSON from response
-    let toasts;
+    let toasts: any[];
     try {
       const cleaned = raw.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
       toasts = JSON.parse(cleaned);
@@ -268,6 +284,55 @@ ${guest_names?.length ? `- სტუმრების სახელები:
       }
     }
 
+    // ── Store full toast bodies in custom_toasts and link via assigned_custom_toast_id ──
+    const toastsWithCustomIds: any[] = [];
+
+    if (userId && toasts.length > 0) {
+      for (const toast of toasts) {
+        let customToastId: string | null = null;
+
+        // Only create custom_toast if there's a body
+        if (toast.body_ka) {
+          const { data: customToast, error: ctError } = await supabase
+            .from("custom_toasts")
+            .insert({
+              user_id: userId,
+              body_ka: toast.body_ka,
+              body_en: toast.body_en || null,
+              title_ka: toast.title_ka || null,
+              title_en: toast.title_en || null,
+              occasion_type: occasion_type || "supra",
+              is_ai_generated: true,
+              ai_generation_params: {
+                occasion_type,
+                formality_level,
+                region,
+                toast_type: toast.toast_type,
+                feast_id: feast_id || null,
+              },
+            })
+            .select("id")
+            .single();
+
+          if (!ctError && customToast) {
+            customToastId = customToast.id;
+          } else {
+            console.error("Failed to insert custom_toast:", ctError);
+          }
+        }
+
+        toastsWithCustomIds.push({
+          ...toast,
+          assigned_custom_toast_id: customToastId,
+        });
+      }
+    } else {
+      // No userId — return toasts without custom_toast linking
+      for (const toast of toasts) {
+        toastsWithCustomIds.push({ ...toast, assigned_custom_toast_id: null });
+      }
+    }
+
     // ── Log to ai_generation_log ──
     if (userId) {
       await supabase.from("ai_generation_log").insert({
@@ -281,7 +346,7 @@ ${guest_names?.length ? `- სტუმრების სახელები:
       });
     }
 
-    return new Response(JSON.stringify({ toasts }), {
+    return new Response(JSON.stringify({ toasts: toastsWithCustomIds }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {

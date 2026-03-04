@@ -74,7 +74,18 @@ const LiveFeastPage: React.FC = () => {
       if (error) throw error;
       return data;
     },
-    enabled: !!currentToast?.assigned_toast_id,
+    enabled: !!currentToast?.assigned_toast_id && !currentToast?.assigned_custom_toast_id,
+  });
+
+  // Fetch custom toast body when assigned_custom_toast_id is set (AI-generated feast toasts)
+  const { data: customToastBody } = useQuery({
+    queryKey: ["custom-toast-body", currentToast?.assigned_custom_toast_id],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("custom_toasts").select("body_ka, body_en").eq("id", currentToast!.assigned_custom_toast_id!).single();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!currentToast?.assigned_custom_toast_id,
   });
 
   const isHost = feast?.host_id === user?.id;
@@ -195,9 +206,9 @@ const LiveFeastPage: React.FC = () => {
     (guests || []).map(g => ({ name: g.name, alaverdi_count: g.alaverdi_count })), [guests]);
   const allCompleted = totalCount > 0 && completedCount === totalCount;
 
-  // Get the body text for the current toast (from description or assigned toast)
-  const currentToastBody = currentToast?.description_ka || assignedToastBody?.body_ka || null;
-  const currentToastBodyEn = currentToast?.description_en || assignedToastBody?.body_en || null;
+  // Get the body text for the current toast: custom_toast > assigned_toast > description
+  const currentToastBody = customToastBody?.body_ka || assignedToastBody?.body_ka || currentToast?.description_ka || null;
+  const currentToastBodyEn = customToastBody?.body_en || assignedToastBody?.body_en || currentToast?.description_en || null;
 
   if (feastLoading) return <div className="min-h-screen bg-background flex items-center justify-center"><div className="animate-pulse text-muted-foreground">{t("common.loading")}</div></div>;
   if (!feast) return <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4"><p className="text-muted-foreground">{t("common.notFound")}</p><Button variant="outline" onClick={() => navigate("/feasts")}>{t("common.back")}</Button></div>;
