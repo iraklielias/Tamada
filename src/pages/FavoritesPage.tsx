@@ -101,7 +101,7 @@ const FavoritesPage = () => {
                           )}
                         </div>
                         <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-                          {toastData.body_ka}
+                          {isEn ? (toastData.body_en || toastData.body_ka) : toastData.body_ka}
                         </p>
                       </div>
                       <Button
