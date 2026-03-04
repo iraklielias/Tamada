@@ -799,6 +799,12 @@ const FeastDetailPage: React.FC = () => {
         selectedToast={selectedToast}
         onClose={() => setSelectedToast(null)}
         t={t}
+        isHost={isHost}
+        isDraft={isDraft}
+        feastId={id}
+        feast={feast}
+        onToastUpdated={() => queryClient.invalidateQueries({ queryKey: ["feast-toasts", id] })}
+      />
       />
 
       {/* AI Plan Confirmation Dialog */}
