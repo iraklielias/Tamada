@@ -163,6 +163,12 @@
     "subtitle": "Create unique Georgian toasts with AI assistance",
     "occasionType": "Occasion type",
     "formality": "Formality",
+    "region": "Regional style",
+    "regionGeneral": "General Georgian",
+    "personName": "For whom (optional)",
+    "personNamePlaceholder": "e.g. Giorgi",
+    "personDetails": "Details about person",
+    "personDetailsPlaceholder": "e.g. doctor from Telavi, football fan",
     "topic": "Topic / Additional wish (optional)",
     "topicPlaceholder": "e.g: about love, family values, success...",
     "generate": "Generate Toast",
@@ -176,7 +182,22 @@
     "today": "today",
     "formal": "Formal",
     "semi_formal": "Semi-formal",
-    "casual": "Casual"
+    "casual": "Casual",
+    "delivery": {
+      "title": "Delivery Guide",
+      "pace": "Pace",
+      "emotionalPeak": "Emotional Peak",
+      "raiseGlass": "Raise Glass",
+      "pausePoints": "Pause Points",
+      "estimatedDuration": "Estimated duration",
+      "minutes": "min",
+      "slow": "Slow — ceremonial pace",
+      "moderate": "Moderate pace",
+      "conversational": "Conversational pace",
+      "beginning": "At the beginning",
+      "middle": "In the middle",
+      "end": "At the end"
+    }
   },
   "profile": {
     "title": "Profile",
