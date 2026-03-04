@@ -419,8 +419,12 @@ ${feastContext}
 ${feastNotesCtx}
 ${guestNamesCtx}
 ${existingTypes}
+${user_instructions ? `- მომხმარებლის მითითება: ${user_instructions}` : ""}
+${style_overrides?.tone ? `- სასურველი ტონი: ${style_overrides.tone}` : ""}
+${style_overrides?.length === "short" ? "- სიგრძე: მოკლე (2-3 წინადადება)" : style_overrides?.length === "long" ? "- სიგრძე: გრძელი (6-8 წინადადება)" : ""}
+${style_overrides?.style ? `- სტილი: ${style_overrides.style}` : ""}
 
-შექმენი ახალი, განსხვავებული ვერსია ამ სადღეგრძელოსი რომელიც თემატურად ჰარმონიაშია ამ სუფრის კონტექსტთან. სრული ტექსტი (body_ka, body_en) — 3-7 წინადადება.
+შექმენი ახალი, განსხვავებული ვერსია ამ სადღეგრძელოსი რომელიც თემატურად ჰარმონიაშია ამ სუფრის კონტექსტთან. სრული ტექსტი (body_ka, body_en).
 დააბრუნე JSON მასივი ერთი ობიექტით. არანაირი markdown.`;
     } else {
       // Dynamic toast count based on occasion + duration

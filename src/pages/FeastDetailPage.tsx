@@ -265,8 +265,14 @@ const ToastDetailDialog: React.FC<ToastDetailDialogProps> = ({
   const bodyEn = customToastBody?.body_en || assignedToastBody?.body_en || null;
   const hasBody = !!bodyKa;
 
+  const toneOptions = ["traditional", "humorous", "emotional", "philosophical"];
+  const lengthOptions = ["short", "medium", "long"];
+  const styleOptions = ["poetic", "storytelling", "proverbial", "direct"];
+
+  const hasAssignment = !!selectedToast?.assigned_toast_id || !!selectedToast?.assigned_custom_toast_id;
+
   return (
-    <Dialog open={!!selectedToast} onOpenChange={(open) => { if (!open) { setShowLibrary(false); onClose(); } }}>
+    <Dialog open={!!selectedToast} onOpenChange={(open) => { if (!open) onClose(); }}>
       <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -279,125 +285,138 @@ const ToastDetailDialog: React.FC<ToastDetailDialogProps> = ({
           </DialogDescription>
         </DialogHeader>
 
-        {showLibrary ? (
-          <div className="space-y-3">
-            <div className="relative">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                className="pl-8"
-                placeholder={t("feastDetail.searchLibrary", "ძიება ბიბლიოთეკაში...")}
-                value={librarySearch}
-                onChange={(e) => setLibrarySearch(e.target.value)}
-              />
-            </div>
-            <ScrollArea className="h-[300px]">
-              <div className="space-y-1.5 pr-2">
-                {libraryToasts?.map((lt) => (
-                  <Card
-                    key={lt.id}
-                    className="cursor-pointer hover:bg-accent/50 transition-colors"
-                    onClick={() => assignLibraryToast.mutate(lt.id)}
-                  >
-                    <CardContent className="p-2.5 flex items-center gap-2">
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-foreground truncate">{(typeof window !== 'undefined' && localStorage.getItem('tamada-lang') === 'en') ? (lt.title_en || lt.title_ka) : lt.title_ka}</p>
-                        {(lt.body_ka || lt.body_en) && <p className="text-xs text-muted-foreground truncate mt-0.5">{((typeof window !== 'undefined' && localStorage.getItem('tamada-lang') === 'en') ? (lt.body_en || lt.body_ka) : lt.body_ka)?.substring(0, 80)}…</p>}
-                      </div>
-                      <Check className="h-4 w-4 text-muted-foreground shrink-0" />
-                    </CardContent>
-                  </Card>
-                ))}
-                {libraryToasts?.length === 0 && (
-                  <p className="text-sm text-muted-foreground text-center py-4">{t("common.notFound")}</p>
-                )}
-              </div>
-            </ScrollArea>
-            <Button variant="outline" size="sm" className="w-full" onClick={() => setShowLibrary(false)}>
-              {t("common.back")}
-            </Button>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {(() => {
-              const isEnLang = typeof window !== 'undefined' && localStorage.getItem('tamada-lang') === 'en';
-              const primaryBody = isEnLang ? (bodyEn || bodyKa) : bodyKa;
-              const secondaryBody = isEnLang ? bodyKa : bodyEn;
-              const primaryLabel = isEnLang ? "🇬🇧 English" : `🇬🇪 ${t("feastDetail.fullToast", "სრული სადღეგრძელო")}`;
-              const secondaryLabel = isEnLang ? `🇬🇪 ქართულად` : "🇬🇧 English";
-              return (
-                <>
-                  {primaryBody && (
-                    <div className="p-3 rounded-lg bg-accent/50 border border-border">
-                      <p className="text-xs text-muted-foreground mb-1.5 font-medium">{primaryLabel}</p>
-                      <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">{primaryBody}</p>
-                    </div>
-                  )}
-                  {secondaryBody && (
-                    <div className="p-3 rounded-lg bg-muted/50 border border-border">
-                      <p className="text-xs text-muted-foreground mb-1.5 font-medium">{secondaryLabel}</p>
-                      <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">{secondaryBody}</p>
-                    </div>
-                  )}
-                </>
-              );
-            })()}
-
-            {/* Prominent Generate Body CTA when no body exists */}
-            {!hasBody && isHost && isDraft && (
-              <Card className="border-2 border-dashed border-primary/30 bg-primary/5">
-                <CardContent className="p-4 flex flex-col items-center text-center space-y-3">
-                  <Sparkles className="h-6 w-6 text-primary" />
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">{t("feastDetail.noBodyYet", "ტექსტი ჯერ არ არის შექმნილი")}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">{t("feastDetail.generateBodyDesc", "AI შექმნის სრულ სადღეგრძელოს ტექსტს ამ სლოტისთვის")}</p>
+        <div className="space-y-3">
+          {(() => {
+            const isEnLang = typeof window !== 'undefined' && localStorage.getItem('tamada-lang') === 'en';
+            const primaryBody = isEnLang ? (bodyEn || bodyKa) : bodyKa;
+            const secondaryBody = isEnLang ? bodyKa : bodyEn;
+            const primaryLabel = isEnLang ? "🇬🇧 English" : `🇬🇪 ${t("feastDetail.fullToast", "სრული სადღეგრძელო")}`;
+            const secondaryLabel = isEnLang ? `🇬🇪 ქართულად` : "🇬🇧 English";
+            return (
+              <>
+                {primaryBody && (
+                  <div className="p-3 rounded-lg bg-accent/50 border border-border">
+                    <p className="text-xs text-muted-foreground mb-1.5 font-medium">{primaryLabel}</p>
+                    <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">{primaryBody}</p>
                   </div>
-                  <Button
-                    variant="wine"
-                    size="sm"
-                    onClick={() => regenSingleToast.mutate()}
-                    disabled={regenSingleToast.isPending}
-                  >
-                    {regenSingleToast.isPending ? (
-                      <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
-                    ) : (
-                      <Sparkles className="h-3.5 w-3.5 mr-1.5" />
-                    )}
-                    {t("feastDetail.generateBody", "ტექსტის გენერაცია")}
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
+                )}
+                {secondaryBody && (
+                  <div className="p-3 rounded-lg bg-muted/50 border border-border">
+                    <p className="text-xs text-muted-foreground mb-1.5 font-medium">{secondaryLabel}</p>
+                    <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">{secondaryBody}</p>
+                  </div>
+                )}
+              </>
+            );
+          })()}
 
-            {!bodyKa && !hasBody && selectedToast?.description_ka && (
-              <div>
-                <p className="text-xs text-muted-foreground mb-1">🇬🇪</p>
-                <p className="text-sm text-foreground leading-relaxed">{selectedToast.description_ka}</p>
-              </div>
-            )}
-            {!bodyEn && selectedToast?.description_en && (
-              <div>
-                <p className="text-xs text-muted-foreground mb-1">🇬🇧</p>
-                <p className="text-sm text-foreground leading-relaxed">{selectedToast.description_en}</p>
-              </div>
-            )}
-            {selectedToast?.title_en && (
-              <div>
-                <p className="text-xs text-muted-foreground mb-1">{t("feastDetail.toastDetail")}</p>
-                <p className="text-sm text-foreground">{selectedToast.title_en}</p>
-              </div>
-            )}
-            {selectedToast?.alaverdi_assigned_to && (
-              <Badge variant="secondary">{t("feastDetail.alaverdi")}: {selectedToast.alaverdi_assigned_to}</Badge>
-            )}
-            {selectedToast?.notes && (
-              <p className="text-xs text-muted-foreground">{selectedToast.notes}</p>
-            )}
+          {/* Prominent Generate Body CTA when no body exists */}
+          {!hasBody && isHost && isDraft && (
+            <Card className="border-2 border-dashed border-primary/30 bg-primary/5">
+              <CardContent className="p-4 flex flex-col items-center text-center space-y-3">
+                <Sparkles className="h-6 w-6 text-primary" />
+                <div>
+                  <p className="text-sm font-semibold text-foreground">{t("feastDetail.noBodyYet", "ტექსტი ჯერ არ არის შექმნილი")}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{t("feastDetail.generateBodyDesc", "AI შექმნის სრულ სადღეგრძელოს ტექსტს ამ სლოტისთვის")}</p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
-            {/* Host actions: regen + library assign (shown when body exists or for regeneration) */}
-            {isHost && isDraft && (
-              <div className="flex gap-2 pt-2 border-t border-border">
+          {!bodyKa && !hasBody && selectedToast?.description_ka && (
+            <div>
+              <p className="text-xs text-muted-foreground mb-1">🇬🇪</p>
+              <p className="text-sm text-foreground leading-relaxed">{selectedToast.description_ka}</p>
+            </div>
+          )}
+          {!bodyEn && selectedToast?.description_en && (
+            <div>
+              <p className="text-xs text-muted-foreground mb-1">🇬🇧</p>
+              <p className="text-sm text-foreground leading-relaxed">{selectedToast.description_en}</p>
+            </div>
+          )}
+          {selectedToast?.title_en && (
+            <div>
+              <p className="text-xs text-muted-foreground mb-1">{t("feastDetail.toastDetail")}</p>
+              <p className="text-sm text-foreground">{selectedToast.title_en}</p>
+            </div>
+          )}
+          {selectedToast?.alaverdi_assigned_to && (
+            <Badge variant="secondary">{t("feastDetail.alaverdi")}: {selectedToast.alaverdi_assigned_to}</Badge>
+          )}
+          {selectedToast?.notes && (
+            <p className="text-xs text-muted-foreground">{selectedToast.notes}</p>
+          )}
+
+          {/* ── Customize & Retry Section ── */}
+          {isHost && isDraft && (
+            <div className="space-y-3 pt-2 border-t border-border">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t("feastDetail.customizeRetry", "Customize & Retry")}</p>
+
+              {/* User instructions textarea */}
+              <Textarea
+                placeholder={t("feastDetail.retryComment", "მითითებები გენერაციისთვის...")}
+                value={retryComment}
+                onChange={(e) => setRetryComment(e.target.value)}
+                className="min-h-[60px] text-sm"
+                rows={2}
+              />
+
+              {/* Tone chips */}
+              <div>
+                <p className="text-xs text-muted-foreground mb-1.5">{t("feastDetail.toneLabel", "ტონი")}</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {toneOptions.map((tone) => (
+                    <Badge
+                      key={tone}
+                      variant={selectedTone === tone ? "default" : "outline"}
+                      className="cursor-pointer transition-colors text-xs"
+                      onClick={() => setSelectedTone(selectedTone === tone ? null : tone)}
+                    >
+                      {t(`ai.tones.${tone}`, tone)}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+
+              {/* Length chips */}
+              <div>
+                <p className="text-xs text-muted-foreground mb-1.5">{t("feastDetail.lengthLabel", "სიგრძე")}</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {lengthOptions.map((len) => (
+                    <Badge
+                      key={len}
+                      variant={selectedLength === len ? "default" : "outline"}
+                      className="cursor-pointer transition-colors text-xs"
+                      onClick={() => setSelectedLength(selectedLength === len ? null : len)}
+                    >
+                      {t(`feastDetail.lengths.${len}`, len)}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+
+              {/* Style chips */}
+              <div>
+                <p className="text-xs text-muted-foreground mb-1.5">{t("feastDetail.styleLabel", "სტილი")}</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {styleOptions.map((style) => (
+                    <Badge
+                      key={style}
+                      variant={selectedStyle === style ? "default" : "outline"}
+                      className="cursor-pointer transition-colors text-xs"
+                      onClick={() => setSelectedStyle(selectedStyle === style ? null : style)}
+                    >
+                      {t(`feastDetail.styles.${style}`, style)}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+
+              {/* Action buttons */}
+              <div className="flex gap-2">
                 <Button
-                  variant="outline"
+                  variant="wine"
                   size="sm"
                   className="flex-1"
                   onClick={() => regenSingleToast.mutate()}
@@ -410,19 +429,21 @@ const ToastDetailDialog: React.FC<ToastDetailDialogProps> = ({
                   )}
                   {hasBody ? t("feastDetail.regenerateToast", "ხელახლა გენერაცია") : t("feastDetail.generateBody", "ტექსტის გენერაცია")}
                 </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="flex-1"
-                  onClick={() => setShowLibrary(true)}
-                >
-                  <BookOpen className="h-3.5 w-3.5 mr-1.5" />
-                  {t("feastDetail.fromLibrary", "ბიბლიოთეკიდან")}
-                </Button>
+                {hasAssignment && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => saveToFavorites.mutate()}
+                    disabled={saveToFavorites.isPending}
+                  >
+                    <Heart className="h-3.5 w-3.5 mr-1.5" />
+                    {t("feastDetail.saveToFavorites", "ფავორიტებში")}
+                  </Button>
+                )}
               </div>
-            )}
-          </div>
-        )}
+            </div>
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   );
