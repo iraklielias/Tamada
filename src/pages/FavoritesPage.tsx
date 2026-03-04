@@ -19,7 +19,8 @@ const FavoritesPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isEn = i18n.language === "en";
   const [selectedToast, setSelectedToast] = useState<any | null>(null);
 
   const { data: favorites, isLoading } = useQuery({
