@@ -25,6 +25,7 @@ import FeastDetailPage from "./pages/FeastDetailPage";
 import LiveFeastPage from "./pages/LiveFeastPage";
 import JoinFeastPage from "./pages/JoinFeastPage";
 import UpgradePage from "./pages/UpgradePage";
+import AdminTelemetryPage from "./pages/AdminTelemetryPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -70,6 +71,7 @@ const App = () => (
                 <Route path="/favorites" element={<FavoritesPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/upgrade" element={<UpgradePage />} />
+                <Route path="/admin/telemetry" element={<AdminTelemetryPage />} />
               </Route>
 
               {/* Join feast via share code (outside app shell but requires auth) */}
