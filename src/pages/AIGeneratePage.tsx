@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Sparkles, Copy, Heart, Loader2, Wine, RefreshCw, Lock, MapPin, User, Clock, Volume2, Hand } from "lucide-react";
+import { Sparkles, Copy, Heart, Loader2, Wine, RefreshCw, Lock, MapPin, User, Clock, Volume2, Hand, ThumbsUp, ThumbsDown, Palette } from "lucide-react";
 import { toast as sonnerToast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -33,6 +33,13 @@ const formalities = [
   { value: "formal", label: "ფორმალური" },
   { value: "semi_formal", label: "ნახევრად ფორმალური" },
   { value: "casual", label: "არაფორმალური" },
+];
+
+const tones = [
+  { value: "traditional", label: "ტრადიციული", icon: "🏛️" },
+  { value: "humorous", label: "იუმორისტული", icon: "😄" },
+  { value: "emotional", label: "ემოციური", icon: "❤️" },
+  { value: "philosophical", label: "ფილოსოფიური", icon: "🤔" },
 ];
 
 const regions = [
@@ -88,6 +95,7 @@ const peakLabels: Record<string, string> = {
 const AIGeneratePage = () => {
   const [occasion, setOccasion] = useState("supra");
   const [formality, setFormality] = useState("formal");
+  const [tone, setTone] = useState("traditional");
   const [region, setRegion] = useState("general");
   const [personName, setPersonName] = useState("");
   const [personDetails, setPersonDetails] = useState("");
@@ -95,6 +103,7 @@ const AIGeneratePage = () => {
   const [result, setResult] = useState<GeneratedToast | null>(null);
   const [showUpsell, setShowUpsell] = useState(false);
   const [upsellMessage, setUpsellMessage] = useState("");
+  const [feedbackGiven, setFeedbackGiven] = useState<"positive" | "negative" | null>(null);
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { checkFeature, dailyAICount, limits, canGenerateAI } = useProGate();
@@ -114,6 +123,7 @@ const AIGeneratePage = () => {
           generation_params: {
             occasion_type: occasion,
             formality_level: formality,
+            tone,
             region: region !== "general" ? region : undefined,
             person_name: personName || undefined,
             person_details: personDetails || undefined,
@@ -128,6 +138,7 @@ const AIGeneratePage = () => {
     },
     onSuccess: (data) => {
       setResult(data);
+      setFeedbackGiven(null);
       queryClient.invalidateQueries({ queryKey: ["daily-ai-count"] });
       sonnerToast.success("სადღეგრძელო შეიქმნა!");
     },
@@ -156,7 +167,7 @@ const AIGeneratePage = () => {
           body_en: result.body_en,
           occasion_type: occasion,
           is_ai_generated: true,
-          ai_generation_params: { occasion, formality, region, personName, personDetails, topic } as any,
+          ai_generation_params: { occasion, formality, tone, region, personName, personDetails, topic } as any,
         })
         .select()
         .single();
@@ -174,6 +185,37 @@ const AIGeneratePage = () => {
     },
     onError: (err: Error) => {
       if (!showUpsell) sonnerToast.error("შენახვა ვერ მოხერხდა");
+    },
+  });
+
+  const sendFeedback = useMutation({
+    mutationFn: async (signal: "positive" | "negative") => {
+      if (!user) return;
+      const signalWeight = signal === "positive" ? 1.0 : 0.2;
+
+      // Update tone preference
+      const toneValue = {
+        [tone]: signal === "positive" ? 0.15 : -0.1,
+      };
+
+      await supabase.functions.invoke("tamada-ai", {
+        body: {
+          action: "submit_feedback",
+          feedback_params: {
+            signal,
+            generation_params: {
+              occasion_type: occasion,
+              tone,
+              region: region !== "general" ? region : undefined,
+              formality_level: formality,
+            },
+          },
+        },
+      });
+    },
+    onSuccess: (_, signal) => {
+      setFeedbackGiven(signal);
+      sonnerToast.success(signal === "positive" ? "მადლობა! 👍" : "გავითვალისწინებთ 📝");
     },
   });
 
@@ -232,7 +274,31 @@ const AIGeneratePage = () => {
             </div>
           </div>
 
-          {/* Row 2: Region */}
+          {/* Row 2: Tone selector */}
+          <div>
+            <label className="text-caption text-muted-foreground mb-1.5 flex items-center gap-1.5">
+              <Palette className="h-3.5 w-3.5" /> ტონი / სტილი
+            </label>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {tones.map((t) => (
+                <button
+                  key={t.value}
+                  type="button"
+                  onClick={() => setTone(t.value)}
+                  className={`flex items-center gap-2 px-3 py-2.5 rounded-lg border text-sm transition-all ${
+                    tone === t.value
+                      ? "border-primary bg-primary/10 text-primary font-medium shadow-sm"
+                      : "border-border bg-background text-muted-foreground hover:border-primary/40 hover:bg-accent/50"
+                  }`}
+                >
+                  <span className="text-base">{t.icon}</span>
+                  <span className="truncate">{t.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Row 3: Region */}
           <div>
             <label className="text-caption text-muted-foreground mb-1.5 flex items-center gap-1.5">
               <MapPin className="h-3.5 w-3.5" /> რეგიონული სტილი
@@ -247,7 +313,7 @@ const AIGeneratePage = () => {
             </Select>
           </div>
 
-          {/* Row 3: Person */}
+          {/* Row 4: Person */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="text-caption text-muted-foreground mb-1.5 flex items-center gap-1.5">
@@ -271,7 +337,7 @@ const AIGeneratePage = () => {
             </div>
           </div>
 
-          {/* Row 4: Freeform */}
+          {/* Row 5: Freeform */}
           <div>
             <label className="text-caption text-muted-foreground mb-1.5 block">
               თემა / დამატებითი სურვილი (არასავალდებულო)
@@ -318,6 +384,11 @@ const AIGeneratePage = () => {
                     <h3 className="font-semibold text-foreground">{result.title_ka}</h3>
                   </div>
                   <div className="flex items-center gap-1.5">
+                    {meta?.tone && (
+                      <Badge variant="outline" className="text-[10px]">
+                        {tones.find(t => t.value === meta.tone)?.icon} {tones.find(t => t.value === meta.tone)?.label || meta.tone}
+                      </Badge>
+                    )}
                     {meta?.region_style && meta.region_style !== "general" && (
                       <Badge variant="outline" className="text-[10px]">
                         <MapPin className="h-2.5 w-2.5 mr-0.5" />
@@ -338,24 +409,49 @@ const AIGeneratePage = () => {
                   </div>
                 )}
 
-                <div className="flex gap-2 flex-wrap">
-                  <Button variant="outline" size="sm" onClick={copyToClipboard}>
-                    <Copy className="h-3.5 w-3.5 mr-1.5" /> კოპირება
-                  </Button>
-                  <Button
-                    variant="outline" size="sm"
-                    onClick={() => saveToFavorites.mutate()}
-                    disabled={saveToFavorites.isPending}
-                  >
-                    <Heart className="h-3.5 w-3.5 mr-1.5" /> შენახვა
-                  </Button>
-                  <Button
-                    variant="ghost" size="sm"
-                    onClick={() => generate.mutate()}
-                    disabled={generate.isPending}
-                  >
-                    <RefreshCw className="h-3.5 w-3.5 mr-1.5" /> ხელახლა
-                  </Button>
+                {/* Actions + Feedback */}
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <div className="flex gap-2 flex-wrap">
+                    <Button variant="outline" size="sm" onClick={copyToClipboard}>
+                      <Copy className="h-3.5 w-3.5 mr-1.5" /> კოპირება
+                    </Button>
+                    <Button
+                      variant="outline" size="sm"
+                      onClick={() => saveToFavorites.mutate()}
+                      disabled={saveToFavorites.isPending}
+                    >
+                      <Heart className="h-3.5 w-3.5 mr-1.5" /> შენახვა
+                    </Button>
+                    <Button
+                      variant="ghost" size="sm"
+                      onClick={() => generate.mutate()}
+                      disabled={generate.isPending}
+                    >
+                      <RefreshCw className="h-3.5 w-3.5 mr-1.5" /> ხელახლა
+                    </Button>
+                  </div>
+
+                  {/* Feedback buttons */}
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant={feedbackGiven === "positive" ? "default" : "ghost"}
+                      size="sm"
+                      className={`h-8 w-8 p-0 ${feedbackGiven === "positive" ? "bg-green-600 hover:bg-green-700 text-white" : ""}`}
+                      onClick={() => sendFeedback.mutate("positive")}
+                      disabled={feedbackGiven !== null || sendFeedback.isPending}
+                    >
+                      <ThumbsUp className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button
+                      variant={feedbackGiven === "negative" ? "default" : "ghost"}
+                      size="sm"
+                      className={`h-8 w-8 p-0 ${feedbackGiven === "negative" ? "bg-destructive hover:bg-destructive/90 text-destructive-foreground" : ""}`}
+                      onClick={() => sendFeedback.mutate("negative")}
+                      disabled={feedbackGiven !== null || sendFeedback.isPending}
+                    >
+                      <ThumbsDown className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
