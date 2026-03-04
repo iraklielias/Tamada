@@ -436,7 +436,7 @@ const AIGeneratePage = () => {
                       className="flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 transition-colors"
                     >
                       {showDiff ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
-                      {showDiff ? "ცვლილებების დამალვა" : "ცვლილებების ნახვა"}
+                      {showDiff ? t("common.hideChanges") : t("common.showChanges")}
                     </button>
                     <AnimatePresence>
                       {showDiff && (
