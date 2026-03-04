@@ -454,7 +454,7 @@ const FeastDetailPage: React.FC = () => {
               {selectedToast?.title_ka}
             </DialogTitle>
             <DialogDescription>
-              <Badge variant="outline" className="text-xs mt-1">{t(`live.toastType.${selectedToast?.toast_type}`, selectedToast?.toast_type)}</Badge>
+              <Badge variant="outline" className="text-xs mt-1">{String(t(`live.toastType.${selectedToast?.toast_type}`, selectedToast?.toast_type || ""))}</Badge>
               {selectedToast?.duration_minutes && <span className="text-xs text-muted-foreground ml-2">{selectedToast.duration_minutes}m</span>}
             </DialogDescription>
           </DialogHeader>
