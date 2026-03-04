@@ -305,7 +305,7 @@ const AIGeneratePage = () => {
             {t("ai.title")}
           </h1>
           <p className="text-body-sm text-muted-foreground mt-1">
-            შექმენი უნიკალური ქართული სადღეგრძელო AI-ის დახმარებით
+            {t("ai.subtitle")}
           </p>
         </div>
         <Badge variant="outline" className="text-xs shrink-0">
