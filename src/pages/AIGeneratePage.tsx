@@ -599,7 +599,7 @@ const AIGeneratePage = () => {
                       <div className="flex items-start gap-2 p-2 rounded-md bg-background border border-border">
                         <Hand className="h-3.5 w-3.5 text-muted-foreground mt-0.5 shrink-0" />
                         <div>
-                          <span className="font-medium text-foreground block">ბოკალი აწიეთ</span>
+                          <span className="font-medium text-foreground block">{t("ai.delivery.raiseGlass")}</span>
                           <span className="text-muted-foreground">{dg.glass_raise_moment}</span>
                         </div>
                       </div>
