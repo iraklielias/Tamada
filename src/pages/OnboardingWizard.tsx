@@ -33,6 +33,7 @@ const EXPERIENCE_LEVELS: { id: ExperienceLevel; emoji: string; name_ka: string; 
 ];
 
 const OCCASIONS: { id: OccasionType; emoji: string; name_ka: string }[] = [
+  { id: "supra", emoji: "🍷", name_ka: "სუფრა" },
   { id: "wedding", emoji: "💒", name_ka: "ქორწილი" },
   { id: "birthday", emoji: "🎂", name_ka: "დაბადების დღე" },
   { id: "memorial", emoji: "🕯️", name_ka: "ქელეხი" },
