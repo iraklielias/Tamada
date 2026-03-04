@@ -358,6 +358,82 @@ const ToastDetailDialog: React.FC<ToastDetailDialogProps> = ({
   );
 };
 
+// ── Guest Card with inline editable notes ──
+const GuestCard: React.FC<{
+  guest: any;
+  isHost: boolean;
+  feastId: string;
+  t: (key: string, fallback?: any) => string;
+  onRemove: (id: string) => void;
+  onUpdated: () => void;
+}> = ({ guest, isHost, feastId, t, onRemove, onUpdated }) => {
+  const [editingNotes, setEditingNotes] = useState(false);
+  const [notesValue, setNotesValue] = useState(guest.notes || "");
+
+  const updateNotes = useMutation({
+    mutationFn: async (notes: string) => {
+      const trimmed = notes.trim().substring(0, 500);
+      const { error } = await supabase.from("feast_guests").update({ notes: trimmed || null }).eq("id", guest.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      setEditingNotes(false);
+      onUpdated();
+    },
+  });
+
+  return (
+    <Card>
+      <CardContent className="p-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="h-8 w-8 rounded-full bg-accent flex items-center justify-center shrink-0 text-sm font-semibold text-accent-foreground">{guest.name.charAt(0).toUpperCase()}</div>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-foreground">{guest.name}</p>
+              <div className="flex items-center gap-2 mt-0.5">
+                <Badge variant="outline" className="text-[10px]">{t(`feastDetail.guestRoles.${guest.role || "guest"}`, guest.role || "guest")}</Badge>
+                {(guest.alaverdi_count ?? 0) > 0 && <span className="text-[10px] text-muted-foreground">{t("feastDetail.alaverdi")}: {guest.alaverdi_count}</span>}
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-1 shrink-0">
+            {isHost && !editingNotes && (
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setNotesValue(guest.notes || ""); setEditingNotes(true); }}>
+                <Pencil className="h-3 w-3 text-muted-foreground" />
+              </Button>
+            )}
+            {isHost && <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onRemove(guest.id)}><Trash2 className="h-3.5 w-3.5 text-muted-foreground" /></Button>}
+          </div>
+        </div>
+        {editingNotes ? (
+          <div className="mt-2 flex gap-1.5">
+            <Input
+              className="text-xs h-8"
+              placeholder={t("feastDetail.guestNotesPlaceholder", "შენიშვნები (დიეტა, სასმელი...)")}
+              value={notesValue}
+              onChange={(e) => setNotesValue(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") updateNotes.mutate(notesValue); if (e.key === "Escape") setEditingNotes(false); }}
+              maxLength={500}
+              autoFocus
+            />
+            <Button size="sm" variant="outline" className="h-8 px-2" onClick={() => updateNotes.mutate(notesValue)} disabled={updateNotes.isPending}>
+              <Check className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+        ) : guest.notes ? (
+          <p className="text-[10px] text-muted-foreground mt-1.5 ml-11 cursor-pointer hover:text-foreground transition-colors" onClick={() => isHost && (setNotesValue(guest.notes || ""), setEditingNotes(true))}>
+            📝 {guest.notes}
+          </p>
+        ) : isHost ? (
+          <p className="text-[10px] text-muted-foreground/50 mt-1.5 ml-11 cursor-pointer hover:text-muted-foreground transition-colors" onClick={() => { setNotesValue(""); setEditingNotes(true); }}>
+            + {t("feastDetail.addNotes", "შენიშვნის დამატება")}
+          </p>
+        ) : null}
+      </CardContent>
+    </Card>
+  );
+};
+
 const FeastDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -672,22 +748,7 @@ const FeastDetailPage: React.FC = () => {
           {guests && guests.length > 0 ? (
             <div className="space-y-2">
               {guests.map((g) => (
-                <Card key={g.id}>
-                  <CardContent className="p-3 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="h-8 w-8 rounded-full bg-accent flex items-center justify-center shrink-0 text-sm font-semibold text-accent-foreground">{g.name.charAt(0).toUpperCase()}</div>
-                      <div>
-                        <p className="text-sm font-semibold text-foreground">{g.name}</p>
-                        <div className="flex items-center gap-2 mt-0.5">
-                          <Badge variant="outline" className="text-[10px]">{t(`feastDetail.guestRoles.${g.role || "guest"}`, g.role || "guest")}</Badge>
-                          {(g.alaverdi_count ?? 0) > 0 && <span className="text-[10px] text-muted-foreground">{t("feastDetail.alaverdi")}: {g.alaverdi_count}</span>}
-                        </div>
-                        {g.notes && <p className="text-[10px] text-muted-foreground mt-0.5">{g.notes}</p>}
-                      </div>
-                    </div>
-                    {isHost && <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => removeGuest.mutate(g.id)}><Trash2 className="h-3.5 w-3.5 text-muted-foreground" /></Button>}
-                  </CardContent>
-                </Card>
+                <GuestCard key={g.id} guest={g} isHost={isHost} feastId={id!} t={t} onRemove={(guestId) => removeGuest.mutate(guestId)} onUpdated={() => queryClient.invalidateQueries({ queryKey: ["feast-guests", id] })} />
               ))}
             </div>
           ) : (
