@@ -139,7 +139,24 @@
     "deleteFeast": "Delete feast",
     "deleteConfirmDesc": "This action cannot be undone. The feast and all associated data will be deleted.",
     "alaverdi": "Alaverdi",
-    "aiGenerate": "AI Plan"
+    "aiGenerate": "AI Plan",
+    "aiConfirmTitle": "Regenerate plan?",
+    "aiConfirmDesc": "This will replace all existing toasts with a new AI-generated plan. This action cannot be undone.",
+    "aiConfirmAction": "Generate",
+    "editFeast": "Edit Feast",
+    "editFeastDesc": "Update feast details",
+    "undoSkip": "Undo skip",
+    "toastDetail": "Toast Details",
+    "toastBody": "Toast text",
+    "guestRole": "Role",
+    "guestNotes": "Notes",
+    "guestNotesPlaceholder": "e.g. vegetarian, doesn't drink",
+    "guestRoles": {
+      "guest": "Guest",
+      "mejavare": "Co-Tamada",
+      "honored_guest": "Honored Guest",
+      "family": "Family"
+    }
   },
   "live": {
     "toastProgress": "toast",

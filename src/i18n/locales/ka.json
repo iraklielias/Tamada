@@ -139,7 +139,24 @@
     "deleteFeast": "სუფრის წაშლა",
     "deleteConfirmDesc": "ეს მოქმედება შეუქცევადია. სუფრა და მასთან დაკავშირებული ყველა მონაცემი წაიშლება.",
     "alaverdi": "ალავერდი",
-    "aiGenerate": "AI გეგმა"
+    "aiGenerate": "AI გეგმა",
+    "aiConfirmTitle": "გეგმის ხელახლა გენერაცია?",
+    "aiConfirmDesc": "ეს ჩაანაცვლებს ყველა არსებულ სადღეგრძელოს ახალი AI-გეგმით. ეს მოქმედება შეუქცევადია.",
+    "aiConfirmAction": "გენერაცია",
+    "editFeast": "სუფრის რედაქტირება",
+    "editFeastDesc": "განაახლეთ სუფრის დეტალები",
+    "undoSkip": "გამოტოვების გაუქმება",
+    "toastDetail": "სადღეგრძელოს დეტალები",
+    "toastBody": "სადღეგრძელოს ტექსტი",
+    "guestRole": "როლი",
+    "guestNotes": "შენიშვნა",
+    "guestNotesPlaceholder": "მაგ. ვეგეტარიანელი, არ სვამს",
+    "guestRoles": {
+      "guest": "სტუმარი",
+      "mejavare": "მეჯვარე",
+      "honored_guest": "საპატიო სტუმარი",
+      "family": "ოჯახი"
+    }
   },
   "live": {
     "toastProgress": "სადღეგრძელო",
