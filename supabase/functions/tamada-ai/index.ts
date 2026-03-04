@@ -279,6 +279,7 @@ serve(async (req) => {
       generation_params,
       refinement_params,
       feast_context,
+      feedback_params,
     } = body;
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
