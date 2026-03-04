@@ -357,6 +357,7 @@ const FeastDetailPage: React.FC = () => {
       const guestNames = guests?.map((g) => g.name) || [];
       const { data, error } = await supabase.functions.invoke("generate-feast-plan", {
         body: {
+          feast_id: id,
           occasion_type: feast.occasion_type,
           formality_level: feast.formality_level,
           duration_minutes: feast.estimated_duration_minutes,
