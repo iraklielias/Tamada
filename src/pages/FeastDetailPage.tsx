@@ -931,12 +931,13 @@ const FeastDetailPage: React.FC = () => {
 
   return (
     <div className="p-4 md:p-6 max-w-4xl mx-auto space-y-5 pb-24">
+      {/* Hero header */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/feasts")}><ArrowLeft className="h-5 w-5" /></Button>
+          <Button variant="ghost" size="icon" className="rounded-xl bg-surface-1 hover:bg-surface-2" onClick={() => navigate("/feasts")}><ArrowLeft className="h-5 w-5" /></Button>
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-heading-2 text-foreground truncate">{feast.title}</h1>
+              <h1 className="text-heading-2 font-display text-foreground truncate">{feast.title}</h1>
               <Badge className={`text-[10px] ${statusColors[feast.status || "draft"]}`}>{t(`feasts.status.${feast.status || "draft"}`)}</Badge>
             </div>
             <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
@@ -948,19 +949,20 @@ const FeastDetailPage: React.FC = () => {
         </div>
         {isHost && (
           <div className="flex gap-2 shrink-0">
-            {(feast.status === "active" || feast.status === "paused") && <Button size="sm" onClick={() => navigate(`/feasts/${id}/live`)}><Play className="h-3.5 w-3.5 mr-1.5" />LIVE</Button>}
-            {canStart && <Button size="sm" onClick={() => { updateStatus.mutate("active"); navigate(`/feasts/${id}/live`); }}><Play className="h-3.5 w-3.5 mr-1.5" />{feast.status === "paused" ? t("common.resume") : t("common.start")}</Button>}
+            {(feast.status === "active" || feast.status === "paused") && <Button size="sm" className="shadow-wine" onClick={() => navigate(`/feasts/${id}/live`)}><Play className="h-3.5 w-3.5 mr-1.5" />LIVE</Button>}
+            {canStart && <Button size="sm" variant="wine" className="shadow-wine" onClick={() => { updateStatus.mutate("active"); navigate(`/feasts/${id}/live`); }}><Play className="h-3.5 w-3.5 mr-1.5" />{feast.status === "paused" ? t("common.resume") : t("common.start")}</Button>}
             {canPause && <Button size="sm" variant="outline" onClick={() => updateStatus.mutate("paused")}><Pause className="h-3.5 w-3.5 mr-1.5" />{t("common.pause")}</Button>}
             {(feast.status === "active" || feast.status === "paused") && <Button size="sm" variant="outline" onClick={() => updateStatus.mutate("completed")}><Square className="h-3.5 w-3.5 mr-1.5" />{t("common.complete")}</Button>}
           </div>
         )}
       </div>
 
+      {/* Tabs with improved styling */}
       <Tabs defaultValue="plan">
-        <TabsList className="w-full grid grid-cols-3">
-          <TabsTrigger value="plan">📋 {t("feastDetail.plan")}</TabsTrigger>
-          <TabsTrigger value="guests">👥 {t("feastDetail.guestsTab")}</TabsTrigger>
-          <TabsTrigger value="details">ℹ️ {t("feastDetail.detailsTab")}</TabsTrigger>
+        <TabsList className="w-full grid grid-cols-3 bg-surface-1 p-1 rounded-xl">
+          <TabsTrigger value="plan" className="rounded-lg data-[state=active]:shadow-card data-[state=active]:bg-card">📋 {t("feastDetail.plan")}</TabsTrigger>
+          <TabsTrigger value="guests" className="rounded-lg data-[state=active]:shadow-card data-[state=active]:bg-card">👥 {t("feastDetail.guestsTab")}</TabsTrigger>
+          <TabsTrigger value="details" className="rounded-lg data-[state=active]:shadow-card data-[state=active]:bg-card">ℹ️ {t("feastDetail.detailsTab")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="plan" className="mt-4 space-y-3">

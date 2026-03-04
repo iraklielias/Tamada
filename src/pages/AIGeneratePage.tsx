@@ -23,10 +23,8 @@ function computeWordDiff(original: string, edited: string): { type: "same" | "ad
   const editWords = edited.split(/(\s+)/);
   const result: { type: "same" | "added" | "removed"; text: string }[] = [];
 
-  // LCS-based diff for reasonable lengths
   const m = origWords.length, n = editWords.length;
   if (m + n > 2000) {
-    // fallback: show full removal + addition
     return [
       { type: "removed", text: original },
       { type: "added", text: edited },
@@ -54,7 +52,6 @@ function computeWordDiff(original: string, edited: string): { type: "same" | "ad
   }
   ops.reverse();
 
-  // Merge consecutive same-type segments
   for (const op of ops) {
     if (result.length > 0 && result[result.length - 1].type === op.type) {
       result[result.length - 1].text += op.text;
@@ -96,9 +93,6 @@ interface GeneratedToast {
   delivery_guidance?: DeliveryGuidance;
 }
 
-const paceKeys = ["slow", "moderate", "conversational"] as const;
-const peakKeys = ["beginning", "middle", "end"] as const;
-
 const AIGeneratePage = () => {
   const { t } = useTranslation();
   const [occasion, setOccasion] = useState("supra");
@@ -117,6 +111,7 @@ const AIGeneratePage = () => {
   const [showUpsell, setShowUpsell] = useState(false);
   const [upsellMessage, setUpsellMessage] = useState("");
   const [feedbackGiven, setFeedbackGiven] = useState<"positive" | "negative" | null>(null);
+  const [showReveal, setShowReveal] = useState(false);
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { checkFeature, dailyAICount, limits, canGenerateAI } = useProGate();
@@ -150,7 +145,6 @@ const AIGeneratePage = () => {
       if (error) throw error;
       if (data.error) throw new Error(data.error);
 
-      // Track latency: find most recent log entry and update by id
       supabase
         .from("ai_generation_log")
         .select("id")
@@ -178,6 +172,8 @@ const AIGeneratePage = () => {
       setIsEditing(false);
       setShowDiff(false);
       setFeedbackGiven(null);
+      setShowReveal(true);
+      setTimeout(() => setShowReveal(false), 1200);
       queryClient.invalidateQueries({ queryKey: ["daily-ai-count"] });
       sonnerToast.success(t("ai.created"));
     },
@@ -197,7 +193,6 @@ const AIGeneratePage = () => {
 
       if (!result || !user) return;
 
-      // Check if user edited the toast
       const wasEdited = originalResult && (editedTitle !== originalResult.title_ka || editedBody !== originalResult.body_ka);
 
       const { data: custom, error: cErr } = await supabase
@@ -221,7 +216,6 @@ const AIGeneratePage = () => {
         .insert({ user_id: user.id, custom_toast_id: custom.id });
       if (fErr) throw fErr;
 
-      // Send edit delta for adaptive learning if edited
       if (wasEdited && originalResult) {
         supabase.functions.invoke("tamada-ai", {
           body: {
@@ -239,7 +233,7 @@ const AIGeneratePage = () => {
               },
             },
           },
-        }).catch(() => {}); // fire-and-forget
+        }).catch(() => {});
       }
     },
     onSuccess: () => {
@@ -259,13 +253,6 @@ const AIGeneratePage = () => {
   const sendFeedback = useMutation({
     mutationFn: async (signal: "positive" | "negative") => {
       if (!user) return;
-      const signalWeight = signal === "positive" ? 1.0 : 0.2;
-
-      // Update tone preference
-      const toneValue = {
-        [tone]: signal === "positive" ? 0.15 : -0.1,
-      };
-
       await supabase.functions.invoke("tamada-ai", {
         body: {
           action: "submit_feedback",
@@ -298,32 +285,36 @@ const AIGeneratePage = () => {
 
   return (
     <div className="p-4 md:p-6 max-w-3xl mx-auto space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-heading-1 text-foreground flex items-center gap-2">
-            <Sparkles className="h-7 w-7 text-primary" />
+          <h1 className="text-heading-1 font-display text-foreground flex items-center gap-2">
+            <div className="h-10 w-10 rounded-xl wine-gradient flex items-center justify-center shadow-wine">
+              <Sparkles className="h-5 w-5 text-primary-foreground" />
+            </div>
             {t("ai.title")}
           </h1>
           <p className="text-body-sm text-muted-foreground mt-1">
             {t("ai.subtitle")}
           </p>
         </div>
-        <Badge variant="outline" className="text-xs shrink-0">
+        <Badge variant="outline" className="text-xs shrink-0 border-primary/30 text-primary font-semibold px-3 py-1">
           {dailyAICount}/{limits.maxAIPerDay} {t("ai.today")}
         </Badge>
       </div>
 
       {/* Form */}
-      <Card>
+      <Card className="border-border/60 shadow-card overflow-hidden">
+        <div className="h-1 wine-gradient" />
         <CardContent className="p-5 space-y-4">
           {/* Row 1: Occasion + Formality */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="text-caption text-muted-foreground mb-1.5 flex items-center gap-1.5">
-                <Wine className="h-3.5 w-3.5" /> {t("ai.occasionType")}
+                <Wine className="h-3.5 w-3.5 text-primary" /> {t("ai.occasionType")}
               </label>
               <Select value={occasion} onValueChange={(v) => setOccasion(v)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger className="bg-surface-1"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {occasionKeys.map((k) => (
                     <SelectItem key={k} value={k}>{t(`feasts.occasion.${k}`)}</SelectItem>
@@ -333,10 +324,10 @@ const AIGeneratePage = () => {
             </div>
             <div>
               <label className="text-caption text-muted-foreground mb-1.5 flex items-center gap-1.5">
-                <Lock className="h-3.5 w-3.5" /> {t("ai.formality")}
+                <Lock className="h-3.5 w-3.5 text-primary" /> {t("ai.formality")}
               </label>
               <Select value={formality} onValueChange={(v) => setFormality(v)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger className="bg-surface-1"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {formalityKeys.map((k) => (
                     <SelectItem key={k} value={k}>{t(`feasts.formalityOptions.${k}`)}</SelectItem>
@@ -350,10 +341,10 @@ const AIGeneratePage = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="text-caption text-muted-foreground mb-1.5 flex items-center gap-1.5">
-                <Palette className="h-3.5 w-3.5" /> {t("ai.tone")}
+                <Palette className="h-3.5 w-3.5 text-primary" /> {t("ai.tone")}
               </label>
               <Select value={tone} onValueChange={(v) => setTone(v)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger className="bg-surface-1"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {toneKeys.map((k) => (
                     <SelectItem key={k} value={k}>{toneIcons[k]} {t(`ai.tones.${k}`)}</SelectItem>
@@ -363,10 +354,10 @@ const AIGeneratePage = () => {
             </div>
             <div>
               <label className="text-caption text-muted-foreground mb-1.5 flex items-center gap-1.5">
-                <MapPin className="h-3.5 w-3.5" /> {t("ai.region")}
+                <MapPin className="h-3.5 w-3.5 text-primary" /> {t("ai.region")}
               </label>
               <Select value={region} onValueChange={(v) => setRegion(v)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger className="bg-surface-1"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {regionKeys.map((k) => (
                     <SelectItem key={k} value={k}>{t(`ai.regions.${k}`)}</SelectItem>
@@ -380,12 +371,13 @@ const AIGeneratePage = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="text-caption text-muted-foreground mb-1.5 flex items-center gap-1.5">
-                <User className="h-3.5 w-3.5" /> {t("ai.personName")}
+                <User className="h-3.5 w-3.5 text-primary" /> {t("ai.personName")}
               </label>
               <Input
                 placeholder={t("ai.personNamePlaceholder")}
                 value={personName}
                 onChange={(e) => setPersonName(e.target.value)}
+                className="bg-surface-1"
               />
             </div>
             <div>
@@ -396,6 +388,7 @@ const AIGeneratePage = () => {
                 placeholder={t("ai.personDetailsPlaceholder")}
                 value={personDetails}
                 onChange={(e) => setPersonDetails(e.target.value)}
+                className="bg-surface-1"
               />
             </div>
           </div>
@@ -409,11 +402,13 @@ const AIGeneratePage = () => {
               value={topic}
               onChange={(e) => setTopic(e.target.value)}
               rows={2}
+              className="bg-surface-1"
             />
           </div>
 
           <Button
-            className="w-full"
+            variant="wine"
+            className="w-full shadow-wine"
             onClick={() => generate.mutate()}
             disabled={generate.isPending}
           >
@@ -428,21 +423,66 @@ const AIGeneratePage = () => {
         </CardContent>
       </Card>
 
-      {/* Result */}
+      {/* Result with celebratory reveal */}
       <AnimatePresence>
         {result && (
           <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
+            initial={{ opacity: 0, y: 30, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -10, scale: 0.98 }}
+            transition={{ duration: 0.5, ease: [0, 0, 0.2, 1] }}
             className="space-y-4"
           >
+            {/* Celebratory reveal overlay */}
+            <AnimatePresence>
+              {showReveal && (
+                <motion.div
+                  initial={{ opacity: 1 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.4 }}
+                  className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none"
+                >
+                  <motion.div
+                    initial={{ scale: 0, rotate: -20 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    exit={{ scale: 1.5, opacity: 0 }}
+                    transition={{ type: "spring", stiffness: 200, damping: 15 }}
+                    className="relative"
+                  >
+                    <div className="h-24 w-24 rounded-full wine-gradient flex items-center justify-center shadow-wine">
+                      <Wine className="h-12 w-12 text-primary-foreground" />
+                    </div>
+                    {/* Sparkle particles */}
+                    {[...Array(6)].map((_, i) => (
+                      <motion.div
+                        key={i}
+                        initial={{ scale: 0, x: 0, y: 0 }}
+                        animate={{
+                          scale: [0, 1, 0],
+                          x: Math.cos((i * 60 * Math.PI) / 180) * 80,
+                          y: Math.sin((i * 60 * Math.PI) / 180) * 80,
+                        }}
+                        transition={{ duration: 0.8, delay: 0.1 + i * 0.05 }}
+                        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+                      >
+                        <Sparkles className="h-4 w-4 text-gold" />
+                      </motion.div>
+                    ))}
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             {/* Toast card */}
-             <Card className="border-primary/20 shadow-card-hover">
+            <Card className="border-primary/20 shadow-card-hover overflow-hidden">
+              <div className="h-1 wine-gradient" />
               <CardContent className="p-5 space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Wine className="h-5 w-5 text-primary" />
+                    <div className="h-8 w-8 rounded-lg bg-wine-light flex items-center justify-center">
+                      <Wine className="h-4 w-4 text-primary" />
+                    </div>
                     {isEditing ? (
                       <Input
                         value={editedTitle}
@@ -482,9 +522,11 @@ const AIGeneratePage = () => {
                     rows={6}
                   />
                 ) : (
-                  <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
-                    {editedBody}
-                  </p>
+                  <div className="p-4 rounded-lg bg-surface-1 border border-border/50">
+                    <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
+                      {editedBody}
+                    </p>
+                  </div>
                 )}
 
                 {/* Visual Diff View */}
@@ -517,7 +559,7 @@ const AIGeneratePage = () => {
                                     ) : seg.type === "removed" ? (
                                       <span key={i} className="bg-destructive/20 text-destructive line-through rounded px-0.5">{seg.text}</span>
                                     ) : (
-                                      <span key={i} className="bg-green-500/20 text-green-700 dark:text-green-400 rounded px-0.5">{seg.text}</span>
+                                      <span key={i} className="bg-success/20 text-success rounded px-0.5">{seg.text}</span>
                                     )
                                   )}
                                 </p>
@@ -532,7 +574,7 @@ const AIGeneratePage = () => {
                                   ) : seg.type === "removed" ? (
                                     <span key={i} className="bg-destructive/20 text-destructive line-through rounded px-0.5">{seg.text}</span>
                                   ) : (
-                                    <span key={i} className="bg-green-500/20 text-green-700 dark:text-green-400 rounded px-0.5">{seg.text}</span>
+                                    <span key={i} className="bg-success/20 text-success rounded px-0.5">{seg.text}</span>
                                   )
                                 )}
                               </p>
@@ -551,7 +593,7 @@ const AIGeneratePage = () => {
                 )}
 
                 {/* Actions + Feedback */}
-                <div className="flex items-center justify-between gap-2 flex-wrap">
+                <div className="flex items-center justify-between gap-2 flex-wrap pt-2 border-t border-border/50">
                   <div className="flex gap-2 flex-wrap">
                     {isEditing ? (
                       <>
@@ -597,11 +639,11 @@ const AIGeneratePage = () => {
                   </div>
 
                   {/* Feedback buttons */}
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1 bg-surface-1 rounded-lg p-1">
                     <Button
                       variant={feedbackGiven === "positive" ? "default" : "ghost"}
                       size="sm"
-                      className={`h-8 w-8 p-0 ${feedbackGiven === "positive" ? "bg-green-600 hover:bg-green-700 text-white" : ""}`}
+                      className={`h-8 w-8 p-0 ${feedbackGiven === "positive" ? "bg-success hover:bg-success/90 text-success-foreground" : ""}`}
                       onClick={() => sendFeedback.mutate("positive")}
                       disabled={feedbackGiven !== null || sendFeedback.isPending}
                     >
@@ -623,16 +665,19 @@ const AIGeneratePage = () => {
 
             {/* Delivery Guidance */}
             {dg && (dg.recommended_pace || dg.emotional_peak_location || dg.glass_raise_moment) && (
-              <Card className="border-accent/30 bg-accent/5">
+              <Card className="border-accent/30 bg-accent/5 overflow-hidden">
+                <div className="h-0.5 gold-gradient" />
                 <CardContent className="p-4 space-y-3">
                   <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                    <Volume2 className="h-4 w-4 text-primary" />
+                    <div className="h-6 w-6 rounded-md bg-gold-light flex items-center justify-center">
+                      <Volume2 className="h-3.5 w-3.5 text-gold" />
+                    </div>
                     {t("ai.delivery.title")}
                   </h4>
 
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                     {dg.recommended_pace && (
-                      <div className="flex items-start gap-2 p-2 rounded-md bg-background border border-border">
+                      <div className="flex items-start gap-2 p-2.5 rounded-lg bg-background border border-border">
                         <Clock className="h-3.5 w-3.5 text-muted-foreground mt-0.5 shrink-0" />
                         <div>
                           <span className="font-medium text-foreground block">{t("ai.delivery.pace")}</span>
@@ -644,7 +689,7 @@ const AIGeneratePage = () => {
                     )}
 
                     {dg.emotional_peak_location && (
-                      <div className="flex items-start gap-2 p-2 rounded-md bg-background border border-border">
+                      <div className="flex items-start gap-2 p-2.5 rounded-lg bg-background border border-border">
                         <Sparkles className="h-3.5 w-3.5 text-muted-foreground mt-0.5 shrink-0" />
                         <div>
                           <span className="font-medium text-foreground block">{t("ai.delivery.emotionalPeak")}</span>
@@ -656,7 +701,7 @@ const AIGeneratePage = () => {
                     )}
 
                     {dg.glass_raise_moment && (
-                      <div className="flex items-start gap-2 p-2 rounded-md bg-background border border-border">
+                      <div className="flex items-start gap-2 p-2.5 rounded-lg bg-background border border-border">
                         <Hand className="h-3.5 w-3.5 text-muted-foreground mt-0.5 shrink-0" />
                         <div>
                           <span className="font-medium text-foreground block">{t("ai.delivery.raiseGlass")}</span>
