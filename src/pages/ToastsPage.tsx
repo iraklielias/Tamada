@@ -186,7 +186,7 @@ const ToastsPage = () => {
                   </Badge>
                   {selectedToast.formality_level && (
                     <Badge variant="secondary" className="text-xs">
-                      {t(`ai.${selectedToast.formality_level}`, selectedToast.formality_level)}
+                      {String(t(`ai.${selectedToast.formality_level}`, selectedToast.formality_level))}
                     </Badge>
                   )}
                   {selectedToast.region && (
