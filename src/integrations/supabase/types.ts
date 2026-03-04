@@ -666,6 +666,16 @@ export type Database = {
         Args: { p_feast_id: string; p_user_id: string }
         Returns: boolean
       }
+      upsert_ai_knowledge: {
+        Args: {
+          p_key: string
+          p_signal_weight?: number
+          p_type: string
+          p_user_id: string
+          p_value: Json
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
