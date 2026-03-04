@@ -212,7 +212,22 @@ serve(async (req) => {
     const formalityKa = formalityMapKa[formality_level] || formality_level || "ფორმალური";
     const regionKa = regionMapKa[region] || "";
 
-    const userPrompt = `შექმენი სუფრის სრული სადღეგრძელოების გეგმა სრული ტექსტებით:
+    // Single toast regeneration mode
+    const isSingleRegen = !!single_toast_type;
+
+    let userPrompt: string;
+    if (isSingleRegen) {
+      userPrompt = `შექმენი ერთი სრული სადღეგრძელო:
+- სადღეგრძელოს ტიპი: ${single_toast_type}
+- სადღეგრძელოს სათაური: ${single_toast_title || single_toast_type}
+- წვეულების ტიპი: ${occasionKa} (${occasion_type})
+- ფორმალურობა: ${formalityKa}
+${regionKa ? `- რეგიონული სტილი: ${regionKa}` : ""}
+
+შექმენი ახალი, განსხვავებული ვერსია ამ სადღეგრძელოსი. სრული ტექსტი (body_ka, body_en) — 3-7 წინადადება.
+დააბრუნე JSON მასივი ერთი ობიექტით. არანაირი markdown.`;
+    } else {
+      userPrompt = `შექმენი სუფრის სრული სადღეგრძელოების გეგმა სრული ტექსტებით:
 - წვეულების ტიპი: ${occasionKa} (${occasion_type})
 - ფორმალურობა: ${formalityKa}
 - ხანგრძლივობა: ${duration_minutes} წუთი
@@ -225,6 +240,7 @@ ${guest_names?.length ? `- სტუმრების სახელები:
 დაიწყე ყველაზე მნიშვნელოვანი/სავალდებულო სადღეგრძელოებით.
 
 დააბრუნე ᲛᲮᲝᲚᲝᲓ JSON მასივი. არანაირი markdown, არანაირი ახსნა.`;
+    }
 
     const fullSystemPrompt = FEAST_PLAN_SYSTEM_PROMPT + userContextBlock;
 
