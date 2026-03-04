@@ -258,6 +258,7 @@
     "levels": {
       "beginner": "დამწყები",
       "intermediate": "საშუალო",
+      "experienced": "გამოცდილი",
       "advanced": "გამოცდილი",
       "master": "ოსტატი"
     }

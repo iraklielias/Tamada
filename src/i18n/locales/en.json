@@ -258,6 +258,7 @@
     "levels": {
       "beginner": "Beginner",
       "intermediate": "Intermediate",
+      "experienced": "Experienced",
       "advanced": "Advanced",
       "master": "Master"
     }
