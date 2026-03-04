@@ -309,7 +309,7 @@ const AIGeneratePage = () => {
           </p>
         </div>
         <Badge variant="outline" className="text-xs shrink-0">
-          {dailyAICount}/{limits.maxAIPerDay} დღეს
+          {dailyAICount}/{limits.maxAIPerDay} {t("ai.today")}
         </Badge>
       </div>
 
