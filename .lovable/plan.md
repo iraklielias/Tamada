@@ -1,86 +1,109 @@
 
 
-# Plan: Production-Grade Supra Flow — Full Audit and Fix
+## TAMADA — Status Audit & Master Execution Plan
 
-## Problems Identified
+### What Is Built
 
-### 1. Fixed 8 toasts regardless of duration
-The `generate-feast-plan` prompt says "fit within X minutes" but never explicitly instructs the AI to scale toast count by duration. A 4-hour wedding should have 12-15 toasts; a 1-hour casual gathering should have 5-6.
+| Area | Status |
+|------|--------|
+| Landing page (`/`) | Done — hero, features, how-it-works, footer |
+| Auth (login, signup, callback) | Done — email/password, onAuthStateChange, protected routes |
+| Onboarding wizard (`/onboarding`) | Done — 4 steps: name, region, experience, occasions |
+| App shell (sidebar + bottom nav) | Done — collapsible sidebar, mobile bottom nav, profile footer |
+| Dashboard (`/dashboard`) | Done — greeting, quick actions, recent feasts, popular toasts |
+| Toasts browse (`/toasts`) | Done — search, occasion/formality filters, favorite toggle |
+| AI Generator (`/ai-generate`) | Done — occasion/formality/topic form, edge function, save to favorites |
+| Favorites (`/favorites`) | Done — list system + custom favorites, remove |
+| Library (`/library`) | Done — reads toast_templates (currently 0 rows) |
+| Profile (`/profile`) | Done — read-only display, logout |
+| Edge function: `generate-toast` | Done — Lovable AI gateway, JSON parse |
+| Database schema + RLS | Done — all 11 tables, policies in place |
+| Seed data: toasts | Done — 11 system toasts |
 
-**Fix**: Add explicit toast count guidance to the prompt based on duration and occasion protocol ranges already defined in the system prompt.
+### What Is NOT Built
 
-### 2. Cannot add a toast between existing toasts (insert at position)
-The manual "add toast" input always appends to the end (`position: length + 1`). No way to insert between position 3 and 4.
+| Area | Spec Section |
+|------|-------------|
+| **Feast CRUD** — `/feasts`, `/feasts/new`, `/feasts/:id` | Sections 3, 4, 5 |
+| **Live Feast Mode** — `/feasts/:id/live` with timer, toast progression, alerts, audio | Section 6 |
+| **Alaverdi tracking** — FAB, guest assignment, count increment | Section 6 |
+| **Co-Tamada / Realtime** — share code, join link, Supabase Realtime sync | Section 6 + Realtime spec |
+| **Toast template seeding** — 7 templates with JSONB sequences | Seed Data |
+| **More sample toasts** — spec calls for 50-100; we have 11 | Seed Data |
+| **Feast plan from template** — selecting a template populates feast_toasts | Section 4 |
+| **AI Feast Plan generator** — `generate-feast-plan` edge function | AI Integration |
+| **Pro gating / useProGate hook** — daily limits, feature locks, upsell modals | Free vs Pro |
+| **Upgrade page** (`/upgrade`) — comparison table, Stripe checkout | Section 11 |
+| **Stripe integration** — checkout session, webhook, subscription management | Edge Functions |
+| **Profile editing** — avatar upload, edit name/region/experience/language | Section 10 |
+| **PDF export** — jsPDF feast plan export (Pro) | Section 5 |
+| **i18n** — i18next setup, language toggle, all strings externalized | i18n spec |
+| **Dark mode** | Design System |
+| **Keyboard shortcuts** | Desktop spec |
+| **Additional occasion types** in filters (christening, guest_reception, friendly_gathering) | Throughout |
+| **config.toml** — `generate-toast` function entry with `verify_jwt = false` | Edge function config |
 
-**Fix**: Add an "insert toast after" action on each toast card. When clicked, opens the add-toast form with the position pre-set. All subsequent toasts get their positions shifted up.
+---
 
-### 3. Cannot generate AI body for a manually-added toast
-When a user adds a toast manually (just title + type), there's no way to generate the full body text for it. The "regenerate" button in the dialog calls `generate-feast-plan` with `single_toast_type`, which creates a new custom_toast and links it — this works, but the UX doesn't make it clear that this generates a body for an empty slot.
+### Master Execution Plan (8 Phases)
 
-**Fix**: In the `ToastDetailDialog`, when `bodyKa` is null (no custom_toast or assigned_toast), show a prominent "Generate Toast Body" button instead of showing the regenerate button.
+#### Phase 8 — Seed Data & Config Fixes
+- Seed 7 toast templates into `toast_templates` table (wedding, birthday, memorial, guest reception, holiday, corporate, friendly gathering) with proper `toast_sequence` JSONB arrays
+- Add `[functions.generate-toast]` with `verify_jwt = false` to `supabase/config.toml`
+- Add missing occasion types to all filter dropdowns across pages (christening, guest_reception, friendly_gathering, other)
 
-### 4. `generate-toast` edge function uses outdated model and no master system prompt
-`generate-toast/index.ts` uses `google/gemini-2.5-flash` with a minimal one-line system prompt. It should use `google/gemini-3-flash-preview` and the master TAMADA AI system prompt.
+#### Phase 9 — Feast CRUD (Core)
+- Create `/feasts` page — list user's feasts with status filter pills + search
+- Create `/feasts/new` page — multi-section form: basic info, details (guest count, formality, region, duration), template selection, optional guest list
+- Create `/feasts/:id` page — tabbed view (Plan, Guests, Details) with toast timeline, guest management, edit metadata, delete
+- Add routes to `App.tsx`, add "სუფრები" nav item to sidebar and bottom nav
+- Dashboard "ახალი სუფრა" quick action routes to `/feasts/new`; feast cards link to `/feasts/:id`
 
-**Fix**: Deprecate `generate-toast` — redirect its callers to use `tamada-ai` instead. The `tamada-ai` function already has the full master prompt and uses the correct model.
+#### Phase 10 — Live Feast Mode
+- Create `/feasts/:id/live` — full-screen immersive view
+- Current toast display with complete text, toast number, type
+- Next-up preview (2 upcoming toasts)
+- Elapsed time tracker + progress bar
+- "Completed" and "Skip" buttons that update `feast_toasts` status
+- Pause/Resume/End feast controls updating `feasts.status`
+- Timer alert system: amber glow + audio chime at configurable intervals before next toast (Web Audio API)
+- Alaverdi FAB: bottom sheet with guest list, tap to assign, increment `alaverdi_count` via `increment_alaverdi` RPC
 
-### 5. `generate-feast-plan` has its own separate system prompt, not the master
-The feast plan function has `FEAST_PLAN_SYSTEM_PROMPT` (v3.0) which is a different, simpler prompt than the master `TAMADA AI CORE SYSTEM PROMPT (v1.0.0)` in `tamada-ai`. They should share the same base.
+#### Phase 11 — Co-Tamada & Realtime
+- Generate `share_code` on feast, build `/feasts/:id/join/:shareCode` route
+- Add user as `feast_collaborator` on join
+- Subscribe to Supabase Realtime channels for `feast_toasts`, `feast_guests`, `feasts` changes
+- Enable realtime publication on relevant tables (`ALTER PUBLICATION supabase_realtime ADD TABLE ...`)
+- Co-Tamada sees live view with read-only controls (can assign alaverdi, cannot pause/end)
+- Online indicator for connected collaborators
 
-**Fix**: Merge the master system prompt layers (identity, cultural knowledge, anti-hallucination) into the feast plan function, then append the feast-plan-specific layers (plan structure, response format) as additional layers.
+#### Phase 12 — Profile Editing & Pro Gating
+- Make profile page editable: avatar upload (to `avatars` bucket), display name, region, experience, language
+- Build `useProGate` hook checking `is_pro` + `pro_expires_at`
+- Enforce free limits: 5 AI generations/day (server + client), 10 favorites, 1 active feast
+- Add server-side rate limit check in `generate-toast` edge function using `get_daily_ai_count`
+- Soft upsell modals when limits reached; gold lock icons on Pro features
+- Create `/upgrade` page with feature comparison table and pricing
 
-### 6. DB triggers still not attached
-The `<db-triggers>` section shows "There are no triggers in the database." — the previous migration to attach them may have failed or not been applied.
+#### Phase 13 — Stripe & Subscriptions
+- Enable Stripe integration
+- Create `create-checkout-session` edge function
+- Create `stripe-webhook` edge function handling subscription lifecycle events
+- Wire `/upgrade` page CTA to checkout session
+- Add `/profile/subscription` route for managing active subscription
 
-**Fix**: Create a new migration that uses `CREATE TRIGGER IF NOT EXISTS` for all 5 trigger functions.
+#### Phase 14 — i18n & Polish
+- Set up i18next with `ka` (default) and `en` locales
+- Extract all hardcoded Georgian strings to locale JSON files
+- Add language toggle to sidebar footer and profile settings
+- Persist language choice to `profiles.preferred_language`
+- Toast content displays `_ka` or `_en` based on selected language
 
-### 7. RLS policies still RESTRICTIVE
-All policies still show `Permissive: No` — the previous migration to fix this also appears to not have been applied.
-
-**Fix**: New migration to drop and recreate as PERMISSIVE for `toasts` SELECT, `feast_collaborators` INSERT, and `feasts` SELECT by share_code.
-
-### 8. Model inconsistency
-- `generate-toast`: uses `google/gemini-2.5-flash` (outdated)
-- `tamada-ai`: uses `google/gemini-3-flash-preview` (correct)
-- `generate-feast-plan`: uses `google/gemini-3-flash-preview` (correct)
-
-**Fix**: Update `generate-toast` to use `google/gemini-3-flash-preview`, or better yet, deprecate it.
-
-## Implementation
-
-### Task 1: DB Migration — Triggers + RLS Fix
-Create migration with:
-- 5 `CREATE TRIGGER IF NOT EXISTS` statements
-- Drop and recreate restrictive SELECT policies on `toasts`, restrictive INSERT policies on `feast_collaborators`, and restrictive SELECT policy `feasts_select_by_share_code` as PERMISSIVE
-
-### Task 2: Unify System Prompt + Scale Toast Count
-Update `generate-feast-plan/index.ts`:
-- Replace `FEAST_PLAN_SYSTEM_PROMPT` with the full master prompt from `tamada-ai` (Layers 0-2: Identity, Cultural Knowledge, Anti-Hallucination)
-- Append feast-plan-specific layers (plan structure, response format, occasion protocols) as additional layers
-- Add explicit toast count instructions to the user prompt:
-  - `"რაოდენობა: ${Math.max(5, Math.min(20, Math.round(duration_minutes / 15)))} სადღეგრძელო (მინიმუმ ${minToasts}, მაქსიმუმ ${maxToasts})"`
-  - Map occasion to min/max ranges: wedding 10-15, memorial 6-8, birthday 8-12, supra 8-15, etc.
-
-### Task 3: Upgrade `generate-toast` to use master prompt + correct model
-Update `generate-toast/index.ts`:
-- Change model to `google/gemini-3-flash-preview`
-- Replace the minimal system prompt with the master TAMADA AI prompt (same as in `tamada-ai`)
-- Add the full CORS headers
-
-### Task 4: Insert Toast at Position + Generate Body for Empty Slots
-Update `FeastDetailPage.tsx`:
-- Add "Insert toast after" button on each toast card (visible to host in draft)
-- When inserting, shift positions of all subsequent toasts
-- In `ToastDetailDialog`, when `bodyKa` is null, show a prominent "Generate Body" CTA button that calls the single regen flow
-- Make the manual add toast form include a toast_type selector
-
-### Task 5: Add toast_type selector to manual add form
-Currently manual add only takes a title. Add a `Select` for `toast_type` so the AI knows what type to generate when the user later clicks "Generate Body".
-
-## Files Changed
-
-1. `supabase/migrations/` — New migration for triggers + RLS
-2. `supabase/functions/generate-feast-plan/index.ts` — Master prompt, toast count scaling
-3. `supabase/functions/generate-toast/index.ts` — Model upgrade + master prompt
-4. `src/pages/FeastDetailPage.tsx` — Insert at position, generate body for empty slots, toast_type selector
+#### Phase 15 — Advanced Features & Hardening
+- `generate-feast-plan` edge function — AI-generated toast schedule based on occasion/duration/formality
+- PDF export of feast plan using jsPDF (Pro only)
+- Dark mode support
+- Keyboard shortcuts in live feast mode (Space = complete, Esc = pause)
+- Additional seed toasts (expand from 11 to 50+)
+- Error boundary components, offline queue for failed writes, optimistic updates throughout
 

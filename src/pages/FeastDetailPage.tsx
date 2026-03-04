@@ -23,7 +23,7 @@ import {
 import EmptyState from "@/components/EmptyState";
 import {
   ArrowLeft, Play, Pause, Square, Plus, Trash2, Users, Clock, Wine, Share2, Copy, Link, Sparkles, Loader2, Pencil,
-  GripVertical, BookOpen, RefreshCw, Search, Check,
+  GripVertical, BookOpen, RefreshCw, Search, Check, ArrowDown,
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast as sonnerToast } from "sonner";
@@ -51,6 +51,12 @@ const toastStatusIcon: Record<string, string> = {
 
 const guestRoleKeys = ["guest", "mejavare", "honored_guest", "family"];
 
+const toastTypeKeys = [
+  "god", "homeland", "parents", "deceased", "host", "guest_of_honor",
+  "love", "children", "friendship", "future", "mother", "father",
+  "women", "brotherhood", "peace", "georgia", "custom",
+];
+
 // ── Sortable Toast Card ──
 interface SortableToastCardProps {
   ft: any;
@@ -60,11 +66,12 @@ interface SortableToastCardProps {
   toastStatusIcon: Record<string, string>;
   onSelect: (ft: any) => void;
   onRemove: (id: string) => void;
+  onInsertAfter: (position: number) => void;
   t: (key: string, fallback?: any) => string;
 }
 
 const SortableToastCard: React.FC<SortableToastCardProps> = ({
-  ft, index, isDraft, isHost, toastStatusIcon, onSelect, onRemove, t,
+  ft, index, isDraft, isHost, toastStatusIcon, onSelect, onRemove, onInsertAfter, t,
 }) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: ft.id });
   const style = {
@@ -109,14 +116,31 @@ const SortableToastCard: React.FC<SortableToastCardProps> = ({
               {ft.alaverdi_assigned_to && <Badge variant="secondary" className="text-[10px]">{t("feastDetail.alaverdi")}: {ft.alaverdi_assigned_to}</Badge>}
             </div>
           </div>
-          {isHost && <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={(e) => { e.stopPropagation(); onRemove(ft.id); }}><Trash2 className="h-3.5 w-3.5 text-muted-foreground" /></Button>}
+          <div className="flex items-center gap-0.5 shrink-0">
+            {isHost && isDraft && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7"
+                title={t("feastDetail.insertAfter", "ჩასმა ამის შემდეგ")}
+                onClick={(e) => { e.stopPropagation(); onInsertAfter(ft.position); }}
+              >
+                <ArrowDown className="h-3.5 w-3.5 text-muted-foreground" />
+              </Button>
+            )}
+            {isHost && (
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => { e.stopPropagation(); onRemove(ft.id); }}>
+                <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
+              </Button>
+            )}
+          </div>
         </CardContent>
       </Card>
     </motion.div>
   );
 };
 
-// ── Toast Detail Dialog (fetches custom_toast body, library browse, single regen) ──
+// ── Toast Detail Dialog ──
 interface ToastDetailDialogProps {
   selectedToast: any;
   onClose: () => void;
@@ -182,17 +206,15 @@ const ToastDetailDialog: React.FC<ToastDetailDialogProps> = ({
       sonnerToast.success(t("feastDetail.toastAssigned", "სადღეგრძელო მიბმულია"));
       setShowLibrary(false);
       onToastUpdated();
-      // Refresh the body queries
       queryClient.invalidateQueries({ queryKey: ["assigned-toast-body"] });
       queryClient.invalidateQueries({ queryKey: ["custom-toast-body"] });
     },
   });
 
-  // Regenerate single toast via AI
+  // Generate body for a toast slot (single regen)
   const regenSingleToast = useMutation({
     mutationFn: async () => {
       if (!selectedToast || !feast) throw new Error("No toast/feast");
-      // Gather enriched supra context for single regen
       const allToasts = queryClient.getQueryData<any[]>(["feast-toasts", feastId]) || [];
       const existingToastTypes = allToasts
         .filter((ft: any) => ft.id !== selectedToast.id)
@@ -222,7 +244,6 @@ const ToastDetailDialog: React.FC<ToastDetailDialogProps> = ({
       if (!toasts?.length) throw new Error("No toast generated");
       const generated = toasts[0];
 
-      // Update the feast_toast to link to the new custom toast
       if (generated.assigned_custom_toast_id) {
         const { error: updateErr } = await supabase.from("feast_toasts")
           .update({ assigned_custom_toast_id: generated.assigned_custom_toast_id, assigned_toast_id: null })
@@ -242,6 +263,7 @@ const ToastDetailDialog: React.FC<ToastDetailDialogProps> = ({
 
   const bodyKa = customToastBody?.body_ka || assignedToastBody?.body_ka || null;
   const bodyEn = customToastBody?.body_en || assignedToastBody?.body_en || null;
+  const hasBody = !!bodyKa;
 
   return (
     <Dialog open={!!selectedToast} onOpenChange={(open) => { if (!open) { setShowLibrary(false); onClose(); } }}>
@@ -308,7 +330,34 @@ const ToastDetailDialog: React.FC<ToastDetailDialogProps> = ({
                 <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">{bodyEn}</p>
               </div>
             )}
-            {!bodyKa && selectedToast?.description_ka && (
+
+            {/* Prominent Generate Body CTA when no body exists */}
+            {!hasBody && isHost && isDraft && (
+              <Card className="border-2 border-dashed border-primary/30 bg-primary/5">
+                <CardContent className="p-4 flex flex-col items-center text-center space-y-3">
+                  <Sparkles className="h-6 w-6 text-primary" />
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">{t("feastDetail.noBodyYet", "ტექსტი ჯერ არ არის შექმნილი")}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{t("feastDetail.generateBodyDesc", "AI შექმნის სრულ სადღეგრძელოს ტექსტს ამ სლოტისთვის")}</p>
+                  </div>
+                  <Button
+                    variant="wine"
+                    size="sm"
+                    onClick={() => regenSingleToast.mutate()}
+                    disabled={regenSingleToast.isPending}
+                  >
+                    {regenSingleToast.isPending ? (
+                      <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                    ) : (
+                      <Sparkles className="h-3.5 w-3.5 mr-1.5" />
+                    )}
+                    {t("feastDetail.generateBody", "ტექსტის გენერაცია")}
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+
+            {!bodyKa && !hasBody && selectedToast?.description_ka && (
               <div>
                 <p className="text-xs text-muted-foreground mb-1">🇬🇪</p>
                 <p className="text-sm text-foreground leading-relaxed">{selectedToast.description_ka}</p>
@@ -333,7 +382,7 @@ const ToastDetailDialog: React.FC<ToastDetailDialogProps> = ({
               <p className="text-xs text-muted-foreground">{selectedToast.notes}</p>
             )}
 
-            {/* Host actions: regen + library assign */}
+            {/* Host actions: regen + library assign (shown when body exists or for regeneration) */}
             {isHost && isDraft && (
               <div className="flex gap-2 pt-2 border-t border-border">
                 <Button
@@ -348,7 +397,7 @@ const ToastDetailDialog: React.FC<ToastDetailDialogProps> = ({
                   ) : (
                     <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
                   )}
-                  {t("feastDetail.regenerateToast", "ხელახლა გენერაცია")}
+                  {hasBody ? t("feastDetail.regenerateToast", "ხელახლა გენერაცია") : t("feastDetail.generateBody", "ტექსტის გენერაცია")}
                 </Button>
                 <Button
                   variant="outline"
@@ -453,12 +502,13 @@ const FeastDetailPage: React.FC = () => {
   const [newGuestName, setNewGuestName] = useState("");
   const [newGuestRole, setNewGuestRole] = useState("guest");
   const [newToastTitle, setNewToastTitle] = useState("");
-  const [newToastType] = useState("custom");
+  const [newToastType, setNewToastType] = useState("custom");
   const [selectedToast, setSelectedToast] = useState<any | null>(null);
   const [showAiConfirm, setShowAiConfirm] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [editTitle, setEditTitle] = useState("");
   const [editNotes, setEditNotes] = useState("");
+  const [insertAfterPosition, setInsertAfterPosition] = useState<number | null>(null);
 
   const { data: feast, isLoading } = useQuery({
     queryKey: ["feast", id],
@@ -551,13 +601,37 @@ const FeastDetailPage: React.FC = () => {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["feast-guests", id] }),
   });
 
+  // Add toast — supports inserting at a specific position
   const addToast = useMutation({
     mutationFn: async () => {
       if (!newToastTitle.trim()) return;
-      const { error } = await supabase.from("feast_toasts").insert({ feast_id: id!, position: (feastToasts?.length || 0) + 1, toast_type: newToastType, title_ka: newToastTitle.trim(), status: "pending" });
+      const targetPosition = insertAfterPosition !== null
+        ? insertAfterPosition + 1
+        : (feastToasts?.length || 0) + 1;
+
+      // If inserting in the middle, shift subsequent toasts
+      if (insertAfterPosition !== null && feastToasts) {
+        const toShift = feastToasts.filter((ft) => ft.position >= targetPosition);
+        for (const ft of toShift) {
+          await supabase.from("feast_toasts").update({ position: ft.position + 1 }).eq("id", ft.id);
+        }
+      }
+
+      const { error } = await supabase.from("feast_toasts").insert({
+        feast_id: id!,
+        position: targetPosition,
+        toast_type: newToastType,
+        title_ka: newToastTitle.trim(),
+        status: "pending",
+      });
       if (error) throw error;
     },
-    onSuccess: () => { setNewToastTitle(""); queryClient.invalidateQueries({ queryKey: ["feast-toasts", id] }); },
+    onSuccess: () => {
+      setNewToastTitle("");
+      setNewToastType("custom");
+      setInsertAfterPosition(null);
+      queryClient.invalidateQueries({ queryKey: ["feast-toasts", id] });
+    },
   });
 
   const removeToast = useMutation({
@@ -593,9 +667,7 @@ const FeastDetailPage: React.FC = () => {
     const reordered = arrayMove(feastToasts, oldIndex, newIndex);
     const updates = reordered.map((ft, i) => ({ ...ft, position: i + 1 }));
 
-    // Optimistic
     queryClient.setQueryData(["feast-toasts", id], updates);
-
     reorderToasts.mutate(updates.map((u) => ({ id: u.id, position: u.position })));
   }, [feastToasts, id, queryClient, reorderToasts]);
 
@@ -612,6 +684,8 @@ const FeastDetailPage: React.FC = () => {
           guest_count: feast.guest_count,
           region: feast.region,
           guest_names: guestNames,
+          feast_title: feast.title,
+          feast_notes: feast.notes,
         },
       });
       if (error) throw error;
@@ -619,6 +693,7 @@ const FeastDetailPage: React.FC = () => {
       return data.toasts as Array<{
         title_ka: string; title_en?: string; toast_type: string;
         duration_minutes?: number; description_ka?: string; description_en?: string;
+        assigned_custom_toast_id?: string;
       }>;
     },
     onSuccess: async (toasts) => {
@@ -652,6 +727,14 @@ const FeastDetailPage: React.FC = () => {
     } else {
       generatePlan.mutate();
     }
+  };
+
+  const handleInsertAfter = (position: number) => {
+    setInsertAfterPosition(position);
+    // Scroll to the add toast form
+    setTimeout(() => {
+      document.getElementById("add-toast-form")?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 100);
   };
 
   const formatDuration = (mins: number) => { const h = Math.floor(mins / 60); const m = mins % 60; return h > 0 ? `${h}h ${m > 0 ? `${m}m` : ""}` : `${m}m`; };
@@ -719,6 +802,7 @@ const FeastDetailPage: React.FC = () => {
                       toastStatusIcon={toastStatusIcon}
                       onSelect={setSelectedToast}
                       onRemove={(toastId) => removeToast.mutate(toastId)}
+                      onInsertAfter={handleInsertAfter}
                       t={t}
                     />
                   ))}
@@ -777,10 +861,35 @@ const FeastDetailPage: React.FC = () => {
             </div>
           )}
           {isHost && (
-            <Card className="border-dashed">
-              <CardContent className="p-3 flex gap-2">
-                <Input placeholder={t("feastDetail.toastNamePlaceholder")} value={newToastTitle} onChange={(e) => setNewToastTitle(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addToast.mutate()} />
-                <Button variant="outline" size="icon" onClick={() => addToast.mutate()}><Plus className="h-4 w-4" /></Button>
+            <Card id="add-toast-form" className="border-dashed">
+              <CardContent className="p-3 space-y-2">
+                {insertAfterPosition !== null && (
+                  <div className="flex items-center gap-2 text-xs text-primary">
+                    <ArrowDown className="h-3 w-3" />
+                    <span>{t("feastDetail.insertingAfter", "ჩასმა პოზიციის შემდეგ")}: #{insertAfterPosition}</span>
+                    <Button variant="ghost" size="sm" className="h-5 px-1 text-xs" onClick={() => setInsertAfterPosition(null)}>✕</Button>
+                  </div>
+                )}
+                <div className="flex gap-2">
+                  <Input
+                    placeholder={t("feastDetail.toastNamePlaceholder")}
+                    value={newToastTitle}
+                    onChange={(e) => setNewToastTitle(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && addToast.mutate()}
+                    className="flex-1"
+                  />
+                  <Select value={newToastType} onValueChange={setNewToastType}>
+                    <SelectTrigger className="w-[140px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {toastTypeKeys.map((tt) => (
+                        <SelectItem key={tt} value={tt}>{t(`live.toastType.${tt}`, tt)}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button variant="outline" size="icon" onClick={() => addToast.mutate()}><Plus className="h-4 w-4" /></Button>
+                </div>
               </CardContent>
             </Card>
           )}
