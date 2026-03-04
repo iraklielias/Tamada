@@ -637,6 +637,15 @@ ${fc.skipped_count ? `- გამოტოვებული: ${fc.skipped_count
         }, { onConflict: "user_id,knowledge_type,knowledge_key" });
       }
 
+      // Log feedback to ai_generation_log
+      await supabase.from("ai_generation_log").insert({
+        user_id: userId,
+        generation_type: "submit_feedback",
+        input_params: { signal, tone: gp.tone, occasion: gp.occasion_type },
+        output_text: null,
+        model_used: null,
+      });
+
       return new Response(
         JSON.stringify({ success: true, signal }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
