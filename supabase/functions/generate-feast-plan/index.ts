@@ -353,8 +353,8 @@ ${guest_names?.length ? `- სტუმრების სახელები:
     if (userId) {
       await supabase.from("ai_generation_log").insert({
         user_id: userId,
-        generation_type: "feast_plan",
-        input_params: { occasion_type, formality_level, duration_minutes, guest_count, region },
+        generation_type: isSingleRegen ? "feast_toast_regen" : "feast_plan",
+        input_params: { occasion_type, formality_level, duration_minutes, guest_count, region, single_toast_type },
         output_text: JSON.stringify(toasts),
         model_used: "google/gemini-3-flash-preview",
         latency_ms: latencyMs,
