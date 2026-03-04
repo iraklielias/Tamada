@@ -133,7 +133,7 @@ const FavoritesPage = () => {
       <Dialog open={!!selectedToast} onOpenChange={(open) => !open && setSelectedToast(null)}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>{selectedToast?.title_ka || t("favorites.title")}</DialogTitle>
+            <DialogTitle>{isEn ? (selectedToast?.title_en || selectedToast?.title_ka) : selectedToast?.title_ka || t("favorites.title")}</DialogTitle>
             <DialogDescription>
               {"occasion_type" in (selectedToast || {}) && selectedToast?.occasion_type && (
                 <Badge variant="outline" className="text-xs mt-1">
