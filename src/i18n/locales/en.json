@@ -49,7 +49,16 @@
     "deleted": "Deleted",
     "codeGenerated": "Code generated!",
     "linkCopied": "Link copied!",
-    "generateCode": "Generate code"
+    "generateCode": "Generate code",
+    "copied": "Copied!",
+    "ready": "Ready",
+    "restore": "Restore",
+    "edited": "Edited",
+    "showChanges": "Show changes",
+    "hideChanges": "Hide changes",
+    "titleLabel": "Title",
+    "textLabel": "Text",
+    "editedVersionSaved": "Edited version saved!"
   },
   "dashboard": {
     "greeting": {
@@ -156,6 +165,25 @@
       "mejavare": "Co-Tamada",
       "honored_guest": "Honored Guest",
       "family": "Family"
+    },
+    "toastTypes": {
+      "god": "Toast to God",
+      "homeland": "Toast to Homeland",
+      "parents": "Toast to Parents",
+      "deceased": "Remembrance of the Departed",
+      "host": "Toast to the Host",
+      "guest_of_honor": "Toast to the Guest of Honor",
+      "love": "Toast to Love",
+      "children": "Toast to Children",
+      "friendship": "Toast to Friendship",
+      "future": "Toast to the Future",
+      "mother": "Toast to Mother",
+      "father": "Toast to Father",
+      "women": "Toast to Women",
+      "brotherhood": "Toast to Brotherhood",
+      "peace": "Toast to Peace",
+      "georgia": "Toast to Georgia",
+      "custom": "Custom"
     }
   },
   "live": {
@@ -168,6 +196,16 @@
     "upcoming": "Upcoming",
     "estimated": "Estimated",
     "alaverdiRecorded": "Alaverdi recorded!",
+    "elapsed": "Elapsed",
+    "feastCompleted": "Feast completed!",
+    "startFeast": "Start Feast",
+    "pauseFeast": "Pause",
+    "resumeFeast": "Resume",
+    "completeFeast": "Complete Feast",
+    "currentToast": "Current Toast",
+    "nextUp": "Next Up",
+    "assignAlaverdi": "Assign Alaverdi",
+    "selectGuest": "Select Guest",
     "toastType": {
       "mandatory": "Mandatory",
       "traditional": "Traditional",
@@ -228,6 +266,18 @@
       "beginning": "At the beginning",
       "middle": "In the middle",
       "end": "At the end"
+    },
+    "regions": {
+      "general": "General Georgian",
+      "kakheti": "Kakheti — poetic, vine metaphors",
+      "imereti": "Imereti — witty, humorous",
+      "kartli": "Kartli — dignified, historical",
+      "racha": "Racha-Lechkhumi — heartfelt, mountain imagery",
+      "samegrelo": "Samegrelo — passionate, emotional",
+      "guria": "Guria — lively, rhythmic",
+      "adjara": "Adjara — hospitable, inclusive",
+      "svaneti": "Svaneti — archaic, mystical",
+      "meskheti": "Meskheti — resilient, memorial"
     }
   },
   "profile": {
@@ -311,5 +361,34 @@
     "subtitle": "Toast templates",
     "noTemplates": "No templates found",
     "useTemplate": "Use template"
+  },
+  "auth": {
+    "loginTitle": "Sign In",
+    "signupTitle": "Sign Up",
+    "email": "Email",
+    "password": "Password",
+    "forgotPassword": "Forgot password?",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?",
+    "loginButton": "Sign In",
+    "signupButton": "Sign Up"
+  },
+  "onboarding": {
+    "welcome": "Welcome!",
+    "stepName": "Your Name",
+    "stepRegion": "Region",
+    "stepExperience": "Experience",
+    "stepOccasions": "Occasions",
+    "finish": "Finish"
+  },
+  "history": {
+    "title": "AI History",
+    "subtitle": "Your generation history",
+    "totalGenerations": "Total Generations",
+    "totalFeedback": "Feedback",
+    "totalEdits": "Edits",
+    "avgLatency": "Avg Latency",
+    "adaptiveLearning": "Adaptive Learning",
+    "noHistory": "No history yet"
   }
 }

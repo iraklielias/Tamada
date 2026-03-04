@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useProGate } from "@/hooks/useProGate";
@@ -64,44 +65,11 @@ function computeWordDiff(original: string, edited: string): { type: "same" | "ad
   return result;
 }
 
-const occasions = [
-  { value: "supra", label: "სუფრა" },
-  { value: "wedding", label: "ქორწილი" },
-  { value: "birthday", label: "დაბადების დღე" },
-  { value: "memorial", label: "პანაშვიდი" },
-  { value: "christening", label: "ნათლობა" },
-  { value: "guest_reception", label: "სტუმრის მიღება" },
-  { value: "holiday", label: "დღესასწაული" },
-  { value: "business", label: "საქმიანი" },
-  { value: "friendly_gathering", label: "მეგობრული შეკრება" },
-  { value: "other", label: "სხვა" },
-];
-
-const formalities = [
-  { value: "formal", label: "ფორმალური" },
-  { value: "semi_formal", label: "ნახევრად ფორმალური" },
-  { value: "casual", label: "არაფორმალური" },
-];
-
-const tones = [
-  { value: "traditional", label: "ტრადიციული", icon: "🏛️" },
-  { value: "humorous", label: "იუმორისტული", icon: "😄" },
-  { value: "emotional", label: "ემოციური", icon: "❤️" },
-  { value: "philosophical", label: "ფილოსოფიური", icon: "🤔" },
-];
-
-const regions = [
-  { value: "general", label: "ზოგადი ქართული" },
-  { value: "kakheti", label: "კახეთი — პოეტური, ვაზის მეტაფორები" },
-  { value: "imereti", label: "იმერეთი — მახვილგონივრული, იუმორი" },
-  { value: "kartli", label: "ქართლი — ღირსეული, ისტორიული" },
-  { value: "racha", label: "რაჭა-ლეჩხუმი — გულწრფელი, მთიური" },
-  { value: "samegrelo", label: "სამეგრელო — ვნებიანი, ემოციური" },
-  { value: "guria", label: "გურია — ენერგიული, მუსიკალური" },
-  { value: "adjara", label: "აჭარა — სტუმართმოყვარე, ინკლუზიური" },
-  { value: "svaneti", label: "სვანეთი — უძველესი, მისტიკური" },
-  { value: "meskheti", label: "მესხეთი — გამძლე, მემორიალური" },
-];
+const occasionKeys = ["supra","wedding","birthday","memorial","christening","guest_reception","holiday","business","friendly_gathering","other"];
+const formalityKeys = ["formal","semi_formal","casual"];
+const toneKeys = ["traditional","humorous","emotional","philosophical"];
+const toneIcons: Record<string, string> = { traditional: "🏛️", humorous: "😄", emotional: "❤️", philosophical: "🤔" };
+const regionKeys = ["general","kakheti","imereti","kartli","racha","samegrelo","guria","adjara","svaneti","meskheti"];
 
 interface DeliveryGuidance {
   recommended_pace?: string;
@@ -128,19 +96,11 @@ interface GeneratedToast {
   delivery_guidance?: DeliveryGuidance;
 }
 
-const paceLabels: Record<string, string> = {
-  slow: "ნელა — საზეიმო ტემპი",
-  moderate: "ზომიერი ტემპი",
-  conversational: "საუბრისებური ტემპი",
-};
-
-const peakLabels: Record<string, string> = {
-  beginning: "დასაწყისში",
-  middle: "შუაში",
-  end: "ბოლოს",
-};
+const paceKeys = ["slow", "moderate", "conversational"] as const;
+const peakKeys = ["beginning", "middle", "end"] as const;
 
 const AIGeneratePage = () => {
+  const { t } = useTranslation();
   const [occasion, setOccasion] = useState("supra");
   const [formality, setFormality] = useState("formal");
   const [tone, setTone] = useState("traditional");
@@ -219,10 +179,10 @@ const AIGeneratePage = () => {
       setShowDiff(false);
       setFeedbackGiven(null);
       queryClient.invalidateQueries({ queryKey: ["daily-ai-count"] });
-      sonnerToast.success("სადღეგრძელო შეიქმნა!");
+      sonnerToast.success(t("ai.created"));
     },
     onError: (err: Error) => {
-      if (!showUpsell) sonnerToast.error(err.message || "გენერაცია ვერ მოხერხდა");
+      if (!showUpsell) sonnerToast.error(err.message || t("ai.generateFailed"));
     },
   });
 
@@ -287,12 +247,12 @@ const AIGeneratePage = () => {
       queryClient.invalidateQueries({ queryKey: ["fav-count"] });
       sonnerToast.success(
         originalResult && (editedTitle !== originalResult.title_ka || editedBody !== originalResult.body_ka)
-          ? "რედაქტირებული ვერსია შეინახა!"
-          : "დაემატა რჩეულებში!"
+          ? t("common.editedVersionSaved")
+          : t("ai.savedToFavs")
       );
     },
     onError: (err: Error) => {
-      if (!showUpsell) sonnerToast.error("შენახვა ვერ მოხერხდა");
+      if (!showUpsell) sonnerToast.error(t("ai.saveFailed"));
     },
   });
 
@@ -323,14 +283,14 @@ const AIGeneratePage = () => {
     },
     onSuccess: (_, signal) => {
       setFeedbackGiven(signal);
-      sonnerToast.success(signal === "positive" ? "მადლობა! 👍" : "გავითვალისწინებთ 📝");
+      sonnerToast.success(signal === "positive" ? t("ai.feedback.thanks") : t("ai.feedback.noted"));
     },
   });
 
   const copyToClipboard = () => {
     if (!editedBody) return;
     navigator.clipboard.writeText(editedBody);
-    sonnerToast.success("დაკოპირდა!");
+    sonnerToast.success(t("common.copied"));
   };
 
   const dg = result?.delivery_guidance;
@@ -342,14 +302,14 @@ const AIGeneratePage = () => {
         <div>
           <h1 className="text-heading-1 text-foreground flex items-center gap-2">
             <Sparkles className="h-7 w-7 text-primary" />
-            AI გენერატორი
+            {t("ai.title")}
           </h1>
           <p className="text-body-sm text-muted-foreground mt-1">
-            შექმენი უნიკალური ქართული სადღეგრძელო AI-ის დახმარებით
+            {t("ai.subtitle")}
           </p>
         </div>
         <Badge variant="outline" className="text-xs shrink-0">
-          {dailyAICount}/{limits.maxAIPerDay} დღეს
+          {dailyAICount}/{limits.maxAIPerDay} {t("ai.today")}
         </Badge>
       </div>
 
@@ -359,99 +319,33 @@ const AIGeneratePage = () => {
           {/* Row 1: Occasion + Formality */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="text-caption text-muted-foreground mb-1.5 block">წვეულების ტიპი</label>
-              <Select value={occasion} onValueChange={setOccasion}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {occasions.map((o) => (
-                    <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <label className="text-caption text-muted-foreground mb-1.5 block">ფორმალურობა</label>
-              <Select value={formality} onValueChange={setFormality}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {formalities.map((f) => (
-                    <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          {/* Row 2: Tone selector */}
-          <div>
-            <label className="text-caption text-muted-foreground mb-1.5 flex items-center gap-1.5">
-              <Palette className="h-3.5 w-3.5" /> ტონი / სტილი
-            </label>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {tones.map((t) => (
-                <button
-                  key={t.value}
-                  type="button"
-                  onClick={() => setTone(t.value)}
-                  className={`flex items-center gap-2 px-3 py-2.5 rounded-lg border text-sm transition-all ${
-                    tone === t.value
-                      ? "border-primary bg-primary/10 text-primary font-medium shadow-sm"
-                      : "border-border bg-background text-muted-foreground hover:border-primary/40 hover:bg-accent/50"
-                  }`}
-                >
-                  <span className="text-base">{t.icon}</span>
-                  <span className="truncate">{t.label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Row 3: Region */}
-          <div>
-            <label className="text-caption text-muted-foreground mb-1.5 flex items-center gap-1.5">
-              <MapPin className="h-3.5 w-3.5" /> რეგიონული სტილი
-            </label>
-            <Select value={region} onValueChange={setRegion}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {regions.map((r) => (
-                  <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Row 4: Person */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
               <label className="text-caption text-muted-foreground mb-1.5 flex items-center gap-1.5">
-                <User className="h-3.5 w-3.5" /> ვისთვის (არასავალდებულო)
+                <User className="h-3.5 w-3.5" /> {t("ai.personName")}
               </label>
               <Input
-                placeholder="მაგ: გიორგი"
+                placeholder={t("ai.personNamePlaceholder")}
                 value={personName}
                 onChange={(e) => setPersonName(e.target.value)}
               />
             </div>
             <div>
               <label className="text-caption text-muted-foreground mb-1.5 block">
-                დეტალები პიროვნებაზე
+                {t("ai.personDetails")}
               </label>
               <Input
-                placeholder="მაგ: ექიმი თელავიდან, ფეხბურთის მოყვარული"
+                placeholder={t("ai.personDetailsPlaceholder")}
                 value={personDetails}
                 onChange={(e) => setPersonDetails(e.target.value)}
               />
             </div>
           </div>
 
-          {/* Row 5: Freeform */}
           <div>
             <label className="text-caption text-muted-foreground mb-1.5 block">
-              თემა / დამატებითი სურვილი (არასავალდებულო)
+              {t("ai.topic")}
             </label>
             <Textarea
-              placeholder="მაგ: სიყვარულზე, ოჯახურ ღირებულებებზე, წარმატებაზე..."
+              placeholder={t("ai.topicPlaceholder")}
               value={topic}
               onChange={(e) => setTopic(e.target.value)}
               rows={2}
@@ -464,11 +358,11 @@ const AIGeneratePage = () => {
             disabled={generate.isPending}
           >
             {generate.isPending ? (
-              <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> იქმნება...</>
+              <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> {t("ai.generating")}</>
             ) : !canGenerateAI ? (
-              <><Lock className="h-4 w-4 mr-2" /> ლიმიტი ამოიწურა</>
+              <><Lock className="h-4 w-4 mr-2" /> {t("ai.limitReached")}</>
             ) : (
-              <><Sparkles className="h-4 w-4 mr-2" /> სადღეგრძელოს გენერაცია</>
+              <><Sparkles className="h-4 w-4 mr-2" /> {t("ai.generate")}</>
             )}
           </Button>
         </CardContent>
@@ -502,18 +396,18 @@ const AIGeneratePage = () => {
                   <div className="flex items-center gap-1.5">
                     {editedTitle !== originalResult?.title_ka || editedBody !== originalResult?.body_ka ? (
                       <Badge variant="outline" className="text-[10px] border-primary/50 text-primary">
-                        <Pencil className="h-2.5 w-2.5 mr-0.5" /> რედაქტირებული
+                        <Pencil className="h-2.5 w-2.5 mr-0.5" /> {t("common.edited")}
                       </Badge>
                     ) : null}
                     {meta?.tone && (
                       <Badge variant="outline" className="text-[10px]">
-                        {tones.find(t => t.value === meta.tone)?.icon} {tones.find(t => t.value === meta.tone)?.label || meta.tone}
+                        {toneIcons[meta.tone] || ""} {t(`ai.tones.${meta.tone}`, meta.tone)}
                       </Badge>
                     )}
                     {meta?.region_style && meta.region_style !== "general" && (
                       <Badge variant="outline" className="text-[10px]">
                         <MapPin className="h-2.5 w-2.5 mr-0.5" />
-                        {regions.find(r => r.value === meta.region_style)?.label.split(" —")[0] || meta.region_style}
+                        {t(`profile.regions.${meta.region_style}`, meta.region_style)}
                       </Badge>
                     )}
                     <Badge variant="secondary" className="text-[10px]">AI</Badge>
@@ -542,7 +436,7 @@ const AIGeneratePage = () => {
                       className="flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 transition-colors"
                     >
                       {showDiff ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
-                      {showDiff ? "ცვლილებების დამალვა" : "ცვლილებების ნახვა"}
+                      {showDiff ? t("common.hideChanges") : t("common.showChanges")}
                     </button>
                     <AnimatePresence>
                       {showDiff && (
@@ -555,7 +449,7 @@ const AIGeneratePage = () => {
                           <div className="rounded-lg border border-border bg-muted/30 p-3 space-y-2">
                             {editedTitle !== originalResult.title_ka && (
                               <div className="text-xs">
-                                <span className="font-medium text-muted-foreground block mb-1">სათაური:</span>
+                                <span className="font-medium text-muted-foreground block mb-1">{t("common.titleLabel")}:</span>
                                 <p className="leading-relaxed">
                                   {computeWordDiff(originalResult.title_ka, editedTitle).map((seg, i) =>
                                     seg.type === "same" ? (
@@ -570,7 +464,7 @@ const AIGeneratePage = () => {
                               </div>
                             )}
                             <div className="text-xs">
-                              <span className="font-medium text-muted-foreground block mb-1">ტექსტი:</span>
+                              <span className="font-medium text-muted-foreground block mb-1">{t("common.textLabel")}:</span>
                               <p className="leading-relaxed whitespace-pre-wrap">
                                 {computeWordDiff(originalResult.body_ka, editedBody).map((seg, i) =>
                                   seg.type === "same" ? (
@@ -602,7 +496,7 @@ const AIGeneratePage = () => {
                     {isEditing ? (
                       <>
                         <Button variant="default" size="sm" onClick={() => setIsEditing(false)}>
-                          <Check className="h-3.5 w-3.5 mr-1.5" /> მზადაა
+                          <Check className="h-3.5 w-3.5 mr-1.5" /> {t("common.ready")}
                         </Button>
                         {originalResult && (editedTitle !== originalResult.title_ka || editedBody !== originalResult.body_ka) && (
                           <Button
@@ -614,31 +508,31 @@ const AIGeneratePage = () => {
                               setShowDiff(false);
                             }}
                           >
-                            <Undo2 className="h-3.5 w-3.5 mr-1.5" /> აღდგენა
+                            <Undo2 className="h-3.5 w-3.5 mr-1.5" /> {t("common.restore")}
                           </Button>
                         )}
                       </>
                     ) : (
                       <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
-                        <Pencil className="h-3.5 w-3.5 mr-1.5" /> რედაქტირება
+                        <Pencil className="h-3.5 w-3.5 mr-1.5" /> {t("common.edit")}
                       </Button>
                     )}
                     <Button variant="outline" size="sm" onClick={copyToClipboard}>
-                      <Copy className="h-3.5 w-3.5 mr-1.5" /> კოპირება
+                      <Copy className="h-3.5 w-3.5 mr-1.5" /> {t("common.copy")}
                     </Button>
                     <Button
                       variant="outline" size="sm"
                       onClick={() => saveToFavorites.mutate()}
                       disabled={saveToFavorites.isPending}
                     >
-                      <Heart className="h-3.5 w-3.5 mr-1.5" /> შენახვა
+                      <Heart className="h-3.5 w-3.5 mr-1.5" /> {t("common.save")}
                     </Button>
                     <Button
                       variant="ghost" size="sm"
                       onClick={() => generate.mutate()}
                       disabled={generate.isPending}
                     >
-                      <RefreshCw className="h-3.5 w-3.5 mr-1.5" /> ხელახლა
+                      <RefreshCw className="h-3.5 w-3.5 mr-1.5" /> {t("ai.regenerate")}
                     </Button>
                   </div>
 
@@ -673,7 +567,7 @@ const AIGeneratePage = () => {
                 <CardContent className="p-4 space-y-3">
                   <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
                     <Volume2 className="h-4 w-4 text-primary" />
-                    წარმოთქმის გზამკვლევი
+                    {t("ai.delivery.title")}
                   </h4>
 
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
@@ -681,9 +575,9 @@ const AIGeneratePage = () => {
                       <div className="flex items-start gap-2 p-2 rounded-md bg-background border border-border">
                         <Clock className="h-3.5 w-3.5 text-muted-foreground mt-0.5 shrink-0" />
                         <div>
-                          <span className="font-medium text-foreground block">ტემპი</span>
+                          <span className="font-medium text-foreground block">{t("ai.delivery.pace")}</span>
                           <span className="text-muted-foreground">
-                            {paceLabels[dg.recommended_pace] || dg.recommended_pace}
+                            {t(`ai.delivery.${dg.recommended_pace}`, dg.recommended_pace)}
                           </span>
                         </div>
                       </div>
@@ -693,9 +587,9 @@ const AIGeneratePage = () => {
                       <div className="flex items-start gap-2 p-2 rounded-md bg-background border border-border">
                         <Sparkles className="h-3.5 w-3.5 text-muted-foreground mt-0.5 shrink-0" />
                         <div>
-                          <span className="font-medium text-foreground block">ემოციური პიკი</span>
+                          <span className="font-medium text-foreground block">{t("ai.delivery.emotionalPeak")}</span>
                           <span className="text-muted-foreground">
-                            {peakLabels[dg.emotional_peak_location] || dg.emotional_peak_location}
+                            {t(`ai.delivery.${dg.emotional_peak_location}`, dg.emotional_peak_location)}
                           </span>
                         </div>
                       </div>
@@ -705,7 +599,7 @@ const AIGeneratePage = () => {
                       <div className="flex items-start gap-2 p-2 rounded-md bg-background border border-border">
                         <Hand className="h-3.5 w-3.5 text-muted-foreground mt-0.5 shrink-0" />
                         <div>
-                          <span className="font-medium text-foreground block">ბოკალი აწიეთ</span>
+                          <span className="font-medium text-foreground block">{t("ai.delivery.raiseGlass")}</span>
                           <span className="text-muted-foreground">{dg.glass_raise_moment}</span>
                         </div>
                       </div>
@@ -714,7 +608,7 @@ const AIGeneratePage = () => {
 
                   {dg.pause_suggestions && dg.pause_suggestions.length > 0 && (
                     <div className="text-xs space-y-1 pt-1">
-                      <span className="font-medium text-foreground">პაუზების ადგილები:</span>
+                      <span className="font-medium text-foreground">{t("ai.delivery.pausePoints")}:</span>
                       <ul className="list-disc list-inside text-muted-foreground space-y-0.5">
                         {dg.pause_suggestions.map((p, i) => (
                           <li key={i}>{p}</li>
@@ -725,7 +619,7 @@ const AIGeneratePage = () => {
 
                   {dg.estimated_duration_minutes && (
                     <p className="text-[11px] text-muted-foreground">
-                      სავარაუდო ხანგრძლივობა: ~{dg.estimated_duration_minutes} წუთი
+                      {t("ai.delivery.estimatedDuration")}: ~{dg.estimated_duration_minutes} {t("ai.delivery.minutes")}
                     </p>
                   )}
                 </CardContent>
