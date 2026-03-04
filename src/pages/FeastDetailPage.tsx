@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
@@ -23,10 +23,19 @@ import {
 import EmptyState from "@/components/EmptyState";
 import {
   ArrowLeft, Play, Pause, Square, Plus, Trash2, Users, Clock, Wine, Share2, Copy, Link, Sparkles, Loader2, Pencil,
-  ChevronUp, ChevronDown,
+  GripVertical,
 } from "lucide-react";
 import { toast as sonnerToast } from "sonner";
 import { motion } from "framer-motion";
+import {
+  DndContext, closestCenter, KeyboardSensor, PointerSensor, TouchSensor,
+  useSensor, useSensors, type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext, verticalListSortingStrategy, useSortable,
+  arrayMove,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 const statusColors: Record<string, string> = {
   draft: "bg-muted text-muted-foreground",
