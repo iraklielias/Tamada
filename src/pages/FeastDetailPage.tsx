@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
@@ -23,10 +23,19 @@ import {
 import EmptyState from "@/components/EmptyState";
 import {
   ArrowLeft, Play, Pause, Square, Plus, Trash2, Users, Clock, Wine, Share2, Copy, Link, Sparkles, Loader2, Pencil,
-  ChevronUp, ChevronDown,
+  GripVertical,
 } from "lucide-react";
 import { toast as sonnerToast } from "sonner";
 import { motion } from "framer-motion";
+import {
+  DndContext, closestCenter, KeyboardSensor, PointerSensor, TouchSensor,
+  useSensor, useSensors, type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext, verticalListSortingStrategy, useSortable,
+  arrayMove,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 const statusColors: Record<string, string> = {
   draft: "bg-muted text-muted-foreground",
@@ -40,6 +49,71 @@ const toastStatusIcon: Record<string, string> = {
 };
 
 const guestRoleKeys = ["guest", "mejavare", "honored_guest", "family"];
+
+// ── Sortable Toast Card ──
+interface SortableToastCardProps {
+  ft: any;
+  index: number;
+  isDraft: boolean;
+  isHost: boolean;
+  toastStatusIcon: Record<string, string>;
+  onSelect: (ft: any) => void;
+  onRemove: (id: string) => void;
+  t: (key: string, fallback?: any) => string;
+}
+
+const SortableToastCard: React.FC<SortableToastCardProps> = ({
+  ft, index, isDraft, isHost, toastStatusIcon, onSelect, onRemove, t,
+}) => {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: ft.id });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 50 : undefined,
+    opacity: isDragging ? 0.8 : undefined,
+  };
+
+  return (
+    <motion.div
+      ref={setNodeRef}
+      style={style}
+      initial={{ opacity: 0, x: -8 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: index * 0.02 }}
+    >
+      <Card
+        className={`transition-shadow cursor-pointer hover:shadow-card-hover ${ft.status === "completed" ? "opacity-60" : ""} ${isDragging ? "shadow-lg ring-2 ring-primary/30" : ""}`}
+        onClick={() => onSelect(ft)}
+      >
+        <CardContent className="p-3 flex items-center gap-3">
+          {isHost && isDraft && (
+            <div
+              className="shrink-0 cursor-grab active:cursor-grabbing touch-none text-muted-foreground hover:text-foreground transition-colors"
+              {...attributes}
+              {...listeners}
+            >
+              <GripVertical className="h-4 w-4" />
+            </div>
+          )}
+          <div className="h-8 w-8 rounded-full bg-accent flex items-center justify-center shrink-0 text-sm font-bold text-accent-foreground">{ft.position}</div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <p className="text-sm font-semibold text-foreground truncate">{ft.title_ka}</p>
+              <span className="text-xs">{toastStatusIcon[ft.status || "pending"]}</span>
+            </div>
+            {ft.description_ka && <p className="text-xs text-muted-foreground truncate mt-0.5">{ft.description_ka}</p>}
+            <div className="flex items-center gap-2 mt-0.5">
+              <Badge variant="outline" className="text-[10px]">{t(`live.toastType.${ft.toast_type}`, ft.toast_type)}</Badge>
+              {ft.duration_minutes && <span className="text-[10px] text-muted-foreground">{ft.duration_minutes}m</span>}
+              {ft.alaverdi_assigned_to && <Badge variant="secondary" className="text-[10px]">{t("feastDetail.alaverdi")}: {ft.alaverdi_assigned_to}</Badge>}
+            </div>
+          </div>
+          {isHost && <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={(e) => { e.stopPropagation(); onRemove(ft.id); }}><Trash2 className="h-3.5 w-3.5 text-muted-foreground" /></Button>}
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+};
 
 const FeastDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -162,47 +236,39 @@ const FeastDetailPage: React.FC = () => {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["feast-toasts", id] }),
   });
 
-  // ── Toast reordering ──
-  const reorderToast = useMutation({
-    mutationFn: async ({ toastId, direction }: { toastId: string; direction: "up" | "down" }) => {
-      if (!feastToasts) return;
-      const idx = feastToasts.findIndex((ft) => ft.id === toastId);
-      if (idx < 0) return;
-      const swapIdx = direction === "up" ? idx - 1 : idx + 1;
-      if (swapIdx < 0 || swapIdx >= feastToasts.length) return;
+  // ── Toast reordering (dnd-kit) ──
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } }),
+    useSensor(KeyboardSensor),
+  );
 
-      const current = feastToasts[idx];
-      const swap = feastToasts[swapIdx];
-
-      // Swap positions in DB
-      const { error: e1 } = await supabase.from("feast_toasts").update({ position: swap.position }).eq("id", current.id);
-      if (e1) throw e1;
-      const { error: e2 } = await supabase.from("feast_toasts").update({ position: current.position }).eq("id", swap.id);
-      if (e2) throw e2;
-    },
-    onMutate: async ({ toastId, direction }) => {
-      // Optimistic update
-      await queryClient.cancelQueries({ queryKey: ["feast-toasts", id] });
-      const prev = queryClient.getQueryData<any[]>(["feast-toasts", id]);
-      if (prev) {
-        const next = [...prev];
-        const idx = next.findIndex((ft) => ft.id === toastId);
-        const swapIdx = direction === "up" ? idx - 1 : idx + 1;
-        if (idx >= 0 && swapIdx >= 0 && swapIdx < next.length) {
-          const tmpPos = next[idx].position;
-          next[idx] = { ...next[idx], position: next[swapIdx].position };
-          next[swapIdx] = { ...next[swapIdx], position: tmpPos };
-          next.sort((a, b) => a.position - b.position);
-          queryClient.setQueryData(["feast-toasts", id], next);
-        }
+  const reorderToasts = useMutation({
+    mutationFn: async (updates: { id: string; position: number }[]) => {
+      for (const u of updates) {
+        const { error } = await supabase.from("feast_toasts").update({ position: u.position }).eq("id", u.id);
+        if (error) throw error;
       }
-      return { prev };
-    },
-    onError: (_err, _vars, ctx) => {
-      if (ctx?.prev) queryClient.setQueryData(["feast-toasts", id], ctx.prev);
     },
     onSettled: () => queryClient.invalidateQueries({ queryKey: ["feast-toasts", id] }),
   });
+
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id || !feastToasts) return;
+
+    const oldIndex = feastToasts.findIndex((ft) => ft.id === active.id);
+    const newIndex = feastToasts.findIndex((ft) => ft.id === over.id);
+    if (oldIndex < 0 || newIndex < 0) return;
+
+    const reordered = arrayMove(feastToasts, oldIndex, newIndex);
+    const updates = reordered.map((ft, i) => ({ ...ft, position: i + 1 }));
+
+    // Optimistic
+    queryClient.setQueryData(["feast-toasts", id], updates);
+
+    reorderToasts.mutate(updates.map((u) => ({ id: u.id, position: u.position })));
+  }, [feastToasts, id, queryClient, reorderToasts]);
 
   const generatePlan = useMutation({
     mutationFn: async () => {
@@ -309,48 +375,25 @@ const FeastDetailPage: React.FC = () => {
 
         <TabsContent value="plan" className="mt-4 space-y-3">
           {feastToasts && feastToasts.length > 0 ? (
-            <div className="space-y-2">
-              {feastToasts.map((ft, i) => (
-                <motion.div key={ft.id} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.02 }}>
-                  <Card
-                    className={`transition-shadow cursor-pointer hover:shadow-card-hover ${ft.status === "completed" ? "opacity-60" : ""}`}
-                    onClick={() => setSelectedToast(ft)}
-                  >
-                    <CardContent className="p-3 flex items-center gap-3">
-                      {/* Reorder buttons — only in draft */}
-                      {isHost && isDraft && (
-                        <div className="flex flex-col gap-0.5 shrink-0">
-                          <Button
-                            variant="ghost" size="icon" className="h-6 w-6"
-                            disabled={i === 0 || reorderToast.isPending}
-                            onClick={(e) => { e.stopPropagation(); reorderToast.mutate({ toastId: ft.id, direction: "up" }); }}
-                          ><ChevronUp className="h-3.5 w-3.5" /></Button>
-                          <Button
-                            variant="ghost" size="icon" className="h-6 w-6"
-                            disabled={i === feastToasts.length - 1 || reorderToast.isPending}
-                            onClick={(e) => { e.stopPropagation(); reorderToast.mutate({ toastId: ft.id, direction: "down" }); }}
-                          ><ChevronDown className="h-3.5 w-3.5" /></Button>
-                        </div>
-                      )}
-                      <div className="h-8 w-8 rounded-full bg-accent flex items-center justify-center shrink-0 text-sm font-bold text-accent-foreground">{ft.position}</div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <p className="text-sm font-semibold text-foreground truncate">{ft.title_ka}</p>
-                          <span className="text-xs">{toastStatusIcon[ft.status || "pending"]}</span>
-                        </div>
-                        {ft.description_ka && <p className="text-xs text-muted-foreground truncate mt-0.5">{ft.description_ka}</p>}
-                        <div className="flex items-center gap-2 mt-0.5">
-                          <Badge variant="outline" className="text-[10px]">{t(`live.toastType.${ft.toast_type}`, ft.toast_type)}</Badge>
-                          {ft.duration_minutes && <span className="text-[10px] text-muted-foreground">{ft.duration_minutes}m</span>}
-                          {ft.alaverdi_assigned_to && <Badge variant="secondary" className="text-[10px]">{t("feastDetail.alaverdi")}: {ft.alaverdi_assigned_to}</Badge>}
-                        </div>
-                      </div>
-                      {isHost && <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={(e) => { e.stopPropagation(); removeToast.mutate(ft.id); }}><Trash2 className="h-3.5 w-3.5 text-muted-foreground" /></Button>}
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
-            </div>
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+              <SortableContext items={feastToasts.map((ft) => ft.id)} strategy={verticalListSortingStrategy}>
+                <div className="space-y-2">
+                  {feastToasts.map((ft, i) => (
+                    <SortableToastCard
+                      key={ft.id}
+                      ft={ft}
+                      index={i}
+                      isDraft={isDraft}
+                      isHost={isHost}
+                      toastStatusIcon={toastStatusIcon}
+                      onSelect={setSelectedToast}
+                      onRemove={(toastId) => removeToast.mutate(toastId)}
+                      t={t}
+                    />
+                  ))}
+                </div>
+              </SortableContext>
+            </DndContext>
           ) : (
             <EmptyState icon={<Wine className="h-10 w-10" />} title={t("feastDetail.planEmpty")} description={t("feastDetail.planEmptyDesc")} />
           )}
