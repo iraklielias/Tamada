@@ -206,6 +206,7 @@ const AIGeneratePage = () => {
       setEditedTitle(data.title_ka);
       setEditedBody(data.body_ka);
       setIsEditing(false);
+      setShowDiff(false);
       setFeedbackGiven(null);
       queryClient.invalidateQueries({ queryKey: ["daily-ai-count"] });
       sonnerToast.success("სადღეგრძელო შეიქმნა!");
