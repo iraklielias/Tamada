@@ -69,9 +69,13 @@ const stepIcons: Record<number, React.ReactNode> = {
   4: <PartyPopper className="h-9 w-9 text-primary-foreground" />,
 };
 
+import type { Easing } from "framer-motion";
+
+const stepEase: Easing = [0, 0, 0.2, 1];
+
 const stepVariants = {
   enter: { opacity: 0, x: 40 },
-  center: { opacity: 1, x: 0, transition: { duration: 0.35, ease: [0, 0, 0.2, 1] } },
+  center: { opacity: 1, x: 0, transition: { duration: 0.35, ease: stepEase } },
   exit: { opacity: 0, x: -40, transition: { duration: 0.2 } },
 };
 
