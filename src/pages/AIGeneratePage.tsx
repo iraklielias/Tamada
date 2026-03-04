@@ -12,9 +12,57 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Sparkles, Copy, Heart, Loader2, Wine, RefreshCw, Lock, MapPin, User, Clock, Volume2, Hand, ThumbsUp, ThumbsDown, Palette, Pencil, Check } from "lucide-react";
+import { Sparkles, Copy, Heart, Loader2, Wine, RefreshCw, Lock, MapPin, User, Clock, Volume2, Hand, ThumbsUp, ThumbsDown, Palette, Pencil, Check, Eye, EyeOff } from "lucide-react";
 import { toast as sonnerToast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
+
+// Simple word-level diff
+function computeWordDiff(original: string, edited: string): { type: "same" | "added" | "removed"; text: string }[] {
+  const origWords = original.split(/(\s+)/);
+  const editWords = edited.split(/(\s+)/);
+  const result: { type: "same" | "added" | "removed"; text: string }[] = [];
+
+  // LCS-based diff for reasonable lengths
+  const m = origWords.length, n = editWords.length;
+  if (m + n > 2000) {
+    // fallback: show full removal + addition
+    return [
+      { type: "removed", text: original },
+      { type: "added", text: edited },
+    ];
+  }
+
+  const dp: number[][] = Array.from({ length: m + 1 }, () => Array(n + 1).fill(0));
+  for (let i = 1; i <= m; i++)
+    for (let j = 1; j <= n; j++)
+      dp[i][j] = origWords[i - 1] === editWords[j - 1] ? dp[i - 1][j - 1] + 1 : Math.max(dp[i - 1][j], dp[i][j - 1]);
+
+  let i = m, j = n;
+  const ops: { type: "same" | "added" | "removed"; text: string }[] = [];
+  while (i > 0 || j > 0) {
+    if (i > 0 && j > 0 && origWords[i - 1] === editWords[j - 1]) {
+      ops.push({ type: "same", text: origWords[i - 1] });
+      i--; j--;
+    } else if (j > 0 && (i === 0 || dp[i][j - 1] >= dp[i - 1][j])) {
+      ops.push({ type: "added", text: editWords[j - 1] });
+      j--;
+    } else {
+      ops.push({ type: "removed", text: origWords[i - 1] });
+      i--;
+    }
+  }
+  ops.reverse();
+
+  // Merge consecutive same-type segments
+  for (const op of ops) {
+    if (result.length > 0 && result[result.length - 1].type === op.type) {
+      result[result.length - 1].text += op.text;
+    } else {
+      result.push({ ...op });
+    }
+  }
+  return result;
+}
 
 const occasions = [
   { value: "supra", label: "სუფრა" },
@@ -105,6 +153,7 @@ const AIGeneratePage = () => {
   const [editedTitle, setEditedTitle] = useState("");
   const [editedBody, setEditedBody] = useState("");
   const [isEditing, setIsEditing] = useState(false);
+  const [showDiff, setShowDiff] = useState(false);
   const [showUpsell, setShowUpsell] = useState(false);
   const [upsellMessage, setUpsellMessage] = useState("");
   const [feedbackGiven, setFeedbackGiven] = useState<"positive" | "negative" | null>(null);
@@ -158,6 +207,7 @@ const AIGeneratePage = () => {
       setEditedTitle(data.title_ka);
       setEditedBody(data.body_ka);
       setIsEditing(false);
+      setShowDiff(false);
       setFeedbackGiven(null);
       queryClient.invalidateQueries({ queryKey: ["daily-ai-count"] });
       sonnerToast.success("სადღეგრძელო შეიქმნა!");
@@ -472,6 +522,63 @@ const AIGeneratePage = () => {
                   <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
                     {editedBody}
                   </p>
+                )}
+
+                {/* Visual Diff View */}
+                {!isEditing && originalResult && (editedTitle !== originalResult.title_ka || editedBody !== originalResult.body_ka) && (
+                  <div className="space-y-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowDiff(!showDiff)}
+                      className="flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 transition-colors"
+                    >
+                      {showDiff ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+                      {showDiff ? "ცვლილებების დამალვა" : "ცვლილებების ნახვა"}
+                    </button>
+                    <AnimatePresence>
+                      {showDiff && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="overflow-hidden"
+                        >
+                          <div className="rounded-lg border border-border bg-muted/30 p-3 space-y-2">
+                            {editedTitle !== originalResult.title_ka && (
+                              <div className="text-xs">
+                                <span className="font-medium text-muted-foreground block mb-1">სათაური:</span>
+                                <p className="leading-relaxed">
+                                  {computeWordDiff(originalResult.title_ka, editedTitle).map((seg, i) =>
+                                    seg.type === "same" ? (
+                                      <span key={i}>{seg.text}</span>
+                                    ) : seg.type === "removed" ? (
+                                      <span key={i} className="bg-destructive/20 text-destructive line-through rounded px-0.5">{seg.text}</span>
+                                    ) : (
+                                      <span key={i} className="bg-green-500/20 text-green-700 dark:text-green-400 rounded px-0.5">{seg.text}</span>
+                                    )
+                                  )}
+                                </p>
+                              </div>
+                            )}
+                            <div className="text-xs">
+                              <span className="font-medium text-muted-foreground block mb-1">ტექსტი:</span>
+                              <p className="leading-relaxed whitespace-pre-wrap">
+                                {computeWordDiff(originalResult.body_ka, editedBody).map((seg, i) =>
+                                  seg.type === "same" ? (
+                                    <span key={i}>{seg.text}</span>
+                                  ) : seg.type === "removed" ? (
+                                    <span key={i} className="bg-destructive/20 text-destructive line-through rounded px-0.5">{seg.text}</span>
+                                  ) : (
+                                    <span key={i} className="bg-green-500/20 text-green-700 dark:text-green-400 rounded px-0.5">{seg.text}</span>
+                                  )
+                                )}
+                              </p>
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
                 )}
 
                 {!isEditing && result.body_en && (
