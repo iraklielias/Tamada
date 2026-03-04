@@ -145,7 +145,7 @@ const Dashboard: React.FC = () => {
         ) : recentFeasts && recentFeasts.length > 0 ? (
           <div className="grid gap-3">
             {recentFeasts.map((feast) => (
-              <Card key={feast.id} className="hover:shadow-card-hover transition-shadow cursor-pointer">
+              <Card key={feast.id} className="hover:shadow-card-hover transition-shadow cursor-pointer" onClick={() => navigate(`/feasts/${feast.id}`)}>
                 <CardContent className="p-4 flex items-center justify-between">
                   <div className="flex items-center gap-3 min-w-0">
                     <div className="h-10 w-10 rounded-lg bg-accent flex items-center justify-center shrink-0">
