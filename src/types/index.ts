@@ -19,12 +19,14 @@ export type CollaboratorRole = 'mejavare' | 'viewer';
 export type SubscriptionStatus = 'active' | 'canceled' | 'past_due' | 'trialing' | 'incomplete';
 
 export type OccasionType =
+  | 'supra'
   | 'wedding'
   | 'birthday'
   | 'memorial'
   | 'christening'
   | 'guest_reception'
   | 'holiday'
+  | 'business'
   | 'corporate'
   | 'friendly_gathering'
   | 'other';

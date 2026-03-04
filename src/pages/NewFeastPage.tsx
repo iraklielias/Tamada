@@ -60,7 +60,7 @@ const NewFeastPage: React.FC = () => {
         .insert({
           host_id: user.id, title: title.trim(), occasion_type: occasionType,
           formality_level: formality, guest_count: guestCount,
-          estimated_duration_minutes: duration[0], region: region || null,
+          estimated_duration_minutes: duration[0], region: region && region !== "none" ? region : null,
           notes: notes || null, template_id: selectedTemplateId, status: "draft",
         })
         .select().single();

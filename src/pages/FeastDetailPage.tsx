@@ -8,14 +8,21 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
+} from "@/components/ui/dialog";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 import EmptyState from "@/components/EmptyState";
 import {
-  ArrowLeft, Play, Pause, Square, Plus, Trash2, Users, Clock, Wine, Share2, Copy, Link, Sparkles, Loader2,
+  ArrowLeft, Play, Pause, Square, Plus, Trash2, Users, Clock, Wine, Share2, Copy, Link, Sparkles, Loader2, Pencil,
 } from "lucide-react";
 import { toast as sonnerToast } from "sonner";
 import { motion } from "framer-motion";
@@ -31,6 +38,8 @@ const toastStatusIcon: Record<string, string> = {
   pending: "⏳", active: "🔴", completed: "✅", skipped: "⏭️",
 };
 
+const guestRoleKeys = ["guest", "mejavare", "honored_guest", "family"];
+
 const FeastDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -38,8 +47,14 @@ const FeastDetailPage: React.FC = () => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [newGuestName, setNewGuestName] = useState("");
+  const [newGuestRole, setNewGuestRole] = useState("guest");
   const [newToastTitle, setNewToastTitle] = useState("");
   const [newToastType] = useState("custom");
+  const [selectedToast, setSelectedToast] = useState<any | null>(null);
+  const [showAiConfirm, setShowAiConfirm] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [editTitle, setEditTitle] = useState("");
+  const [editNotes, setEditNotes] = useState("");
 
   const { data: feast, isLoading } = useQuery({
     queryKey: ["feast", id],
@@ -98,6 +113,21 @@ const FeastDetailPage: React.FC = () => {
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["feast", id] }); sonnerToast.success(t("common.statusUpdated")); },
   });
 
+  const updateFeast = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from("feasts").update({
+        title: editTitle.trim(),
+        notes: editNotes.trim() || null,
+      }).eq("id", id!);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["feast", id] });
+      sonnerToast.success(t("common.statusUpdated"));
+      setEditMode(false);
+    },
+  });
+
   const deleteFeast = useMutation({
     mutationFn: async () => { const { error } = await supabase.from("feasts").delete().eq("id", id!); if (error) throw error; },
     onSuccess: () => { sonnerToast.success(t("common.deleted")); navigate("/feasts"); },
@@ -106,10 +136,10 @@ const FeastDetailPage: React.FC = () => {
   const addGuest = useMutation({
     mutationFn: async () => {
       if (!newGuestName.trim()) return;
-      const { error } = await supabase.from("feast_guests").insert({ feast_id: id!, name: newGuestName.trim(), role: "guest", seat_position: (guests?.length || 0) + 1 });
+      const { error } = await supabase.from("feast_guests").insert({ feast_id: id!, name: newGuestName.trim(), role: newGuestRole, seat_position: (guests?.length || 0) + 1 });
       if (error) throw error;
     },
-    onSuccess: () => { setNewGuestName(""); queryClient.invalidateQueries({ queryKey: ["feast-guests", id] }); },
+    onSuccess: () => { setNewGuestName(""); setNewGuestRole("guest"); queryClient.invalidateQueries({ queryKey: ["feast-guests", id] }); },
   });
 
   const removeGuest = useMutation({
@@ -153,11 +183,9 @@ const FeastDetailPage: React.FC = () => {
     },
     onSuccess: async (toasts) => {
       if (!toasts?.length) { sonnerToast.error(t("ai.generateFailed")); return; }
-      // Delete existing toasts first
       if (feastToasts?.length) {
         await supabase.from("feast_toasts").delete().eq("feast_id", id!);
       }
-      // Insert generated toasts
       const rows = toasts.map((toast, i) => ({
         feast_id: id!,
         position: i + 1,
@@ -176,6 +204,14 @@ const FeastDetailPage: React.FC = () => {
     },
     onError: () => sonnerToast.error(t("ai.generateFailed")),
   });
+
+  const handleAiGenerate = () => {
+    if (feastToasts && feastToasts.length > 0) {
+      setShowAiConfirm(true);
+    } else {
+      generatePlan.mutate();
+    }
+  };
 
   const formatDuration = (mins: number) => { const h = Math.floor(mins / 60); const m = mins % 60; return h > 0 ? `${h}h ${m > 0 ? `${m}m` : ""}` : `${m}m`; };
 
@@ -230,7 +266,10 @@ const FeastDetailPage: React.FC = () => {
             <div className="space-y-2">
               {feastToasts.map((ft, i) => (
                 <motion.div key={ft.id} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.02 }}>
-                  <Card className={`transition-shadow ${ft.status === "completed" ? "opacity-60" : ""}`}>
+                  <Card
+                    className={`transition-shadow cursor-pointer hover:shadow-card-hover ${ft.status === "completed" ? "opacity-60" : ""}`}
+                    onClick={() => setSelectedToast(ft)}
+                  >
                     <CardContent className="p-3 flex items-center gap-3">
                       <div className="h-8 w-8 rounded-full bg-accent flex items-center justify-center shrink-0 text-sm font-bold text-accent-foreground">{ft.position}</div>
                       <div className="flex-1 min-w-0">
@@ -240,12 +279,12 @@ const FeastDetailPage: React.FC = () => {
                         </div>
                         {ft.description_ka && <p className="text-xs text-muted-foreground truncate mt-0.5">{ft.description_ka}</p>}
                         <div className="flex items-center gap-2 mt-0.5">
-                          <Badge variant="outline" className="text-[10px]">{ft.toast_type}</Badge>
+                          <Badge variant="outline" className="text-[10px]">{t(`live.toastType.${ft.toast_type}`, ft.toast_type)}</Badge>
                           {ft.duration_minutes && <span className="text-[10px] text-muted-foreground">{ft.duration_minutes}m</span>}
                           {ft.alaverdi_assigned_to && <Badge variant="secondary" className="text-[10px]">{t("feastDetail.alaverdi")}: {ft.alaverdi_assigned_to}</Badge>}
                         </div>
                       </div>
-                      {isHost && <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => removeToast.mutate(ft.id)}><Trash2 className="h-3.5 w-3.5 text-muted-foreground" /></Button>}
+                      {isHost && <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={(e) => { e.stopPropagation(); removeToast.mutate(ft.id); }}><Trash2 className="h-3.5 w-3.5 text-muted-foreground" /></Button>}
                     </CardContent>
                   </Card>
                 </motion.div>
@@ -259,7 +298,7 @@ const FeastDetailPage: React.FC = () => {
               <Button
                 variant="outline"
                 className="flex-1"
-                onClick={() => generatePlan.mutate()}
+                onClick={handleAiGenerate}
                 disabled={generatePlan.isPending}
               >
                 {generatePlan.isPending ? (
@@ -291,9 +330,10 @@ const FeastDetailPage: React.FC = () => {
                       <div>
                         <p className="text-sm font-semibold text-foreground">{g.name}</p>
                         <div className="flex items-center gap-2 mt-0.5">
-                          <Badge variant="outline" className="text-[10px]">{g.role}</Badge>
+                          <Badge variant="outline" className="text-[10px]">{t(`feastDetail.guestRoles.${g.role || "guest"}`, g.role || "guest")}</Badge>
                           {(g.alaverdi_count ?? 0) > 0 && <span className="text-[10px] text-muted-foreground">{t("feastDetail.alaverdi")}: {g.alaverdi_count}</span>}
                         </div>
+                        {g.notes && <p className="text-[10px] text-muted-foreground mt-0.5">{g.notes}</p>}
                       </div>
                     </div>
                     {isHost && <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => removeGuest.mutate(g.id)}><Trash2 className="h-3.5 w-3.5 text-muted-foreground" /></Button>}
@@ -306,9 +346,19 @@ const FeastDetailPage: React.FC = () => {
           )}
           {isHost && (
             <Card className="border-dashed">
-              <CardContent className="p-3 flex gap-2">
-                <Input placeholder={t("feasts.guestNamePlaceholder")} value={newGuestName} onChange={(e) => setNewGuestName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addGuest.mutate()} />
-                <Button variant="outline" size="icon" onClick={() => addGuest.mutate()}><Plus className="h-4 w-4" /></Button>
+              <CardContent className="p-3 space-y-2">
+                <div className="flex gap-2">
+                  <Input placeholder={t("feasts.guestNamePlaceholder")} value={newGuestName} onChange={(e) => setNewGuestName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addGuest.mutate()} />
+                  <Select value={newGuestRole} onValueChange={setNewGuestRole}>
+                    <SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {guestRoleKeys.map((r) => (
+                        <SelectItem key={r} value={r}>{t(`feastDetail.guestRoles.${r}`, r)}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button variant="outline" size="icon" onClick={() => addGuest.mutate()}><Plus className="h-4 w-4" /></Button>
+                </div>
               </CardContent>
             </Card>
           )}
@@ -317,14 +367,40 @@ const FeastDetailPage: React.FC = () => {
         <TabsContent value="details" className="mt-4 space-y-4">
           <Card>
             <CardContent className="p-4 space-y-3">
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                <div><p className="text-muted-foreground text-xs">{t("feastDetail.occasionType")}</p><p className="font-medium text-foreground">{t(`feasts.occasion.${feast.occasion_type}`, feast.occasion_type)}</p></div>
-                <div><p className="text-muted-foreground text-xs">{t("feasts.formality")}</p><p className="font-medium text-foreground">{t(`feasts.formalityOptions.${feast.formality_level || "formal"}`)}</p></div>
-                <div><p className="text-muted-foreground text-xs">{t("feastDetail.guestCount")}</p><p className="font-medium text-foreground">{feast.guest_count || "—"}</p></div>
-                <div><p className="text-muted-foreground text-xs">{t("feasts.duration")}</p><p className="font-medium text-foreground">{formatDuration(feast.estimated_duration_minutes)}</p></div>
-                {feast.region && <div><p className="text-muted-foreground text-xs">{t("profile.region")}</p><p className="font-medium text-foreground">{t(`profile.regions.${feast.region}`, feast.region)}</p></div>}
-              </div>
-              {feast.notes && <div><p className="text-muted-foreground text-xs mb-1">{t("feasts.notes")}</p><p className="text-sm text-foreground">{feast.notes}</p></div>}
+              {editMode ? (
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-xs text-muted-foreground mb-1 block">{t("feasts.feastName")}</label>
+                    <Input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} />
+                  </div>
+                  <div>
+                    <label className="text-xs text-muted-foreground mb-1 block">{t("feasts.notes")}</label>
+                    <Textarea value={editNotes} onChange={(e) => setEditNotes(e.target.value)} rows={2} />
+                  </div>
+                  <div className="flex gap-2">
+                    <Button size="sm" onClick={() => updateFeast.mutate()} disabled={updateFeast.isPending || !editTitle.trim()}>
+                      {t("common.save")}
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => setEditMode(false)}>{t("common.cancel")}</Button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div><p className="text-muted-foreground text-xs">{t("feastDetail.occasionType")}</p><p className="font-medium text-foreground">{t(`feasts.occasion.${feast.occasion_type}`, feast.occasion_type)}</p></div>
+                    <div><p className="text-muted-foreground text-xs">{t("feasts.formality")}</p><p className="font-medium text-foreground">{t(`feasts.formalityOptions.${feast.formality_level || "formal"}`)}</p></div>
+                    <div><p className="text-muted-foreground text-xs">{t("feastDetail.guestCount")}</p><p className="font-medium text-foreground">{feast.guest_count || "—"}</p></div>
+                    <div><p className="text-muted-foreground text-xs">{t("feasts.duration")}</p><p className="font-medium text-foreground">{formatDuration(feast.estimated_duration_minutes)}</p></div>
+                    {feast.region && <div><p className="text-muted-foreground text-xs">{t("profile.region")}</p><p className="font-medium text-foreground">{t(`profile.regions.${feast.region}`, feast.region)}</p></div>}
+                  </div>
+                  {feast.notes && <div><p className="text-muted-foreground text-xs mb-1">{t("feasts.notes")}</p><p className="text-sm text-foreground">{feast.notes}</p></div>}
+                  {isHost && (
+                    <Button size="sm" variant="outline" onClick={() => { setEditTitle(feast.title); setEditNotes(feast.notes || ""); setEditMode(true); }}>
+                      <Pencil className="h-3.5 w-3.5 mr-1.5" />{t("feastDetail.editFeast")}
+                    </Button>
+                  )}
+                </>
+              )}
             </CardContent>
           </Card>
 
@@ -368,6 +444,64 @@ const FeastDetailPage: React.FC = () => {
           )}
         </TabsContent>
       </Tabs>
+
+      {/* Toast Detail Dialog */}
+      <Dialog open={!!selectedToast} onOpenChange={(open) => !open && setSelectedToast(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <span className="h-7 w-7 rounded-full bg-accent flex items-center justify-center text-xs font-bold text-accent-foreground">{selectedToast?.position}</span>
+              {selectedToast?.title_ka}
+            </DialogTitle>
+            <DialogDescription>
+              <Badge variant="outline" className="text-xs mt-1">{String(t(`live.toastType.${selectedToast?.toast_type}`, selectedToast?.toast_type || ""))}</Badge>
+              {selectedToast?.duration_minutes && <span className="text-xs text-muted-foreground ml-2">{selectedToast.duration_minutes}m</span>}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            {selectedToast?.description_ka && (
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">🇬🇪</p>
+                <p className="text-sm text-foreground leading-relaxed">{selectedToast.description_ka}</p>
+              </div>
+            )}
+            {selectedToast?.description_en && (
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">🇬🇧</p>
+                <p className="text-sm text-foreground leading-relaxed">{selectedToast.description_en}</p>
+              </div>
+            )}
+            {selectedToast?.title_en && (
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">{t("feastDetail.toastDetail")}</p>
+                <p className="text-sm text-foreground">{selectedToast.title_en}</p>
+              </div>
+            )}
+            {selectedToast?.alaverdi_assigned_to && (
+              <Badge variant="secondary">{t("feastDetail.alaverdi")}: {selectedToast.alaverdi_assigned_to}</Badge>
+            )}
+            {selectedToast?.notes && (
+              <p className="text-xs text-muted-foreground">{selectedToast.notes}</p>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* AI Plan Confirmation Dialog */}
+      <AlertDialog open={showAiConfirm} onOpenChange={setShowAiConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("feastDetail.aiConfirmTitle")}</AlertDialogTitle>
+            <AlertDialogDescription>{t("feastDetail.aiConfirmDesc")}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={() => { setShowAiConfirm(false); generatePlan.mutate(); }}>
+              <Sparkles className="h-4 w-4 mr-1.5" />{t("feastDetail.aiConfirmAction")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
