@@ -358,20 +358,23 @@ serve(async (req) => {
       userId = user?.id || null;
     }
 
-    // ── Rate limiting ──
+    // ── Rate limiting (only for single toast regen, not full plan generation) ──
+    const isSingleRegenRequest = !!single_toast_type;
     if (userId) {
-      const { data: count } = await supabase.rpc("get_daily_ai_count", { p_user_id: userId });
       const { data: profile } = await supabase.from("profiles").select("*").eq("id", userId).single();
       userProfile = profile;
 
-      const isPro = profile?.is_pro && (!profile.pro_expires_at || new Date(profile.pro_expires_at) > new Date());
-      const limit = isPro ? 100 : 5;
+      if (isSingleRegenRequest) {
+        const { data: count } = await supabase.rpc("get_daily_ai_count", { p_user_id: userId });
+        const isPro = profile?.is_pro && (!profile.pro_expires_at || new Date(profile.pro_expires_at) > new Date());
+        const limit = isPro ? 100 : 5;
 
-      if ((count ?? 0) >= limit) {
-        return new Response(JSON.stringify({ error: "დღიური ლიმიტი ამოიწურა. განაახლეთ PRO-ზე!" }), {
-          status: 429,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        if ((count ?? 0) >= limit) {
+          return new Response(JSON.stringify({ error: "დღიური ლიმიტი ამოიწურა. განაახლეთ PRO-ზე!" }), {
+            status: 429,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
       }
     }
 
