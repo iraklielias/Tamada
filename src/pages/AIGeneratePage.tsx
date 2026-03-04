@@ -319,23 +319,23 @@ const AIGeneratePage = () => {
           {/* Row 1: Occasion + Formality */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="text-caption text-muted-foreground mb-1.5 block">წვეულების ტიპი</label>
+              <label className="text-caption text-muted-foreground mb-1.5 block">{t("ai.occasionType")}</label>
               <Select value={occasion} onValueChange={setOccasion}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {occasions.map((o) => (
-                    <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                  {occasionKeys.map((o) => (
+                    <SelectItem key={o} value={o}>{t(`feasts.occasion.${o}`)}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
             <div>
-              <label className="text-caption text-muted-foreground mb-1.5 block">ფორმალურობა</label>
+              <label className="text-caption text-muted-foreground mb-1.5 block">{t("ai.formality")}</label>
               <Select value={formality} onValueChange={setFormality}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {formalities.map((f) => (
-                    <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>
+                  {formalityKeys.map((f) => (
+                    <SelectItem key={f} value={f}>{t(`ai.${f}`)}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
