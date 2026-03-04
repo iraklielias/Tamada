@@ -805,7 +805,6 @@ const FeastDetailPage: React.FC = () => {
         feast={feast}
         onToastUpdated={() => queryClient.invalidateQueries({ queryKey: ["feast-toasts", id] })}
       />
-      />
 
       {/* AI Plan Confirmation Dialog */}
       <AlertDialog open={showAiConfirm} onOpenChange={setShowAiConfirm}>
