@@ -190,14 +190,23 @@ const AIGeneratePage = () => {
       if (error) throw error;
       if (data.error) throw new Error(data.error);
 
-      // Track latency asynchronously
+      // Track latency: find most recent log entry and update by id
       supabase
         .from("ai_generation_log")
-        .update({ latency_ms: latencyMs })
+        .select("id")
         .eq("user_id", user?.id || "")
         .order("created_at", { ascending: false })
         .limit(1)
-        .then(() => {});
+        .single()
+        .then(({ data: logEntry }) => {
+          if (logEntry) {
+            supabase
+              .from("ai_generation_log")
+              .update({ latency_ms: latencyMs })
+              .eq("id", logEntry.id)
+              .then(() => {});
+          }
+        });
 
       return data as GeneratedToast;
     },

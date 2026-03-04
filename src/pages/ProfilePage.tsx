@@ -30,7 +30,7 @@ const regionOptions = [
 const levelOptions = [
   { value: "beginner", label: "დამწყები" },
   { value: "intermediate", label: "საშუალო" },
-  { value: "advanced", label: "გამოცდილი" },
+  { value: "experienced", label: "გამოცდილი" },
   { value: "master", label: "ოსტატი" },
 ];
 
