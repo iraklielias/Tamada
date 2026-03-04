@@ -1104,17 +1104,18 @@ const FeastDetailPage: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="details" className="mt-4 space-y-4">
-          <Card>
+          <Card className="overflow-hidden">
+            <div className="h-0.5 surface-gradient" />
             <CardContent className="p-4 space-y-3">
               {editMode ? (
                 <div className="space-y-3">
                   <div>
                     <label className="text-xs text-muted-foreground mb-1 block">{t("feasts.feastName")}</label>
-                    <Input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} />
+                    <Input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} className="bg-surface-1" />
                   </div>
                   <div>
                     <label className="text-xs text-muted-foreground mb-1 block">{t("feasts.notes")}</label>
-                    <Textarea value={editNotes} onChange={(e) => setEditNotes(e.target.value)} rows={2} />
+                    <Textarea value={editNotes} onChange={(e) => setEditNotes(e.target.value)} rows={2} className="bg-surface-1" />
                   </div>
                   <div className="flex gap-2">
                     <Button size="sm" onClick={() => updateFeast.mutate()} disabled={updateFeast.isPending || !editTitle.trim()}>
@@ -1126,13 +1127,25 @@ const FeastDetailPage: React.FC = () => {
               ) : (
                 <>
                   <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div><p className="text-muted-foreground text-xs">{t("feastDetail.occasionType")}</p><p className="font-medium text-foreground">{t(`feasts.occasion.${feast.occasion_type}`, feast.occasion_type)}</p></div>
-                    <div><p className="text-muted-foreground text-xs">{t("feasts.formality")}</p><p className="font-medium text-foreground">{t(`feasts.formalityOptions.${feast.formality_level || "formal"}`)}</p></div>
-                    <div><p className="text-muted-foreground text-xs">{t("feastDetail.guestCount")}</p><p className="font-medium text-foreground">{feast.guest_count || "—"}</p></div>
-                    <div><p className="text-muted-foreground text-xs">{t("feasts.duration")}</p><p className="font-medium text-foreground">{formatDuration(feast.estimated_duration_minutes)}</p></div>
-                    {feast.region && <div><p className="text-muted-foreground text-xs">{t("profile.region")}</p><p className="font-medium text-foreground">{t(`profile.regions.${feast.region}`, feast.region)}</p></div>}
+                    {[
+                      { label: t("feastDetail.occasionType"), value: t(`feasts.occasion.${feast.occasion_type}`, feast.occasion_type) },
+                      { label: t("feasts.formality"), value: t(`feasts.formalityOptions.${feast.formality_level || "formal"}`) },
+                      { label: t("feastDetail.guestCount"), value: feast.guest_count || "—" },
+                      { label: t("feasts.duration"), value: formatDuration(feast.estimated_duration_minutes) },
+                    ].map((item, i) => (
+                      <div key={i} className="p-2.5 rounded-lg bg-surface-1">
+                        <p className="text-muted-foreground text-caption mb-0.5">{item.label}</p>
+                        <p className="font-medium text-foreground">{item.value}</p>
+                      </div>
+                    ))}
+                    {feast.region && (
+                      <div className="p-2.5 rounded-lg bg-surface-1">
+                        <p className="text-muted-foreground text-caption mb-0.5">{t("profile.region")}</p>
+                        <p className="font-medium text-foreground">{t(`profile.regions.${feast.region}`, feast.region)}</p>
+                      </div>
+                    )}
                   </div>
-                  {feast.notes && <div><p className="text-muted-foreground text-xs mb-1">{t("feasts.notes")}</p><p className="text-sm text-foreground">{feast.notes}</p></div>}
+                  {feast.notes && <div className="p-3 rounded-lg bg-surface-1"><p className="text-muted-foreground text-caption mb-1">{t("feasts.notes")}</p><p className="text-sm text-foreground">{feast.notes}</p></div>}
                   {isHost && (
                     <Button size="sm" variant="outline" onClick={() => { setEditTitle(feast.title); setEditNotes(feast.notes || ""); setEditMode(true); }}>
                       <Pencil className="h-3.5 w-3.5 mr-1.5" />{t("feastDetail.editFeast")}
