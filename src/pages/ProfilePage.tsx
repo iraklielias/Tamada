@@ -5,16 +5,17 @@ import { useMutation } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { LogOut, Camera, Loader2, Save, Star } from "lucide-react";
+import { LogOut, Camera, Loader2, Save, Star, MapPin, Award, Globe, User } from "lucide-react";
 import { toast as sonnerToast } from "sonner";
+import { motion } from "framer-motion";
+import { staggerContainer, staggerChild } from "@/lib/animations";
 
 const regionKeys = ["kakheti", "kartli", "imereti", "samegrelo", "adjara", "guria", "svaneti", "racha", "meskheti"];
 const levelKeys = ["beginner", "intermediate", "experienced", "master"];
@@ -84,106 +85,134 @@ const ProfilePage = () => {
     }
   };
 
+  const initials = (profile?.display_name || profile?.email || "U").charAt(0).toUpperCase();
+
   return (
-    <div className="p-4 md:p-6 max-w-2xl mx-auto space-y-6 pb-24">
-      <h1 className="text-heading-1 text-foreground">{t("profile.title")}</h1>
-
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex items-center gap-4">
-            <div className="relative group">
-              <Avatar className="h-16 w-16">
-                <AvatarImage src={profile?.avatar_url || undefined} />
-                <AvatarFallback className="text-lg bg-primary text-primary-foreground">
-                  {(profile?.display_name || profile?.email || "U").charAt(0).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                className="absolute inset-0 flex items-center justify-center rounded-full bg-foreground/50 opacity-0 group-hover:opacity-100 transition-opacity"
-                disabled={uploadAvatar.isPending}
-              >
-                {uploadAvatar.isPending ? <Loader2 className="h-5 w-5 text-background animate-spin" /> : <Camera className="h-5 w-5 text-background" />}
-              </button>
-              <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
-            </div>
-            <div className="flex-1">
-              <p className="text-body-sm text-muted-foreground">{profile?.email}</p>
-              {profile?.is_pro && (
-                <Badge className="mt-1 gold-gradient text-foreground text-[10px] border-0">
-                  <Star className="h-3 w-3 mr-1" /> PRO
-                </Badge>
-              )}
-            </div>
+    <motion.div
+      className="p-4 md:p-6 max-w-2xl mx-auto space-y-6 pb-24"
+      variants={staggerContainer}
+      initial="initial"
+      animate="animate"
+    >
+      {/* Hero avatar card */}
+      <motion.div variants={staggerChild}>
+        <Card className="overflow-hidden">
+          <div className="h-20 wine-gradient relative">
+            <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "radial-gradient(circle at 30% 50%, white 1px, transparent 1px), radial-gradient(circle at 70% 30%, white 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
           </div>
-        </CardContent>
-      </Card>
+          <CardContent className="p-6 -mt-12 relative">
+            <div className="flex items-end gap-4">
+              <div className="relative group">
+                <Avatar className="h-20 w-20 border-4 border-card shadow-elevated">
+                  <AvatarImage src={profile?.avatar_url || undefined} />
+                  <AvatarFallback className="text-xl font-bold bg-primary text-primary-foreground">
+                    {initials}
+                  </AvatarFallback>
+                </Avatar>
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="absolute inset-0 flex items-center justify-center rounded-full bg-foreground/50 opacity-0 group-hover:opacity-100 transition-opacity"
+                  disabled={uploadAvatar.isPending}
+                >
+                  {uploadAvatar.isPending ? <Loader2 className="h-5 w-5 text-background animate-spin" /> : <Camera className="h-5 w-5 text-background" />}
+                </button>
+                <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+              </div>
+              <div className="flex-1 pb-1">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-heading-3 font-display text-foreground">{profile?.display_name || t("profile.namePlaceholder")}</h2>
+                  {profile?.is_pro && (
+                    <Badge className="gold-gradient text-foreground text-[10px] border-0 shadow-gold">
+                      <Star className="h-3 w-3 mr-0.5" /> PRO
+                    </Badge>
+                  )}
+                </div>
+                <p className="text-body-sm text-muted-foreground">{profile?.email}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
 
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-heading-3">{t("profile.settings")}</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <label className="text-caption text-muted-foreground mb-1.5 block">{t("profile.displayName")}</label>
-            <Input placeholder={t("profile.namePlaceholder")} value={displayName} onChange={(e) => { setDisplayName(e.target.value); markDirty(); }} />
-          </div>
+      {/* Settings cards */}
+      <motion.div variants={staggerChild}>
+        <Card>
+          <CardContent className="p-5 space-y-4">
+            <h3 className="text-heading-3 text-foreground flex items-center gap-2">
+              <User className="h-4 w-4 text-primary" />
+              {t("profile.settings")}
+            </h3>
 
-          <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-caption text-muted-foreground mb-1.5 block">{t("profile.region")}</label>
-              <Select value={region} onValueChange={(v) => { setRegion(v); markDirty(); }}>
-                <SelectTrigger><SelectValue placeholder={t("profile.chooseOption")} /></SelectTrigger>
+              <label className="text-caption text-muted-foreground mb-1.5 block">{t("profile.displayName")}</label>
+              <Input placeholder={t("profile.namePlaceholder")} value={displayName} onChange={(e) => { setDisplayName(e.target.value); markDirty(); }} className="bg-surface-1" />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="text-caption text-muted-foreground mb-1.5 flex items-center gap-1.5">
+                  <MapPin className="h-3 w-3 text-primary" /> {t("profile.region")}
+                </label>
+                <Select value={region} onValueChange={(v) => { setRegion(v); markDirty(); }}>
+                  <SelectTrigger className="bg-surface-1"><SelectValue placeholder={t("profile.chooseOption")} /></SelectTrigger>
+                  <SelectContent>
+                    {regionKeys.map((r) => (
+                      <SelectItem key={r} value={r}>{t(`profile.regions.${r}`)}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-caption text-muted-foreground mb-1.5 flex items-center gap-1.5">
+                  <Award className="h-3 w-3 text-primary" /> {t("profile.experience")}
+                </label>
+                <Select value={experience} onValueChange={(v) => { setExperience(v); markDirty(); }}>
+                  <SelectTrigger className="bg-surface-1"><SelectValue placeholder={t("profile.chooseOption")} /></SelectTrigger>
+                  <SelectContent>
+                    {levelKeys.map((l) => (
+                      <SelectItem key={l} value={l}>{t(`profile.levels.${l}`)}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div>
+              <label className="text-caption text-muted-foreground mb-1.5 flex items-center gap-1.5">
+                <Globe className="h-3 w-3 text-primary" /> {t("profile.language")}
+              </label>
+              <Select value={language} onValueChange={(v) => { setLanguage(v); markDirty(); }}>
+                <SelectTrigger className="bg-surface-1"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {regionKeys.map((r) => (
-                    <SelectItem key={r} value={r}>{t(`profile.regions.${r}`)}</SelectItem>
-                  ))}
+                  <SelectItem value="ka">ქართული</SelectItem>
+                  <SelectItem value="en">English</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            <div>
-              <label className="text-caption text-muted-foreground mb-1.5 block">{t("profile.experience")}</label>
-              <Select value={experience} onValueChange={(v) => { setExperience(v); markDirty(); }}>
-                <SelectTrigger><SelectValue placeholder={t("profile.chooseOption")} /></SelectTrigger>
-                <SelectContent>
-                  {levelKeys.map((l) => (
-                    <SelectItem key={l} value={l}>{t(`profile.levels.${l}`)}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
 
-          <div>
-            <label className="text-caption text-muted-foreground mb-1.5 block">{t("profile.language")}</label>
-            <Select value={language} onValueChange={(v) => { setLanguage(v); markDirty(); }}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ka">ქართული</SelectItem>
-                <SelectItem value="en">English</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+            {isDirty && (
+              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+                <Button variant="wine" className="w-full shadow-wine" onClick={() => updateProfile.mutate()} disabled={updateProfile.isPending}>
+                  {updateProfile.isPending ? (
+                    <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> {t("common.saving")}</>
+                  ) : (
+                    <><Save className="h-4 w-4 mr-2" /> {t("common.save")}</>
+                  )}
+                </Button>
+              </motion.div>
+            )}
+          </CardContent>
+        </Card>
+      </motion.div>
 
-          {isDirty && (
-            <Button className="w-full" onClick={() => updateProfile.mutate()} disabled={updateProfile.isPending}>
-              {updateProfile.isPending ? (
-                <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> {t("common.saving")}</>
-              ) : (
-                <><Save className="h-4 w-4 mr-2" /> {t("common.save")}</>
-              )}
-            </Button>
-          )}
-        </CardContent>
-      </Card>
-
-      <Separator />
-
-      <Button variant="outline" className="w-full" onClick={signOut}>
-        <LogOut className="h-4 w-4 mr-2" />
-        {t("profile.logout")}
-      </Button>
-    </div>
+      {/* Sign out */}
+      <motion.div variants={staggerChild}>
+        <Button variant="outline" className="w-full border-destructive/30 text-destructive hover:bg-destructive/5 hover:text-destructive" onClick={signOut}>
+          <LogOut className="h-4 w-4 mr-2" />
+          {t("profile.logout")}
+        </Button>
+      </motion.div>
+    </motion.div>
   );
 };
 
