@@ -155,9 +155,12 @@ interface ToastDetailDialogProps {
 const ToastDetailDialog: React.FC<ToastDetailDialogProps> = ({
   selectedToast, onClose, t, isHost, isDraft, feastId, feast, onToastUpdated,
 }) => {
-  const [showLibrary, setShowLibrary] = useState(false);
-  const [librarySearch, setLibrarySearch] = useState("");
+  const [retryComment, setRetryComment] = useState("");
+  const [selectedTone, setSelectedTone] = useState<string | null>(null);
+  const [selectedLength, setSelectedLength] = useState<string | null>(null);
+  const [selectedStyle, setSelectedStyle] = useState<string | null>(null);
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   const { data: customToastBody } = useQuery({
     queryKey: ["custom-toast-body", selectedToast?.assigned_custom_toast_id],
@@ -179,39 +182,7 @@ const ToastDetailDialog: React.FC<ToastDetailDialogProps> = ({
     enabled: !!selectedToast?.assigned_toast_id && !selectedToast?.assigned_custom_toast_id,
   });
 
-  // Library toasts for browsing
-  const { data: libraryToasts } = useQuery({
-    queryKey: ["library-toasts", librarySearch],
-    queryFn: async () => {
-      let query = supabase.from("toasts").select("id, title_ka, title_en, body_ka, body_en, occasion_type, toast_order_position").eq("is_system", true).order("toast_order_position", { ascending: true }).limit(50);
-      if (librarySearch.trim()) {
-        query = query.ilike("title_ka", `%${librarySearch.trim()}%`);
-      }
-      const { data, error } = await query;
-      if (error) throw error;
-      return data;
-    },
-    enabled: showLibrary,
-  });
-
-  // Assign library toast
-  const assignLibraryToast = useMutation({
-    mutationFn: async (libraryToastId: string) => {
-      const { error } = await supabase.from("feast_toasts")
-        .update({ assigned_toast_id: libraryToastId, assigned_custom_toast_id: null })
-        .eq("id", selectedToast!.id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      sonnerToast.success(t("feastDetail.toastAssigned", "სადღეგრძელო მიბმულია"));
-      setShowLibrary(false);
-      onToastUpdated();
-      queryClient.invalidateQueries({ queryKey: ["assigned-toast-body"] });
-      queryClient.invalidateQueries({ queryKey: ["custom-toast-body"] });
-    },
-  });
-
-  // Generate body for a toast slot (single regen)
+  // Generate body for a toast slot (single regen) with customization
   const regenSingleToast = useMutation({
     mutationFn: async () => {
       if (!selectedToast || !feast) throw new Error("No toast/feast");
@@ -221,6 +192,11 @@ const ToastDetailDialog: React.FC<ToastDetailDialogProps> = ({
         .map((ft: any) => ft.toast_type);
       const guestList = queryClient.getQueryData<any[]>(["feast-guests", feastId]) || [];
       const guestNames = guestList.map((g: any) => g.name);
+
+      const styleOverrides: Record<string, string> = {};
+      if (selectedTone) styleOverrides.tone = selectedTone;
+      if (selectedLength) styleOverrides.length = selectedLength;
+      if (selectedStyle) styleOverrides.style = selectedStyle;
 
       const { data, error } = await supabase.functions.invoke("generate-feast-plan", {
         body: {
@@ -236,6 +212,8 @@ const ToastDetailDialog: React.FC<ToastDetailDialogProps> = ({
           existing_toast_types: existingToastTypes,
           single_toast_type: selectedToast.toast_type,
           single_toast_title: selectedToast.title_ka,
+          user_instructions: retryComment.trim() || undefined,
+          style_overrides: Object.keys(styleOverrides).length > 0 ? styleOverrides : undefined,
         },
       });
       if (error) throw error;
@@ -254,11 +232,33 @@ const ToastDetailDialog: React.FC<ToastDetailDialogProps> = ({
     },
     onSuccess: () => {
       sonnerToast.success(t("feastDetail.toastRegenerated", "სადღეგრძელო განახლდა"));
+      setRetryComment("");
       onToastUpdated();
       queryClient.invalidateQueries({ queryKey: ["custom-toast-body"] });
       queryClient.invalidateQueries({ queryKey: ["assigned-toast-body"] });
     },
     onError: () => sonnerToast.error(t("ai.generateFailed")),
+  });
+
+  // Save to favorites
+  const saveToFavorites = useMutation({
+    mutationFn: async () => {
+      if (!user) throw new Error("Not authenticated");
+      const toastId = selectedToast?.assigned_toast_id || null;
+      const customToastId = selectedToast?.assigned_custom_toast_id || null;
+      if (!toastId && !customToastId) throw new Error("No toast to save");
+      const { error } = await supabase.from("user_favorites").insert({
+        user_id: user.id,
+        toast_id: toastId,
+        custom_toast_id: customToastId,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      sonnerToast.success(t("ai.savedToFavs"));
+      queryClient.invalidateQueries({ queryKey: ["favorites"] });
+    },
+    onError: () => sonnerToast.error(t("ai.saveFailed")),
   });
 
   const bodyKa = customToastBody?.body_ka || assignedToastBody?.body_ka || null;
