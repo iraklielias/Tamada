@@ -101,6 +101,10 @@ const AIGeneratePage = () => {
   const [personDetails, setPersonDetails] = useState("");
   const [topic, setTopic] = useState("");
   const [result, setResult] = useState<GeneratedToast | null>(null);
+  const [originalResult, setOriginalResult] = useState<GeneratedToast | null>(null);
+  const [editedTitle, setEditedTitle] = useState("");
+  const [editedBody, setEditedBody] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
   const [showUpsell, setShowUpsell] = useState(false);
   const [upsellMessage, setUpsellMessage] = useState("");
   const [feedbackGiven, setFeedbackGiven] = useState<"positive" | "negative" | null>(null);
