@@ -401,7 +401,7 @@ const AIGeneratePage = () => {
                     ) : null}
                     {meta?.tone && (
                       <Badge variant="outline" className="text-[10px]">
-                        {tones.find(t => t.value === meta.tone)?.icon} {tones.find(t => t.value === meta.tone)?.label || meta.tone}
+                        {toneIcons[meta.tone] || ""} {t(`ai.tones.${meta.tone}`, meta.tone)}
                       </Badge>
                     )}
                     {meta?.region_style && meta.region_style !== "general" && (
