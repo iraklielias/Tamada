@@ -179,7 +179,7 @@ const AIGeneratePage = () => {
       setShowDiff(false);
       setFeedbackGiven(null);
       queryClient.invalidateQueries({ queryKey: ["daily-ai-count"] });
-      sonnerToast.success("სადღეგრძელო შეიქმნა!");
+      sonnerToast.success(t("ai.created"));
     },
     onError: (err: Error) => {
       if (!showUpsell) sonnerToast.error(err.message || "გენერაცია ვერ მოხერხდა");
