@@ -551,46 +551,11 @@ const FeastDetailPage: React.FC = () => {
       </Tabs>
 
       {/* Toast Detail Dialog */}
-      <Dialog open={!!selectedToast} onOpenChange={(open) => !open && setSelectedToast(null)}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <span className="h-7 w-7 rounded-full bg-accent flex items-center justify-center text-xs font-bold text-accent-foreground">{selectedToast?.position}</span>
-              {selectedToast?.title_ka}
-            </DialogTitle>
-            <DialogDescription>
-              <Badge variant="outline" className="text-xs mt-1">{String(t(`live.toastType.${selectedToast?.toast_type}`, selectedToast?.toast_type || ""))}</Badge>
-              {selectedToast?.duration_minutes && <span className="text-xs text-muted-foreground ml-2">{selectedToast.duration_minutes}m</span>}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-3">
-            {selectedToast?.description_ka && (
-              <div>
-                <p className="text-xs text-muted-foreground mb-1">🇬🇪</p>
-                <p className="text-sm text-foreground leading-relaxed">{selectedToast.description_ka}</p>
-              </div>
-            )}
-            {selectedToast?.description_en && (
-              <div>
-                <p className="text-xs text-muted-foreground mb-1">🇬🇧</p>
-                <p className="text-sm text-foreground leading-relaxed">{selectedToast.description_en}</p>
-              </div>
-            )}
-            {selectedToast?.title_en && (
-              <div>
-                <p className="text-xs text-muted-foreground mb-1">{t("feastDetail.toastDetail")}</p>
-                <p className="text-sm text-foreground">{selectedToast.title_en}</p>
-              </div>
-            )}
-            {selectedToast?.alaverdi_assigned_to && (
-              <Badge variant="secondary">{t("feastDetail.alaverdi")}: {selectedToast.alaverdi_assigned_to}</Badge>
-            )}
-            {selectedToast?.notes && (
-              <p className="text-xs text-muted-foreground">{selectedToast.notes}</p>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
+      <ToastDetailDialog
+        selectedToast={selectedToast}
+        onClose={() => setSelectedToast(null)}
+        t={t}
+      />
 
       {/* AI Plan Confirmation Dialog */}
       <AlertDialog open={showAiConfirm} onOpenChange={setShowAiConfirm}>
