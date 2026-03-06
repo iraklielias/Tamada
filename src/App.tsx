@@ -27,6 +27,7 @@ import JoinFeastPage from "./pages/JoinFeastPage";
 import UpgradePage from "./pages/UpgradePage";
 import AdminTelemetryPage from "./pages/AdminTelemetryPage";
 import AIHistoryPage from "./pages/AIHistoryPage";
+import ApiTestingPage from "./pages/ApiTestingPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
