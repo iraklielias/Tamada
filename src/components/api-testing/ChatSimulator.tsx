@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Mic, Send, ChevronDown, Loader2, Volume2, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { ChatBubble } from "./ChatBubble";
 import { ToastCard } from "./ToastCard";
 import { ApiInspector } from "./ApiInspector";
