@@ -74,7 +74,6 @@ const App = () => (
                 <Route path="/favorites" element={<FavoritesPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/upgrade" element={<UpgradePage />} />
-                <Route path="/api-testing" element={<ApiTestingPage />} />
                 <Route path="/admin/telemetry" element={<AdminTelemetryPage />} />
               </Route>
 
@@ -82,6 +81,9 @@ const App = () => (
               <Route path="/feasts/join/:shareCode" element={
                 <ProtectedRoute><JoinFeastPage /></ProtectedRoute>
               } />
+
+              {/* Public API testing page */}
+              <Route path="/api-testing" element={<ApiTestingPage />} />
 
               <Route path="*" element={<NotFound />} />
             </Routes>
