@@ -82,6 +82,9 @@ const App = () => (
                 <ProtectedRoute><JoinFeastPage /></ProtectedRoute>
               } />
 
+              {/* Public API testing page */}
+              <Route path="/api-testing" element={<ApiTestingPage />} />
+
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AuthProvider>
