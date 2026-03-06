@@ -1,109 +1,84 @@
 
 
-## TAMADA — Status Audit & Master Execution Plan
+# Upgrade Plan: TAMADA AI System Prompt v2.0
 
-### What Is Built
+## Current State
 
-| Area | Status |
-|------|--------|
-| Landing page (`/`) | Done — hero, features, how-it-works, footer |
-| Auth (login, signup, callback) | Done — email/password, onAuthStateChange, protected routes |
-| Onboarding wizard (`/onboarding`) | Done — 4 steps: name, region, experience, occasions |
-| App shell (sidebar + bottom nav) | Done — collapsible sidebar, mobile bottom nav, profile footer |
-| Dashboard (`/dashboard`) | Done — greeting, quick actions, recent feasts, popular toasts |
-| Toasts browse (`/toasts`) | Done — search, occasion/formality filters, favorite toggle |
-| AI Generator (`/ai-generate`) | Done — occasion/formality/topic form, edge function, save to favorites |
-| Favorites (`/favorites`) | Done — list system + custom favorites, remove |
-| Library (`/library`) | Done — reads toast_templates (currently 0 rows) |
-| Profile (`/profile`) | Done — read-only display, logout |
-| Edge function: `generate-toast` | Done — Lovable AI gateway, JSON parse |
-| Database schema + RLS | Done — all 11 tables, policies in place |
-| Seed data: toasts | Done — 11 system toasts |
+The system prompt exists in **5 edge functions**, each with a copy-pasted variant of the v1.0.0 prompt (~160 lines, ~4KB). The new v2.0 prompt is ~800 lines (~15KB) — a massive upgrade adding verified historical references, proverbs, opening/closing repertoires, metaphor domains, quality criteria, voice mode, error handling, and prompt injection protection.
 
-### What Is NOT Built
+### What's Changing (v1.0 → v2.0)
 
-| Area | Spec Section |
-|------|-------------|
-| **Feast CRUD** — `/feasts`, `/feasts/new`, `/feasts/:id` | Sections 3, 4, 5 |
-| **Live Feast Mode** — `/feasts/:id/live` with timer, toast progression, alerts, audio | Section 6 |
-| **Alaverdi tracking** — FAB, guest assignment, count increment | Section 6 |
-| **Co-Tamada / Realtime** — share code, join link, Supabase Realtime sync | Section 6 + Realtime spec |
-| **Toast template seeding** — 7 templates with JSONB sequences | Seed Data |
-| **More sample toasts** — spec calls for 50-100; we have 11 | Seed Data |
-| **Feast plan from template** — selecting a template populates feast_toasts | Section 4 |
-| **AI Feast Plan generator** — `generate-feast-plan` edge function | AI Integration |
-| **Pro gating / useProGate hook** — daily limits, feature locks, upsell modals | Free vs Pro |
-| **Upgrade page** (`/upgrade`) — comparison table, Stripe checkout | Section 11 |
-| **Stripe integration** — checkout session, webhook, subscription management | Edge Functions |
-| **Profile editing** — avatar upload, edit name/region/experience/language | Section 10 |
-| **PDF export** — jsPDF feast plan export (Pro) | Section 5 |
-| **i18n** — i18next setup, language toggle, all strings externalized | i18n spec |
-| **Dark mode** | Design System |
-| **Keyboard shortcuts** | Desktop spec |
-| **Additional occasion types** in filters (christening, guest_reception, friendly_gathering) | Throughout |
-| **config.toml** — `generate-toast` function entry with `verify_jwt = false` | Edge function config |
+| Area | v1.0 | v2.0 |
+|---|---|---|
+| Identity | Generic 3-domain summary | Deep personality portrait, prompt injection defense |
+| Critical Rules | Scattered in layers | 10 explicit absolute-priority rules |
+| References | "Use David the Builder, Queen Tamar" | 9 historical figures with dates, contexts, usage guidance |
+| Rustaveli | "Use themes" | 4 verified quotes with Georgian + English |
+| Proverbs | None | 24 verified proverbs organized by context |
+| Regional Styles | 1-line descriptions | Full paragraphs with essence, markers, 2 example fragments each |
+| Occasions | Basic protocols | Deep psychological guidance per occasion |
+| Toast Openings | None | 12 categorized opening patterns |
+| Toast Closings | None | 15+ closings with anti-patterns |
+| Metaphor Domains | None | 8 domains with usage guidance + domains to avoid |
+| Toast Structures | Basic | Detailed with word counts, memorial-specific |
+| Quality Criteria | None | 7 criteria + 7 anti-patterns |
+| Georgian Language | Experience levels only | Grammar safety rules, formality markers |
+| Voice Mode | None (external only had brief note) | Full section with length/style calibration |
+| Error Handling | None | Sensitive topic reframing guide |
+| Output Format | JSON instruction appended | `===TOAST_START/END===` delimiters |
+| Bilingual | None | Explicit bilingual output rules |
 
----
+## Affected Functions & Adaptation Strategy
 
-### Master Execution Plan (8 Phases)
+### 1. `tamada-ai/index.ts` (primary toast generator + feast advisory)
+- **Replace** `SYSTEM_PROMPT` (lines 15-160) with the full v2.0 prompt
+- **Adaptation**: This function demands JSON output via user messages, NOT the system prompt. The v2.0 `<OUTPUT_FORMAT>` section uses `===TOAST_START/END===` delimiters for conversational mode. For this function, we append a JSON output instruction to the user message (already done today) — the system prompt's output format section is fine as-is since the user message override takes precedence.
+- **Keep**: `buildUserContextBlock()` helper injects `<USER_PREFERENCES>` dynamically — this aligns perfectly with v2.0's `<PREFERENCE_APPLICATION>` section.
+- **Keep**: All action routing, maps, and business logic unchanged.
 
-#### Phase 8 — Seed Data & Config Fixes
-- Seed 7 toast templates into `toast_templates` table (wedding, birthday, memorial, guest reception, holiday, corporate, friendly gathering) with proper `toast_sequence` JSONB arrays
-- Add `[functions.generate-toast]` with `verify_jwt = false` to `supabase/config.toml`
-- Add missing occasion types to all filter dropdowns across pages (christening, guest_reception, friendly_gathering, other)
+### 2. `tamada-external-api/index.ts` (external chat API)
+- **Replace** `CORE_SYSTEM_PROMPT` (lines 17-136) with v2.0 prompt
+- **Simplify** `CONVERSATIONAL_ADDITIONS` — v2.0 already includes `<CONVERSATIONAL_BEHAVIOR>`, `<VOICE_MODE>`, `<OUTPUT_FORMAT>` sections. The additions only need toast marking format (`---` delimiters for external API vs `===TOAST_START/END===`).
+- **Toast detection**: Update detection logic to look for `===TOAST_START===` / `===TOAST_END===` delimiters AND `---` delimiters (backward compat).
 
-#### Phase 9 — Feast CRUD (Core)
-- Create `/feasts` page — list user's feasts with status filter pills + search
-- Create `/feasts/new` page — multi-section form: basic info, details (guest count, formality, region, duration), template selection, optional guest list
-- Create `/feasts/:id` page — tabbed view (Plan, Guests, Details) with toast timeline, guest management, edit metadata, delete
-- Add routes to `App.tsx`, add "სუფრები" nav item to sidebar and bottom nav
-- Dashboard "ახალი სუფრა" quick action routes to `/feasts/new`; feast cards link to `/feasts/:id`
+### 3. `generate-feast-plan/index.ts` (feast plan generator)
+- **Replace** `MASTER_SYSTEM_PROMPT` Layers 0-2 portion (lines 16-161) with v2.0 prompt
+- **Keep** Feast Plan layers (F1, F2) appended after the v2.0 core — these are function-specific
+- **Keep**: `buildUserContextBlock()` and all business logic
 
-#### Phase 10 — Live Feast Mode
-- Create `/feasts/:id/live` — full-screen immersive view
-- Current toast display with complete text, toast number, type
-- Next-up preview (2 upcoming toasts)
-- Elapsed time tracker + progress bar
-- "Completed" and "Skip" buttons that update `feast_toasts` status
-- Pause/Resume/End feast controls updating `feasts.status`
-- Timer alert system: amber glow + audio chime at configurable intervals before next toast (Web Audio API)
-- Alaverdi FAB: bottom sheet with guest list, tap to assign, increment `alaverdi_count` via `increment_alaverdi` RPC
+### 4. `generate-toast/index.ts` (simple toast generation)
+- **Replace** `MASTER_SYSTEM_PROMPT` (lines 14-69) with v2.0 prompt
+- **Keep** the JSON output instruction at the end (already appended via user message)
+- Note: This function uses a condensed v1.0 — upgrading to full v2.0 will significantly improve output quality
 
-#### Phase 11 — Co-Tamada & Realtime
-- Generate `share_code` on feast, build `/feasts/:id/join/:shareCode` route
-- Add user as `feast_collaborator` on join
-- Subscribe to Supabase Realtime channels for `feast_toasts`, `feast_guests`, `feasts` changes
-- Enable realtime publication on relevant tables (`ALTER PUBLICATION supabase_realtime ADD TABLE ...`)
-- Co-Tamada sees live view with read-only controls (can assign alaverdi, cannot pause/end)
-- Online indicator for connected collaborators
+### 5. `regenerate-library/index.ts` (library batch regeneration)
+- **Replace** `SYSTEM_PROMPT` (lines 10-50) with v2.0 prompt + JSON output appendix
+- This is a batch processor — benefits from richer cultural knowledge but needs the JSON output instruction preserved
 
-#### Phase 12 — Profile Editing & Pro Gating
-- Make profile page editable: avatar upload (to `avatars` bucket), display name, region, experience, language
-- Build `useProGate` hook checking `is_pro` + `pro_expires_at`
-- Enforce free limits: 5 AI generations/day (server + client), 10 favorites, 1 active feast
-- Add server-side rate limit check in `generate-toast` edge function using `get_daily_ai_count`
-- Soft upsell modals when limits reached; gold lock icons on Pro features
-- Create `/upgrade` page with feature comparison table and pricing
+## Execution Phases
 
-#### Phase 13 — Stripe & Subscriptions
-- Enable Stripe integration
-- Create `create-checkout-session` edge function
-- Create `stripe-webhook` edge function handling subscription lifecycle events
-- Wire `/upgrade` page CTA to checkout session
-- Add `/profile/subscription` route for managing active subscription
+### Phase 1: Core Prompt Constant
+Create the v2.0 prompt as a single const string and update `tamada-ai/index.ts`. This is the authoritative copy. Test toast generation quality.
 
-#### Phase 14 — i18n & Polish
-- Set up i18next with `ka` (default) and `en` locales
-- Extract all hardcoded Georgian strings to locale JSON files
-- Add language toggle to sidebar footer and profile settings
-- Persist language choice to `profiles.preferred_language`
-- Toast content displays `_ka` or `_en` based on selected language
+### Phase 2: External API
+Update `tamada-external-api/index.ts`. Adapt conversational additions (most are now in v2.0 natively). Update toast detection to use `===TOAST_START/END===`. Test chat flow.
 
-#### Phase 15 — Advanced Features & Hardening
-- `generate-feast-plan` edge function — AI-generated toast schedule based on occasion/duration/formality
-- PDF export of feast plan using jsPDF (Pro only)
-- Dark mode support
-- Keyboard shortcuts in live feast mode (Space = complete, Esc = pause)
-- Additional seed toasts (expand from 11 to 50+)
-- Error boundary components, offline queue for failed writes, optimistic updates throughout
+### Phase 3: Feast Plan & Toast Generators
+Update `generate-feast-plan/index.ts` (core only, keep F1/F2 layers) and `generate-toast/index.ts`. Test feast plan generation and simple toast generation.
+
+### Phase 4: Library Regenerator
+Update `regenerate-library/index.ts` with v2.0 core. Preserve JSON output format instruction. Test batch regeneration.
+
+### Phase 5: Verification
+Test all 5 functions end-to-end to confirm improved output quality, no regressions, and correct format handling per function.
+
+## Key Technical Decisions
+
+1. **Output format conflict**: v2.0 uses `===TOAST_START/END===` delimiters. Functions that need JSON (tamada-ai, generate-toast, generate-feast-plan, regenerate-library) override this via user message instructions ("respond ONLY with valid JSON"). The external API uses the delimiters natively. No conflict.
+
+2. **Prompt size**: v2.0 is ~15KB. Within Gemini/GPT context limits. May slightly increase latency and token cost (~3x more input tokens for system prompt). Acceptable tradeoff for dramatically better output.
+
+3. **No shared file**: Edge functions in Lovable Cloud cannot import from each other. The prompt must be duplicated in each function. This is the current pattern and remains necessary.
+
+4. **Voice mode section**: Already in v2.0. The external API's voice pipeline benefits directly. Internal functions ignore it (no voice mode internally).
 
