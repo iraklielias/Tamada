@@ -96,7 +96,16 @@ export function ChatSimulator({ api }: ChatSimulatorProps) {
 
   const handleVoiceRecord = async () => {
     if (recorder.state === "idle") {
-      await recorder.startRecording();
+      try {
+        await recorder.startRecording();
+      } catch (err) {
+        const msg = err instanceof Error && err.name === "NotAllowedError"
+          ? "მიკროფონზე წვდომა უარყოფილია. შეამოწმეთ ბრაუზერის ნებართვები."
+          : "მიკროფონის გაშვება ვერ მოხერხდა.";
+        toast.error(msg);
+        recorder.resetState();
+        return;
+      }
     } else if (recorder.state === "recording") {
       setIsLoading(true);
       setVoiceStage("transcribing");
