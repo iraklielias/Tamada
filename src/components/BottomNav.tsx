@@ -18,6 +18,7 @@ const navItems: { titleKey: string; url: string; icon: IconName }[] = [
 const moreItems: { titleKey: string; url: string; icon: IconName }[] = [
   { titleKey: "nav.favorites", url: "/favorites", icon: "nav.favorites" },
   { titleKey: "nav.library", url: "/library", icon: "nav.library" },
+  { titleKey: "nav.apiTesting", url: "/api-testing", icon: "nav.apiTesting" },
   { titleKey: "nav.profile", url: "/profile", icon: "nav.profile" },
   { titleKey: "nav.upgrade", url: "/upgrade", icon: "nav.upgrade" },
 ];

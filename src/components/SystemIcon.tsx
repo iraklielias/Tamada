@@ -113,6 +113,7 @@ const ICON_COMPONENTS: Record<IconName, React.ComponentType<React.SVGProps<SVGSV
   "nav.favorites": Star,
   "nav.profile": User,
   "nav.upgrade": Crown,
+  "nav.apiTesting": Terminal,
   "nav.more": MoreHorizontal,
 
   // Actions
