@@ -689,10 +689,13 @@ async function transcribeAudio(audioBase64: string, audioFormat: string, languag
 // ElevenLabs TTS (Text-to-Speech)
 // ============================================================
 
-async function synthesizeSpeech(text: string, language: string): Promise<Uint8Array> {
+async function synthesizeSpeech(text: string, language: string): Promise<Uint8Array | null> {
   const ELEVENLABS_API_KEY = Deno.env.get("ELEVENLABS_API_KEY");
   const VOICE_ID = Deno.env.get("ELEVENLABS_VOICE_ID") || "JBFqnCBsd6RMkjVDRZzb";
-  if (!ELEVENLABS_API_KEY) throw new Error("ELEVENLABS_API_KEY is not configured");
+  if (!ELEVENLABS_API_KEY) {
+    console.warn("ELEVENLABS_API_KEY not configured, skipping TTS");
+    return null;
+  }
 
   const response = await fetch(
     `https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}?output_format=mp3_44100_128`,
@@ -718,6 +721,11 @@ async function synthesizeSpeech(text: string, language: string): Promise<Uint8Ar
   if (!response.ok) {
     const errText = await response.text();
     console.error("ElevenLabs TTS error:", response.status, errText);
+    // Gracefully degrade on payment/quota errors instead of crashing
+    if (response.status === 402 || response.status === 403 || response.status === 429) {
+      console.warn(`TTS unavailable (${response.status}), returning text-only response`);
+      return null;
+    }
     throw new Error(`TTS failed: ${response.status}`);
   }
 
@@ -880,17 +888,17 @@ async function handleChatMessageVoice(body: Record<string, unknown>, apiKeyData:
   const isToast = detectToast(aiContent, !!quickParams);
   const messageType = isToast ? "toast" : "text";
 
-  // TTS Stage
+  // TTS Stage (gracefully degrades if ElevenLabs is unavailable)
   const audioBytes = await synthesizeSpeech(aiContent.replace(/---/g, "").trim(), language);
 
   // Generate message ID first
   const msgId = crypto.randomUUID();
 
-  // Upload audio
-  const audioUrl = await uploadAudioToStorage(session.id, msgId, audioBytes);
+  // Upload audio (only if TTS succeeded)
+  const audioUrl = audioBytes ? await uploadAudioToStorage(session.id, msgId, audioBytes) : null;
 
   // Estimate duration (~150 chars per 10 seconds is rough)
-  const audioDuration = Math.max(1, (aiContent.length / 15));
+  const audioDuration = audioBytes ? Math.max(1, (aiContent.length / 15)) : null;
 
   // Store assistant message
   const { data: savedMsg } = await db.from("external_chat_messages").insert({
@@ -975,8 +983,18 @@ async function handleGenerateAudio(body: Record<string, unknown>, apiKeyData: Re
     });
   }
 
-  // Generate TTS
+  // Generate TTS (gracefully degrades)
   const audioBytes = await synthesizeSpeech(message.content.replace(/---/g, "").trim(), language);
+
+  if (!audioBytes) {
+    return new Response(JSON.stringify({
+      success: false,
+      error: "TTS service temporarily unavailable. Your ElevenLabs plan may not support API voice synthesis.",
+    }), {
+      status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
   const audioUrl = await uploadAudioToStorage(
     (message as any).external_chat_sessions?.id || message.session_id,
     messageId,
