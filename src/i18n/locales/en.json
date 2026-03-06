@@ -12,7 +12,8 @@
     "telemetry": "Telemetry",
     "aiHistory": "AI History",
     "more": "More",
-    "upgrade": "Upgrade"
+    "upgrade": "Upgrade",
+    "apiTesting": "API Testing"
   },
   "common": {
     "save": "Save",
