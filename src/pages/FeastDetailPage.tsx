@@ -153,10 +153,11 @@ interface ToastDetailDialogProps {
   feastId: string | undefined;
   feast: any;
   onToastUpdated: () => void;
+  onUpdateSelectedToast?: (updates: Partial<any>) => void;
 }
 
 const ToastDetailDialog: React.FC<ToastDetailDialogProps> = ({
-  selectedToast, onClose, t, isHost, isDraft, feastId, feast, onToastUpdated,
+  selectedToast, onClose, t, isHost, isDraft, feastId, feast, onToastUpdated, onUpdateSelectedToast,
 }) => {
   const [retryComment, setRetryComment] = useState("");
   const [selectedTone, setSelectedTone] = useState<string | null>(null);
@@ -279,9 +280,16 @@ const ToastDetailDialog: React.FC<ToastDetailDialogProps> = ({
       }
       return generated;
     },
-    onSuccess: () => {
+    onSuccess: (generated) => {
       sonnerToast.success(t("feastDetail.toastRegenerated", "სადღეგრძელო განახლდა"));
       setRetryComment("");
+      // Update selectedToast with new assigned IDs so the body query fetches the new content
+      if (generated?.assigned_custom_toast_id && onUpdateSelectedToast) {
+        onUpdateSelectedToast({
+          assigned_custom_toast_id: generated.assigned_custom_toast_id,
+          assigned_toast_id: null,
+        });
+      }
       onToastUpdated();
       queryClient.invalidateQueries({ queryKey: ["custom-toast-body"] });
       queryClient.invalidateQueries({ queryKey: ["assigned-toast-body"] });
@@ -1403,6 +1411,7 @@ const FeastDetailPage: React.FC = () => {
         feastId={id}
         feast={feast}
         onToastUpdated={() => queryClient.invalidateQueries({ queryKey: ["feast-toasts", id] })}
+        onUpdateSelectedToast={(updates) => setSelectedToast((prev: any) => prev ? { ...prev, ...updates } : prev)}
       />
 
       {/* AI Plan Confirmation Dialog */}
