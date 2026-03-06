@@ -280,9 +280,16 @@ const ToastDetailDialog: React.FC<ToastDetailDialogProps> = ({
       }
       return generated;
     },
-    onSuccess: () => {
+    onSuccess: (generated) => {
       sonnerToast.success(t("feastDetail.toastRegenerated", "სადღეგრძელო განახლდა"));
       setRetryComment("");
+      // Update selectedToast with new assigned IDs so the body query fetches the new content
+      if (generated?.assigned_custom_toast_id && onUpdateSelectedToast) {
+        onUpdateSelectedToast({
+          assigned_custom_toast_id: generated.assigned_custom_toast_id,
+          assigned_toast_id: null,
+        });
+      }
       onToastUpdated();
       queryClient.invalidateQueries({ queryKey: ["custom-toast-body"] });
       queryClient.invalidateQueries({ queryKey: ["assigned-toast-body"] });
