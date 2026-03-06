@@ -983,8 +983,18 @@ async function handleGenerateAudio(body: Record<string, unknown>, apiKeyData: Re
     });
   }
 
-  // Generate TTS
+  // Generate TTS (gracefully degrades)
   const audioBytes = await synthesizeSpeech(message.content.replace(/---/g, "").trim(), language);
+
+  if (!audioBytes) {
+    return new Response(JSON.stringify({
+      success: false,
+      error: "TTS service temporarily unavailable. Your ElevenLabs plan may not support API voice synthesis.",
+    }), {
+      status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
   const audioUrl = await uploadAudioToStorage(
     (message as any).external_chat_sessions?.id || message.session_id,
     messageId,
