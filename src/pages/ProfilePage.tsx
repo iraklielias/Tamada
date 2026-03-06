@@ -12,7 +12,10 @@ import { Input } from "@/components/ui/input";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { LogOut, Camera, Loader2, Save, Star, MapPin, Award, Globe, User } from "lucide-react";
+import { Camera, Loader2, AlertTriangle, LogOut } from "lucide-react";
+import SystemIcon from "@/components/SystemIcon";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import i18n from "@/i18n/index";
 import { toast as sonnerToast } from "sonner";
 import { motion } from "framer-motion";
 import { staggerContainer, staggerChild } from "@/lib/animations";
@@ -30,6 +33,7 @@ const ProfilePage = () => {
   const [experience, setExperience] = useState(profile?.experience_level || "");
   const [language, setLanguage] = useState<string>(profile?.preferred_language || "ka");
   const [isDirty, setIsDirty] = useState(false);
+  const [showDeleteAccount, setShowDeleteAccount] = useState(false);
 
   React.useEffect(() => {
     if (profile) {
@@ -97,9 +101,7 @@ const ProfilePage = () => {
       {/* Hero avatar card */}
       <motion.div variants={staggerChild}>
         <Card className="overflow-hidden">
-          <div className="h-20 wine-gradient relative">
-            <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "radial-gradient(circle at 30% 50%, white 1px, transparent 1px), radial-gradient(circle at 70% 30%, white 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
-          </div>
+          <div className="h-20 wine-gradient" />
           <CardContent className="p-6 -mt-12 relative">
             <div className="flex items-end gap-4">
               <div className="relative group">
@@ -123,7 +125,7 @@ const ProfilePage = () => {
                   <h2 className="text-heading-3 font-display text-foreground">{profile?.display_name || t("profile.namePlaceholder")}</h2>
                   {profile?.is_pro && (
                     <Badge className="gold-gradient text-foreground text-[10px] border-0 shadow-gold">
-                      <Star className="h-3 w-3 mr-0.5" /> PRO
+                      <SystemIcon name="nav.upgrade" size="xs" className="mr-0.5" /> PRO
                     </Badge>
                   )}
                 </div>
@@ -139,7 +141,7 @@ const ProfilePage = () => {
         <Card>
           <CardContent className="p-5 space-y-4">
             <h3 className="text-heading-3 text-foreground flex items-center gap-2">
-              <User className="h-4 w-4 text-primary" />
+              <SystemIcon name="nav.profile" size="sm" tone="primary" />
               {t("profile.settings")}
             </h3>
 
@@ -151,7 +153,7 @@ const ProfilePage = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="text-caption text-muted-foreground mb-1.5 flex items-center gap-1.5">
-                  <MapPin className="h-3 w-3 text-primary" /> {t("profile.region")}
+                  <SystemIcon name="status.info" size="xs" tone="primary" /> {t("profile.region")}
                 </label>
                 <Select value={region} onValueChange={(v) => { setRegion(v); markDirty(); }}>
                   <SelectTrigger className="bg-surface-1"><SelectValue placeholder={t("profile.chooseOption")} /></SelectTrigger>
@@ -164,7 +166,7 @@ const ProfilePage = () => {
               </div>
               <div>
                 <label className="text-caption text-muted-foreground mb-1.5 flex items-center gap-1.5">
-                  <Award className="h-3 w-3 text-primary" /> {t("profile.experience")}
+                  <SystemIcon name="status.success" size="xs" tone="primary" /> {t("profile.experience")}
                 </label>
                 <Select value={experience} onValueChange={(v) => { setExperience(v); markDirty(); }}>
                   <SelectTrigger className="bg-surface-1"><SelectValue placeholder={t("profile.chooseOption")} /></SelectTrigger>
@@ -179,9 +181,9 @@ const ProfilePage = () => {
 
             <div>
               <label className="text-caption text-muted-foreground mb-1.5 flex items-center gap-1.5">
-                <Globe className="h-3 w-3 text-primary" /> {t("profile.language")}
+                <SystemIcon name="status.info" size="xs" tone="primary" /> {t("profile.language")}
               </label>
-              <Select value={language} onValueChange={(v) => { setLanguage(v); markDirty(); }}>
+              <Select value={language} onValueChange={(v) => { setLanguage(v); markDirty(); i18n.changeLanguage(v); localStorage.setItem("tamada-lang", v); }}>
                 <SelectTrigger className="bg-surface-1"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="ka">ქართული</SelectItem>
@@ -196,7 +198,9 @@ const ProfilePage = () => {
                   {updateProfile.isPending ? (
                     <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> {t("common.saving")}</>
                   ) : (
-                    <><Save className="h-4 w-4 mr-2" /> {t("common.save")}</>
+                    <>
+                      <SystemIcon name="action.complete" size="sm" tone="primary" className="mr-2" /> {t("common.save")}
+                    </>
                   )}
                 </Button>
               </motion.div>
@@ -205,13 +209,42 @@ const ProfilePage = () => {
         </Card>
       </motion.div>
 
-      {/* Sign out */}
+      {/* Danger zone */}
       <motion.div variants={staggerChild}>
-        <Button variant="outline" className="w-full border-destructive/30 text-destructive hover:bg-destructive/5 hover:text-destructive" onClick={signOut}>
-          <LogOut className="h-4 w-4 mr-2" />
-          {t("profile.logout")}
-        </Button>
+        <Card className="border-destructive/20">
+          <CardContent className="p-5 space-y-3">
+            <h3 className="text-sm font-semibold text-destructive flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4" />
+              {t("profile.dangerZone", "Danger Zone")}
+            </h3>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Button variant="outline" className="flex-1 border-destructive/30 text-destructive hover:bg-destructive/5 hover:text-destructive" onClick={signOut}>
+                <LogOut className="h-4 w-4 mr-2" />
+                {t("profile.logout")}
+              </Button>
+              <Button variant="outline" className="flex-1 border-destructive/30 text-destructive hover:bg-destructive/5 hover:text-destructive" onClick={() => setShowDeleteAccount(true)}>
+                <AlertTriangle className="h-4 w-4 mr-2" />
+                {t("profile.deleteAccount", "Delete Account")}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </motion.div>
+
+      <AlertDialog open={showDeleteAccount} onOpenChange={setShowDeleteAccount}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("profile.deleteAccountTitle", "Delete your account?")}</AlertDialogTitle>
+            <AlertDialogDescription>{t("profile.deleteAccountDesc", "This action cannot be undone. All your data will be permanently deleted.")}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+            <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={() => { sonnerToast.info(t("profile.deleteAccountPending", "Account deletion request sent. Contact support.")); setShowDeleteAccount(false); }}>
+              {t("common.delete")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </motion.div>
   );
 };

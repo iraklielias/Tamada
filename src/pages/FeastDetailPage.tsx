@@ -22,12 +22,16 @@ import {
 } from "@/components/ui/select";
 import EmptyState from "@/components/EmptyState";
 import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import {
   ArrowLeft, Play, Pause, Square, Plus, Trash2, Users, Clock, Wine, Share2, Copy, Link, Sparkles, Loader2, Pencil,
-  GripVertical, RefreshCw, ArrowDown, Heart, Check, History, RotateCcw,
+  GripVertical, RefreshCw, Heart, Check, History, RotateCcw, ChevronDown, ChevronUp, MoreHorizontal,
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast as sonnerToast } from "sonner";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   DndContext, closestCenter, KeyboardSensor, PointerSensor, TouchSensor,
   useSensor, useSensors, type DragEndEvent,
@@ -66,12 +70,20 @@ interface SortableToastCardProps {
   toastStatusIcon: Record<string, string>;
   onSelect: (ft: any) => void;
   onRemove: (id: string) => void;
-  onInsertAfter: (position: number) => void;
   t: (key: string, fallback?: any) => string;
 }
 
+const toastBorderColor: Record<string, string> = {
+  completed: "border-l-green-500",
+  active: "border-l-amber-500",
+  skipped: "border-l-muted-foreground",
+  pending: "border-l-border",
+};
+
+const hasBodyContent = (ft: any) => !!(ft.assigned_toast_id || ft.assigned_custom_toast_id);
+
 const SortableToastCard: React.FC<SortableToastCardProps> = ({
-  ft, index, isDraft, isHost, toastStatusIcon, onSelect, onRemove, onInsertAfter, t,
+  ft, index, isDraft, isHost, toastStatusIcon, onSelect, onRemove, t,
 }) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: ft.id });
   const style = {
@@ -80,6 +92,7 @@ const SortableToastCard: React.FC<SortableToastCardProps> = ({
     zIndex: isDragging ? 50 : undefined,
     opacity: isDragging ? 0.8 : undefined,
   };
+  const hasBody = hasBodyContent(ft);
 
   return (
     <motion.div
@@ -90,49 +103,39 @@ const SortableToastCard: React.FC<SortableToastCardProps> = ({
       transition={{ delay: index * 0.02 }}
     >
       <Card
-        className={`card-interactive cursor-pointer ${ft.status === "completed" ? "opacity-60" : ""} ${isDragging ? "shadow-elevated ring-2 ring-primary/30" : ""}`}
+        className={`card-interactive cursor-pointer border-l-[3px] ${hasBody ? "border-l-green-500" : (toastBorderColor[ft.status || "pending"] || "border-l-border")} ${ft.status === "completed" ? "opacity-60" : ""} ${isDragging ? "shadow-elevated ring-2 ring-primary/30" : ""}`}
         onClick={() => onSelect(ft)}
       >
-        <CardContent className="p-3 flex items-center gap-3">
-          {isHost && isDraft && (
-            <div
-              className="shrink-0 cursor-grab active:cursor-grabbing touch-none text-muted-foreground hover:text-foreground transition-colors"
-              {...attributes}
-              {...listeners}
-            >
-              <GripVertical className="h-4 w-4" />
-            </div>
-          )}
-          <div className="h-9 w-9 rounded-lg bg-wine-light flex items-center justify-center shrink-0 text-sm font-bold text-primary">{ft.position}</div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <p className="text-sm font-semibold text-foreground truncate">{(typeof window !== 'undefined' && localStorage.getItem('tamada-lang') === 'en') ? (ft.title_en || ft.title_ka) : ft.title_ka}</p>
-              <span className="text-xs">{toastStatusIcon[ft.status || "pending"]}</span>
-            </div>
-            {(ft.description_ka || ft.description_en) && <p className="text-xs text-muted-foreground truncate mt-0.5">{(typeof window !== 'undefined' && localStorage.getItem('tamada-lang') === 'en') ? (ft.description_en || ft.description_ka) : ft.description_ka}</p>}
-            <div className="flex items-center gap-2 mt-1">
-              <Badge variant="outline" className="text-[10px]">{t(`live.toastType.${ft.toast_type}`, ft.toast_type)}</Badge>
-              {ft.duration_minutes && <span className="text-[10px] text-muted-foreground flex items-center gap-0.5"><Clock className="h-2.5 w-2.5" />{ft.duration_minutes}m</span>}
-              {ft.alaverdi_assigned_to && <Badge variant="secondary" className="text-[10px]">{t("feastDetail.alaverdi")}: {ft.alaverdi_assigned_to}</Badge>}
-            </div>
-          </div>
-          <div className="flex items-center gap-0.5 shrink-0">
+        <CardContent className="p-3">
+          <div className="flex items-center gap-3">
             {isHost && isDraft && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7"
-                title={t("feastDetail.insertAfter", "ჩასმა ამის შემდეგ")}
-                onClick={(e) => { e.stopPropagation(); onInsertAfter(ft.position); }}
+              <div
+                className="shrink-0 cursor-grab active:cursor-grabbing touch-none text-muted-foreground hover:text-foreground transition-colors"
+                {...attributes}
+                {...listeners}
               >
-                <ArrowDown className="h-3.5 w-3.5 text-muted-foreground" />
-              </Button>
+                <GripVertical className="h-4 w-4" />
+              </div>
             )}
+            <div className="h-8 w-8 rounded-lg bg-wine-light flex items-center justify-center shrink-0 text-sm font-bold text-primary">{ft.position}</div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <p className="text-sm font-semibold text-foreground truncate">{(typeof window !== 'undefined' && localStorage.getItem('tamada-lang') === 'en') ? (ft.title_en || ft.title_ka) : ft.title_ka}</p>
+                <span className="text-xs leading-none">{toastStatusIcon[ft.status || "pending"]}</span>
+              </div>
+            </div>
             {isHost && (
-              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => { e.stopPropagation(); onRemove(ft.id); }}>
+              <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={(e) => { e.stopPropagation(); onRemove(ft.id); }}>
                 <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
               </Button>
             )}
+          </div>
+          {/* Second tier: metadata */}
+          <div className="flex items-center gap-2 mt-1.5 ml-[calc(2rem+0.75rem+1rem)]">
+            <Badge variant="outline" className="text-[10px]">{t(`live.toastType.${ft.toast_type}`, ft.toast_type)}</Badge>
+            {ft.duration_minutes && <span className="text-[10px] text-muted-foreground flex items-center gap-0.5"><Clock className="h-2.5 w-2.5" />{ft.duration_minutes}m</span>}
+            {ft.alaverdi_assigned_to && <Badge variant="secondary" className="text-[10px]">{t("feastDetail.alaverdi")}: {ft.alaverdi_assigned_to}</Badge>}
+            {!hasBody && <span className="text-[10px] text-amber-600 dark:text-amber-400 flex items-center gap-0.5"><Sparkles className="h-2.5 w-2.5" />{t("feastDetail.needsBody", "needs text")}</span>}
           </div>
         </CardContent>
       </Card>
@@ -160,6 +163,7 @@ const ToastDetailDialog: React.FC<ToastDetailDialogProps> = ({
   const [selectedLength, setSelectedLength] = useState<string | null>(null);
   const [selectedStyle, setSelectedStyle] = useState<string | null>(null);
   const [showVersions, setShowVersions] = useState(false);
+  const [customizeOpen, setCustomizeOpen] = useState(false);
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
@@ -353,241 +357,314 @@ const ToastDetailDialog: React.FC<ToastDetailDialogProps> = ({
   const styleOptions = ["poetic", "storytelling", "proverbial", "direct"];
 
   const hasAssignment = !!selectedToast?.assigned_toast_id || !!selectedToast?.assigned_custom_toast_id;
+  const isEnLang = typeof window !== 'undefined' && localStorage.getItem('tamada-lang') === 'en';
+  const canEdit = isHost && feast?.status !== "completed";
 
   return (
     <Dialog open={!!selectedToast} onOpenChange={(open) => { if (!open) onClose(); }}>
-      <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <span className="h-7 w-7 rounded-full bg-accent flex items-center justify-center text-xs font-bold text-accent-foreground">{selectedToast?.position}</span>
-            {(typeof window !== 'undefined' && localStorage.getItem('tamada-lang') === 'en') ? (selectedToast?.title_en || selectedToast?.title_ka) : selectedToast?.title_ka}
-          </DialogTitle>
-          <DialogDescription>
-            <Badge variant="outline" className="text-xs mt-1">{String(t(`live.toastType.${selectedToast?.toast_type}`, selectedToast?.toast_type || ""))}</Badge>
-            {selectedToast?.duration_minutes && <span className="text-xs text-muted-foreground ml-2">{selectedToast.duration_minutes}m</span>}
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="space-y-3">
-          {(() => {
-            const isEnLang = typeof window !== 'undefined' && localStorage.getItem('tamada-lang') === 'en';
-            const primaryBody = isEnLang ? (bodyEn || bodyKa) : bodyKa;
-            const secondaryBody = isEnLang ? bodyKa : bodyEn;
-            const primaryLabel = isEnLang ? "🇬🇧 English" : `🇬🇪 ${t("feastDetail.fullToast", "სრული სადღეგრძელო")}`;
-            const secondaryLabel = isEnLang ? `🇬🇪 ქართულად` : "🇬🇧 English";
-            return (
-              <>
-                {primaryBody && (
-                  <div className="p-3 rounded-lg bg-accent/50 border border-border">
-                    <p className="text-xs text-muted-foreground mb-1.5 font-medium">{primaryLabel}</p>
-                    <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">{primaryBody}</p>
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-hidden p-0 gap-0">
+        {/* ── Hero header with wine accent ── */}
+        <div className="relative">
+          <div className="h-1 wine-gradient" />
+          <div className="px-5 pt-4 pb-3">
+            <DialogHeader className="space-y-2">
+              <div className="flex items-start gap-3">
+                <div className="h-10 w-10 rounded-xl bg-wine-light flex items-center justify-center shrink-0">
+                  <span className="text-sm font-bold text-primary">{selectedToast?.position}</span>
+                </div>
+                <div className="min-w-0 flex-1">
+                  <DialogTitle className="text-base font-semibold text-foreground leading-snug">
+                    {isEnLang ? (selectedToast?.title_en || selectedToast?.title_ka) : selectedToast?.title_ka}
+                  </DialogTitle>
+                  <div className="mt-1 flex items-center gap-2 flex-wrap text-sm text-muted-foreground">
+                    <Badge variant="outline" className="text-[10px]">{String(t(`live.toastType.${selectedToast?.toast_type}`, selectedToast?.toast_type || ""))}</Badge>
+                    {selectedToast?.duration_minutes && (
+                      <span className="text-[10px] text-muted-foreground flex items-center gap-0.5"><Clock className="h-2.5 w-2.5" />{selectedToast.duration_minutes}m</span>
+                    )}
+                    {selectedToast?.alaverdi_assigned_to && (
+                      <Badge variant="secondary" className="text-[10px]">{t("feastDetail.alaverdi")}: {selectedToast.alaverdi_assigned_to}</Badge>
+                    )}
                   </div>
-                )}
-                {secondaryBody && (
-                  <div className="p-3 rounded-lg bg-muted/50 border border-border">
-                    <p className="text-xs text-muted-foreground mb-1.5 font-medium">{secondaryLabel}</p>
-                    <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">{secondaryBody}</p>
-                  </div>
-                )}
-              </>
-            );
-          })()}
-
-          {/* Prominent Generate Body CTA when no body exists */}
-          {!hasBody && isHost && isDraft && (
-            <Card className="border-2 border-dashed border-primary/30 bg-primary/5">
-              <CardContent className="p-4 flex flex-col items-center text-center space-y-3">
-                <Sparkles className="h-6 w-6 text-primary" />
-                <div>
-                  <p className="text-sm font-semibold text-foreground">{t("feastDetail.noBodyYet", "ტექსტი ჯერ არ არის შექმნილი")}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">{t("feastDetail.generateBodyDesc", "AI შექმნის სრულ სადღეგრძელოს ტექსტს ამ სლოტისთვის")}</p>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {!bodyKa && !hasBody && selectedToast?.description_ka && (
-            <div>
-              <p className="text-xs text-muted-foreground mb-1">🇬🇪</p>
-              <p className="text-sm text-foreground leading-relaxed">{selectedToast.description_ka}</p>
-            </div>
-          )}
-          {!bodyEn && selectedToast?.description_en && (
-            <div>
-              <p className="text-xs text-muted-foreground mb-1">🇬🇧</p>
-              <p className="text-sm text-foreground leading-relaxed">{selectedToast.description_en}</p>
-            </div>
-          )}
-          {selectedToast?.title_en && (
-            <div>
-              <p className="text-xs text-muted-foreground mb-1">{t("feastDetail.toastDetail")}</p>
-              <p className="text-sm text-foreground">{selectedToast.title_en}</p>
-            </div>
-          )}
-          {selectedToast?.alaverdi_assigned_to && (
-            <Badge variant="secondary">{t("feastDetail.alaverdi")}: {selectedToast.alaverdi_assigned_to}</Badge>
-          )}
-          {selectedToast?.notes && (
-            <p className="text-xs text-muted-foreground">{selectedToast.notes}</p>
-          )}
-
-          {/* ── Customize & Retry Section ── */}
-          {isHost && isDraft && (
-            <div className="space-y-3 pt-2 border-t border-border">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t("feastDetail.customizeRetry", "Customize & Retry")}</p>
-
-              {/* User instructions textarea */}
-              <Textarea
-                placeholder={t("feastDetail.retryComment", "მითითებები გენერაციისთვის...")}
-                value={retryComment}
-                onChange={(e) => setRetryComment(e.target.value)}
-                className="min-h-[60px] text-sm"
-                rows={2}
-              />
-
-              {/* Tone chips */}
-              <div>
-                <p className="text-xs text-muted-foreground mb-1.5">{t("feastDetail.toneLabel", "ტონი")}</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {toneOptions.map((tone) => (
-                    <Badge
-                      key={tone}
-                      variant={selectedTone === tone ? "default" : "outline"}
-                      className="cursor-pointer transition-colors text-xs"
-                      onClick={() => setSelectedTone(selectedTone === tone ? null : tone)}
-                    >
-                      {t(`ai.tones.${tone}`, tone)}
-                    </Badge>
-                  ))}
                 </div>
               </div>
+            </DialogHeader>
 
-              {/* Length chips */}
-              <div>
-                <p className="text-xs text-muted-foreground mb-1.5">{t("feastDetail.lengthLabel", "სიგრძე")}</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {lengthOptions.map((len) => (
-                    <Badge
-                      key={len}
-                      variant={selectedLength === len ? "default" : "outline"}
-                      className="cursor-pointer transition-colors text-xs"
-                      onClick={() => setSelectedLength(selectedLength === len ? null : len)}
-                    >
-                      {t(`feastDetail.lengths.${len}`, len)}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-
-              {/* Style chips */}
-              <div>
-                <p className="text-xs text-muted-foreground mb-1.5">{t("feastDetail.styleLabel", "სტილი")}</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {styleOptions.map((style) => (
-                    <Badge
-                      key={style}
-                      variant={selectedStyle === style ? "default" : "outline"}
-                      className="cursor-pointer transition-colors text-xs"
-                      onClick={() => setSelectedStyle(selectedStyle === style ? null : style)}
-                    >
-                      {t(`feastDetail.styles.${style}`, style)}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-
-              {/* Action buttons */}
-              <div className="flex gap-2">
+            {/* ── Action toolbar ── */}
+            <div className="flex items-center gap-1.5 mt-3 pt-3 border-t border-border/50">
+              {canEdit && (
                 <Button
                   variant="wine"
                   size="sm"
-                  className="flex-1"
+                  className="h-8 text-xs gap-1.5 shadow-wine"
                   onClick={() => regenSingleToast.mutate()}
                   disabled={regenSingleToast.isPending}
                 >
                   {regenSingleToast.isPending ? (
-                    <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
                   ) : (
-                    <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
+                    <RefreshCw className="h-3.5 w-3.5" />
                   )}
-                  {hasBody ? t("feastDetail.regenerateToast", "ხელახლა გენერაცია") : t("feastDetail.generateBody", "ტექსტის გენერაცია")}
+                  {hasBody ? t("feastDetail.regenerateToast") : t("feastDetail.generateBody")}
                 </Button>
-                {hasAssignment && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => saveToFavorites.mutate()}
-                    disabled={saveToFavorites.isPending}
-                  >
-                    <Heart className="h-3.5 w-3.5 mr-1.5" />
-                    {t("feastDetail.saveToFavorites", "ფავორიტებში")}
-                  </Button>
-                )}
-              </div>
-
-              {/* Version History toggle + panel */}
-              {versions && versions.length > 0 && (
-                <div className="space-y-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="w-full justify-start text-xs text-muted-foreground"
-                    onClick={() => setShowVersions(!showVersions)}
-                  >
-                    <History className="h-3.5 w-3.5 mr-1.5" />
-                    {t("feastDetail.versionHistory", "ვერსიების ისტორია")} ({versions.length})
-                  </Button>
-
-                  {showVersions && (
-                    <ScrollArea className="max-h-[200px]">
-                      <div className="space-y-2 pr-2">
-                        {versions.map((v: any) => {
-                          const isEnLang = typeof window !== 'undefined' && localStorage.getItem('tamada-lang') === 'en';
-                          const vBody = isEnLang ? (v.body_en || v.body_ka) : v.body_ka;
-                          return (
-                            <Card key={v.id} className="border-dashed">
-                              <CardContent className="p-2.5 space-y-1.5">
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-1.5">
-                                    <Badge variant="outline" className="text-[10px]">v{v.version_number}</Badge>
-                                    <span className="text-[10px] text-muted-foreground">
-                                      {new Date(v.created_at).toLocaleDateString()}
-                                    </span>
-                                  </div>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-6 px-2 text-xs"
-                                    onClick={() => restoreVersion.mutate(v)}
-                                    disabled={restoreVersion.isPending}
-                                  >
-                                    <RotateCcw className="h-3 w-3 mr-1" />
-                                    {t("common.restore")}
-                                  </Button>
-                                </div>
-                                <p className="text-xs text-foreground leading-relaxed line-clamp-3">{vBody}</p>
-                                {v.user_instructions && (
-                                  <p className="text-[10px] text-muted-foreground italic">💬 {v.user_instructions}</p>
-                                )}
-                                {v.style_overrides && (
-                                  <div className="flex gap-1 flex-wrap">
-                                    {Object.entries(v.style_overrides as Record<string, string>).map(([k, val]) => (
-                                      <Badge key={k} variant="secondary" className="text-[9px] px-1.5 py-0">{val}</Badge>
-                                    ))}
-                                  </div>
-                                )}
-                              </CardContent>
-                            </Card>
-                          );
-                        })}
-                      </div>
-                    </ScrollArea>
-                  )}
-                </div>
+              )}
+              {hasAssignment && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 text-xs gap-1.5"
+                  onClick={() => saveToFavorites.mutate()}
+                  disabled={saveToFavorites.isPending}
+                >
+                  <Heart className="h-3.5 w-3.5" />
+                  {t("feastDetail.saveToFavorites")}
+                </Button>
+              )}
+              {hasBody && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 text-xs gap-1.5 ml-auto"
+                  onClick={() => {
+                    const body = isEnLang ? (bodyEn || bodyKa) : bodyKa;
+                    if (body) { navigator.clipboard.writeText(body); sonnerToast.success(t("common.copied")); }
+                  }}
+                >
+                  <Copy className="h-3.5 w-3.5" />
+                  {t("common.copy")}
+                </Button>
               )}
             </div>
-          )}
+          </div>
         </div>
+
+        {/* ── Scrollable body ── */}
+        <ScrollArea className="max-h-[calc(90vh-180px)] px-5 pb-5">
+          <div className="space-y-4">
+            {/* ── Toast body content ── */}
+            {hasBody ? (
+              <div className="space-y-3">
+                {(() => {
+                  const primaryBody = isEnLang ? (bodyEn || bodyKa) : bodyKa;
+                  const secondaryBody = isEnLang ? bodyKa : bodyEn;
+                  const primaryFlag = isEnLang ? "🇬🇧" : "🇬🇪";
+                  const secondaryFlag = isEnLang ? "🇬🇪" : "🇬🇧";
+                  const primaryLabel = isEnLang ? "English" : t("feastDetail.fullToast");
+                  const secondaryLabel = isEnLang ? t("feastDetail.inGeorgian") : "English";
+                  return (
+                    <>
+                      {primaryBody && (
+                        <div className="rounded-xl bg-card border border-border overflow-hidden">
+                          <div className="px-3.5 py-2 bg-surface-1 border-b border-border/50 flex items-center gap-2">
+                            <span className="text-sm">{primaryFlag}</span>
+                            <span className="text-xs font-medium text-foreground">{primaryLabel}</span>
+                          </div>
+                          <div className="px-3.5 py-3">
+                            <p className="text-sm text-foreground leading-[1.7] whitespace-pre-line">{primaryBody}</p>
+                          </div>
+                        </div>
+                      )}
+                      {secondaryBody && (
+                        <Collapsible>
+                          <CollapsibleTrigger asChild>
+                            <button className="w-full flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors py-1">
+                              <div className="flex-1 h-px bg-border" />
+                              <span className="flex items-center gap-1.5 shrink-0">
+                                {secondaryFlag} {secondaryLabel}
+                                <ChevronDown className="h-3 w-3" />
+                              </span>
+                              <div className="flex-1 h-px bg-border" />
+                            </button>
+                          </CollapsibleTrigger>
+                          <CollapsibleContent>
+                            <div className="rounded-xl bg-muted/30 border border-border/50 px-3.5 py-3 mt-1">
+                              <p className="text-sm text-foreground/80 leading-[1.7] whitespace-pre-line">{secondaryBody}</p>
+                            </div>
+                          </CollapsibleContent>
+                        </Collapsible>
+                      )}
+                    </>
+                  );
+                })()}
+              </div>
+            ) : (
+              <>
+                {/* No body yet — show generate CTA or description fallback */}
+                {canEdit ? (
+                  <div className="rounded-xl border-2 border-dashed border-primary/30 bg-primary/5 p-5 text-center space-y-3">
+                    <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto">
+                      <Sparkles className="h-6 w-6 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-foreground">{t("feastDetail.noBodyYet")}</p>
+                      <p className="text-xs text-muted-foreground mt-1">{t("feastDetail.generateBodyDesc")}</p>
+                    </div>
+                    <Button
+                      variant="wine"
+                      size="sm"
+                      className="shadow-wine"
+                      onClick={() => regenSingleToast.mutate()}
+                      disabled={regenSingleToast.isPending}
+                    >
+                      {regenSingleToast.isPending ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5 mr-1.5" />}
+                      {t("feastDetail.generateBody")}
+                    </Button>
+                  </div>
+                ) : (
+                  <>
+                    {selectedToast?.description_ka && (
+                      <div className="rounded-xl bg-card border border-border px-3.5 py-3">
+                        <p className="text-sm text-foreground leading-relaxed">{isEnLang ? (selectedToast.description_en || selectedToast.description_ka) : selectedToast.description_ka}</p>
+                      </div>
+                    )}
+                  </>
+                )}
+              </>
+            )}
+
+            {/* ── Toast details metadata ── */}
+            {(selectedToast?.title_en || selectedToast?.notes) && (
+              <div className="rounded-xl bg-surface-1 border border-border/50 p-3 space-y-2">
+                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">{t("feastDetail.toastDetail")}</p>
+                {selectedToast?.title_en && !isEnLang && (
+                  <p className="text-xs text-foreground">{selectedToast.title_en}</p>
+                )}
+                {selectedToast?.title_ka && isEnLang && selectedToast?.title_en && (
+                  <p className="text-xs text-foreground">{selectedToast.title_ka}</p>
+                )}
+                {selectedToast?.notes && (
+                  <p className="text-xs text-muted-foreground">{selectedToast.notes}</p>
+                )}
+              </div>
+            )}
+
+            {/* ── Customize & Retry (collapsible) ── */}
+            {canEdit && (
+              <Collapsible open={customizeOpen} onOpenChange={setCustomizeOpen}>
+                <CollapsibleTrigger asChild>
+                  <button className="w-full flex items-center gap-2 rounded-xl bg-surface-1 hover:bg-surface-2 transition-colors px-3.5 py-2.5 text-left">
+                    <div className="h-7 w-7 rounded-lg bg-wine-light flex items-center justify-center shrink-0">
+                      <Sparkles className="h-3.5 w-3.5 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-medium text-foreground">{t("feastDetail.customizeRetry")}</p>
+                      <p className="text-[10px] text-muted-foreground">{t("feastDetail.retryComment")}</p>
+                    </div>
+                    {customizeOpen ? <ChevronUp className="h-4 w-4 text-muted-foreground shrink-0" /> : <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />}
+                  </button>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div className="space-y-3 pt-3 pl-1">
+                    <Textarea
+                      placeholder={t("feastDetail.retryComment")}
+                      value={retryComment}
+                      onChange={(e) => setRetryComment(e.target.value)}
+                      className="min-h-[60px] text-sm bg-surface-1 border-border"
+                      rows={2}
+                    />
+                    <div className="space-y-2.5">
+                      <div>
+                        <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1.5">{t("feastDetail.toneLabel")}</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {toneOptions.map((tone) => (
+                            <Badge key={tone} variant={selectedTone === tone ? "default" : "outline"} className="cursor-pointer transition-all text-xs hover:border-primary/40" onClick={() => setSelectedTone(selectedTone === tone ? null : tone)}>
+                              {t(`ai.tones.${tone}`, tone)}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1.5">{t("feastDetail.lengthLabel")}</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {lengthOptions.map((len) => (
+                            <Badge key={len} variant={selectedLength === len ? "default" : "outline"} className="cursor-pointer transition-all text-xs hover:border-primary/40" onClick={() => setSelectedLength(selectedLength === len ? null : len)}>
+                              {t(`feastDetail.lengths.${len}`, len)}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1.5">{t("feastDetail.styleLabel")}</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {styleOptions.map((style) => (
+                            <Badge key={style} variant={selectedStyle === style ? "default" : "outline"} className="cursor-pointer transition-all text-xs hover:border-primary/40" onClick={() => setSelectedStyle(selectedStyle === style ? null : style)}>
+                              {t(`feastDetail.styles.${style}`, style)}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                    <Button
+                      variant="wine"
+                      size="sm"
+                      className="w-full shadow-wine"
+                      onClick={() => regenSingleToast.mutate()}
+                      disabled={regenSingleToast.isPending}
+                    >
+                      {regenSingleToast.isPending ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5 mr-1.5" />}
+                      {hasBody ? t("feastDetail.regenerateToast") : t("feastDetail.generateBody")}
+                    </Button>
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+            )}
+
+            {/* ── Version History (collapsible) ── */}
+            {versions && versions.length > 0 && (
+              <Collapsible open={showVersions} onOpenChange={setShowVersions}>
+                <CollapsibleTrigger asChild>
+                  <button className="w-full flex items-center gap-2 rounded-xl bg-surface-1 hover:bg-surface-2 transition-colors px-3.5 py-2.5 text-left">
+                    <div className="h-7 w-7 rounded-lg bg-surface-2 flex items-center justify-center shrink-0">
+                      <History className="h-3.5 w-3.5 text-muted-foreground" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-medium text-foreground">{t("feastDetail.versionHistory")}</p>
+                      <p className="text-[10px] text-muted-foreground">{versions.length} {versions.length === 1 ? "version" : "versions"}</p>
+                    </div>
+                    {showVersions ? <ChevronUp className="h-4 w-4 text-muted-foreground shrink-0" /> : <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />}
+                  </button>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div className="space-y-2 pt-2 pl-1">
+                    {versions.map((v: any, vi: number) => {
+                      const vBody = isEnLang ? (v.body_en || v.body_ka) : v.body_ka;
+                      return (
+                        <div key={v.id} className="relative pl-5">
+                          {/* Timeline connector */}
+                          {vi < versions.length - 1 && <div className="absolute left-[7px] top-5 bottom-0 w-px bg-border" />}
+                          <div className="absolute left-0 top-2 h-[14px] w-[14px] rounded-full border-2 border-border bg-card" />
+                          <div className="rounded-lg border border-border bg-card p-3 space-y-1.5">
+                            <div className="flex items-center justify-between gap-2">
+                              <div className="flex items-center gap-1.5">
+                                <Badge variant="outline" className="text-[10px] font-mono">v{v.version_number}</Badge>
+                                <span className="text-[10px] text-muted-foreground">{new Date(v.created_at).toLocaleDateString()}</span>
+                              </div>
+                              {canEdit && (
+                                <Button variant="ghost" size="sm" className="h-6 px-2 text-[10px] gap-1" onClick={() => restoreVersion.mutate(v)} disabled={restoreVersion.isPending}>
+                                  <RotateCcw className="h-2.5 w-2.5" />{t("common.restore")}
+                                </Button>
+                              )}
+                            </div>
+                            <p className="text-xs text-foreground/80 leading-relaxed line-clamp-2">{vBody}</p>
+                            {v.user_instructions && (
+                              <p className="text-[10px] text-muted-foreground italic">💬 {v.user_instructions}</p>
+                            )}
+                            {v.style_overrides && (
+                              <div className="flex gap-1 flex-wrap">
+                                {Object.entries(v.style_overrides as Record<string, string>).map(([k, val]) => (
+                                  <Badge key={k} variant="secondary" className="text-[9px] px-1.5 py-0">{val}</Badge>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+            )}
+          </div>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );
@@ -685,6 +762,7 @@ const FeastDetailPage: React.FC = () => {
   const [editTitle, setEditTitle] = useState("");
   const [editNotes, setEditNotes] = useState("");
   const [insertAfterPosition, setInsertAfterPosition] = useState<number | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const { data: feast, isLoading } = useQuery({
     queryKey: ["feast", id],
@@ -906,11 +984,7 @@ const FeastDetailPage: React.FC = () => {
   };
 
   const handleInsertAfter = (position: number) => {
-    setInsertAfterPosition(position);
-    // Scroll to the add toast form
-    setTimeout(() => {
-      document.getElementById("add-toast-form")?.scrollIntoView({ behavior: "smooth", block: "center" });
-    }, 100);
+    setInsertAfterPosition(prev => prev === position ? null : position);
   };
 
   const formatDuration = (mins: number) => { const h = Math.floor(mins / 60); const m = mins % 60; return h > 0 ? `${h}h ${m > 0 ? `${m}m` : ""}` : `${m}m`; };
@@ -929,33 +1003,114 @@ const FeastDetailPage: React.FC = () => {
   const canStart = feast.status === "draft" || feast.status === "paused";
   const canPause = feast.status === "active";
 
+  const totalToasts = feastToasts?.length || 0;
+  const completedToasts = feastToasts?.filter((ft: any) => ft.status === "completed").length || 0;
+  const toastsWithBody = feastToasts?.filter((ft: any) => ft.assigned_toast_id || ft.assigned_custom_toast_id).length || 0;
+  const totalGuests = guests?.length || 0;
+  const planProgress = totalToasts > 0 ? Math.round((toastsWithBody / totalToasts) * 100) : 0;
+
   return (
     <div className="p-4 md:p-6 max-w-4xl mx-auto space-y-5 pb-24">
-      {/* Hero header */}
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex items-center gap-3 min-w-0">
-          <Button variant="ghost" size="icon" className="rounded-xl bg-surface-1 hover:bg-surface-2" onClick={() => navigate("/feasts")}><ArrowLeft className="h-5 w-5" /></Button>
-          <div className="min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-heading-2 font-display text-foreground truncate">{feast.title}</h1>
-              <Badge className={`text-[10px] ${statusColors[feast.status || "draft"]}`}>{t(`feasts.status.${feast.status || "draft"}`)}</Badge>
+      {/* Summary Hero Card */}
+      <Card className="overflow-hidden border-0 shadow-lg">
+        <div className="h-1.5 wine-gradient" />
+        <CardContent className="p-5">
+          {/* Header row */}
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0">
+              <Button variant="ghost" size="icon" className="rounded-xl bg-surface-1 hover:bg-surface-2 shrink-0" onClick={() => navigate("/feasts")}>
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h1 className="text-heading-2 font-display text-foreground truncate">{feast.title}</h1>
+                  <Badge className={`text-[10px] ${statusColors[feast.status || "draft"]}`}>
+                    {t(`feasts.status.${feast.status || "draft"}`)}
+                  </Badge>
+                </div>
+                <div className="flex items-center gap-3 mt-1.5 text-xs text-muted-foreground flex-wrap">
+                  <span className="flex items-center gap-1">
+                    <Wine className="h-3 w-3" />
+                    {t(`feasts.occasion.${feast.occasion_type}`, feast.occasion_type)}
+                  </span>
+                  {feast.guest_count && (
+                    <span className="flex items-center gap-0.5">
+                      <Users className="h-3 w-3" /> {feast.guest_count}
+                    </span>
+                  )}
+                  <span className="flex items-center gap-0.5">
+                    <Clock className="h-3 w-3" /> {formatDuration(feast.estimated_duration_minutes)}
+                  </span>
+                </div>
+              </div>
             </div>
-            <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-              <span>{t(`feasts.occasion.${feast.occasion_type}`, feast.occasion_type)}</span>
-              {feast.guest_count && <span className="flex items-center gap-0.5"><Users className="h-3 w-3" />{feast.guest_count}</span>}
-              <span className="flex items-center gap-0.5"><Clock className="h-3 w-3" />{formatDuration(feast.estimated_duration_minutes)}</span>
+            {isHost && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="rounded-xl bg-surface-1 hover:bg-surface-2 shrink-0 h-9 w-9">
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => { setEditTitle(feast.title); setEditNotes(feast.notes || ""); setEditMode(true); }}>
+                    <Pencil className="h-3.5 w-3.5 mr-2" /> {t("feastDetail.editFeast")}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => {
+                    if (feast.share_code) { copyShareLink(); } else { generateShareCode.mutate(); }
+                  }}>
+                    <Share2 className="h-3.5 w-3.5 mr-2" /> {feast.share_code ? t("common.copy") + " " + t("feastDetail.shareCotamada").substring(0, 15) : t("common.generateCode")}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => setShowDeleteConfirm(true)}>
+                    <Trash2 className="h-3.5 w-3.5 mr-2" /> {t("feastDetail.deleteFeast")}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </div>
+
+          {/* Progress section */}
+          {totalToasts > 0 && (
+            <div className="mt-4 pt-3 border-t border-border/50">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1.5"><Wine className="h-3.5 w-3.5" /> {totalToasts} {t("feastDetail.plan").toLowerCase()}</span>
+                  <span className="flex items-center gap-1.5"><Users className="h-3.5 w-3.5" /> {totalGuests} {t("feastDetail.guestsTab").toLowerCase()}</span>
+                </div>
+                <span className="text-xs font-medium text-foreground/70">{toastsWithBody}/{totalToasts} {t("feastDetail.ready", "ready")}</span>
+              </div>
+              <div className="w-full h-2 bg-surface-2 rounded-full overflow-hidden">
+                <motion.div
+                  className="h-full wine-gradient rounded-full"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${planProgress}%` }}
+                  transition={{ duration: 0.6, ease: "easeOut" }}
+                />
+              </div>
             </div>
-          </div>
-        </div>
-        {isHost && (
-          <div className="flex gap-2 shrink-0">
-            {(feast.status === "active" || feast.status === "paused") && <Button size="sm" className="shadow-wine" onClick={() => navigate(`/feasts/${id}/live`)}><Play className="h-3.5 w-3.5 mr-1.5" />LIVE</Button>}
-            {canStart && <Button size="sm" variant="wine" className="shadow-wine" onClick={() => { updateStatus.mutate("active"); navigate(`/feasts/${id}/live`); }}><Play className="h-3.5 w-3.5 mr-1.5" />{feast.status === "paused" ? t("common.resume") : t("common.start")}</Button>}
-            {canPause && <Button size="sm" variant="outline" onClick={() => updateStatus.mutate("paused")}><Pause className="h-3.5 w-3.5 mr-1.5" />{t("common.pause")}</Button>}
-            {(feast.status === "active" || feast.status === "paused") && <Button size="sm" variant="outline" onClick={() => updateStatus.mutate("completed")}><Square className="h-3.5 w-3.5 mr-1.5" />{t("common.complete")}</Button>}
-          </div>
-        )}
-      </div>
+          )}
+
+          {/* Primary action: Go Live */}
+          {isHost && (canStart || canPause || feast.status === "active") && (
+            <div className="mt-4 flex gap-2">
+              {(feast.status === "active" || feast.status === "paused") && (
+                <Button className="flex-1 h-11 wine-gradient text-white shadow-wine hover:opacity-90 transition-opacity" onClick={() => navigate(`/feasts/${id}/live`)}>
+                  <Play className="h-4 w-4 mr-2" />{t("feastDetail.goLive", "Go Live")}
+                </Button>
+              )}
+              {canStart && feast.status === "draft" && (
+                <Button className="flex-1 h-11 wine-gradient text-white shadow-wine hover:opacity-90 transition-opacity" onClick={() => { updateStatus.mutate("active"); navigate(`/feasts/${id}/live`); }}>
+                  <Play className="h-4 w-4 mr-2" />{t("feastDetail.goLive", "Go Live")}
+                </Button>
+              )}
+              {canPause && (
+                <Button size="lg" variant="outline" className="h-11" onClick={() => updateStatus.mutate("paused")}>
+                  <Pause className="h-4 w-4 mr-1.5" />{t("common.pause")}
+                </Button>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Tabs with improved styling */}
       <Tabs defaultValue="plan">
@@ -969,20 +1124,79 @@ const FeastDetailPage: React.FC = () => {
           {feastToasts && feastToasts.length > 0 ? (
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
               <SortableContext items={feastToasts.map((ft) => ft.id)} strategy={verticalListSortingStrategy}>
-                <div className="space-y-2">
+                <div className="space-y-0">
                   {feastToasts.map((ft, i) => (
-                    <SortableToastCard
-                      key={ft.id}
-                      ft={ft}
-                      index={i}
-                      isDraft={isDraft}
-                      isHost={isHost}
-                      toastStatusIcon={toastStatusIcon}
-                      onSelect={setSelectedToast}
-                      onRemove={(toastId) => removeToast.mutate(toastId)}
-                      onInsertAfter={handleInsertAfter}
-                      t={t}
-                    />
+                    <React.Fragment key={ft.id}>
+                      <div className="py-1">
+                        <SortableToastCard
+                          ft={ft}
+                          index={i}
+                          isDraft={isDraft}
+                          isHost={isHost}
+                          toastStatusIcon={toastStatusIcon}
+                          onSelect={setSelectedToast}
+                          onRemove={(toastId) => removeToast.mutate(toastId)}
+                          t={t}
+                        />
+                      </div>
+                      {/* Inline insertion point between toasts */}
+                      {isHost && isDraft && (
+                        <div className="relative group">
+                          {insertAfterPosition === ft.position ? (
+                            <AnimatePresence>
+                              <motion.div
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: "auto" }}
+                                exit={{ opacity: 0, height: 0 }}
+                                className="py-1.5"
+                              >
+                                <Card className="border-primary/40 bg-primary/5 border-dashed">
+                                  <CardContent className="p-2.5">
+                                    <div className="flex gap-2">
+                                      <Input
+                                        placeholder={t("feastDetail.toastNamePlaceholder")}
+                                        value={newToastTitle}
+                                        onChange={(e) => setNewToastTitle(e.target.value)}
+                                        onKeyDown={(e) => { if (e.key === "Enter") addToast.mutate(); if (e.key === "Escape") setInsertAfterPosition(null); }}
+                                        className="flex-1 h-9 text-sm"
+                                        autoFocus
+                                      />
+                                      <Select value={newToastType} onValueChange={setNewToastType}>
+                                        <SelectTrigger className="w-[120px] h-9 text-xs">
+                                          <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          {toastTypeKeys.map((tt) => (
+                                            <SelectItem key={tt} value={tt}>{t(`live.toastType.${tt}`, tt)}</SelectItem>
+                                          ))}
+                                        </SelectContent>
+                                      </Select>
+                                      <Button size="sm" variant="wine" className="h-9 px-3" onClick={() => addToast.mutate()}>
+                                        <Plus className="h-3.5 w-3.5" />
+                                      </Button>
+                                      <Button size="sm" variant="ghost" className="h-9 px-2" onClick={() => setInsertAfterPosition(null)}>
+                                        ✕
+                                      </Button>
+                                    </div>
+                                  </CardContent>
+                                </Card>
+                              </motion.div>
+                            </AnimatePresence>
+                          ) : (
+                            <div
+                              className="flex items-center gap-2 py-1 cursor-pointer opacity-0 group-hover:opacity-100 hover:!opacity-100 transition-opacity"
+                              onClick={() => handleInsertAfter(ft.position)}
+                            >
+                              <div className="flex-1 h-px bg-border group-hover:bg-primary/40 transition-colors" />
+                              <span className="flex items-center justify-center h-5 w-5 rounded-full border border-border group-hover:border-primary/40 text-muted-foreground group-hover:text-primary transition-colors">
+                                <Plus className="h-3 w-3" />
+                              </span>
+                              <div className="flex-1 h-px bg-border group-hover:bg-primary/40 transition-colors" />
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </React.Fragment>
                   ))}
                 </div>
               </SortableContext>
@@ -1039,24 +1253,18 @@ const FeastDetailPage: React.FC = () => {
             </div>
           )}
           {isHost && (
-            <Card id="add-toast-form" className="border-dashed">
-              <CardContent className="p-3 space-y-2">
-                {insertAfterPosition !== null && (
-                  <div className="flex items-center gap-2 text-xs text-primary">
-                    <ArrowDown className="h-3 w-3" />
-                    <span>{t("feastDetail.insertingAfter", "ჩასმა პოზიციის შემდეგ")}: #{insertAfterPosition}</span>
-                    <Button variant="ghost" size="sm" className="h-5 px-1 text-xs" onClick={() => setInsertAfterPosition(null)}>✕</Button>
-                  </div>
-                )}
+            <Card className="border-dashed">
+              <CardContent className="p-3">
                 <div className="flex gap-2">
                   <Input
                     placeholder={t("feastDetail.toastNamePlaceholder")}
-                    value={newToastTitle}
-                    onChange={(e) => setNewToastTitle(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && addToast.mutate()}
+                    value={insertAfterPosition === null ? newToastTitle : ""}
+                    onChange={(e) => { if (insertAfterPosition === null) setNewToastTitle(e.target.value); }}
+                    onKeyDown={(e) => { if (e.key === "Enter" && insertAfterPosition === null) { addToast.mutate(); } }}
                     className="flex-1"
+                    disabled={insertAfterPosition !== null}
                   />
-                  <Select value={newToastType} onValueChange={setNewToastType}>
+                  <Select value={newToastType} onValueChange={setNewToastType} disabled={insertAfterPosition !== null}>
                     <SelectTrigger className="w-[140px]">
                       <SelectValue />
                     </SelectTrigger>
@@ -1066,7 +1274,7 @@ const FeastDetailPage: React.FC = () => {
                       ))}
                     </SelectContent>
                   </Select>
-                  <Button variant="outline" size="icon" onClick={() => addToast.mutate()}><Plus className="h-4 w-4" /></Button>
+                  <Button variant="outline" size="icon" onClick={() => { if (insertAfterPosition === null) addToast.mutate(); }} disabled={insertAfterPosition !== null}><Plus className="h-4 w-4" /></Button>
                 </div>
               </CardContent>
             </Card>
@@ -1178,21 +1386,9 @@ const FeastDetailPage: React.FC = () => {
           )}
 
           {isHost && (
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="destructive" className="w-full"><Trash2 className="h-4 w-4 mr-2" />{t("feastDetail.deleteFeast")}</Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>{t("common.confirmDelete")}</AlertDialogTitle>
-                  <AlertDialogDescription>{t("feastDetail.deleteConfirmDesc")}</AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
-                  <AlertDialogAction onClick={() => deleteFeast.mutate()}>{t("common.delete")}</AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+            <Button variant="outline" className="w-full text-destructive hover:text-destructive border-destructive/30 hover:border-destructive/50" onClick={() => setShowDeleteConfirm(true)}>
+              <Trash2 className="h-4 w-4 mr-2" />{t("feastDetail.deleteFeast")}
+            </Button>
           )}
         </TabsContent>
       </Tabs>
@@ -1221,6 +1417,20 @@ const FeastDetailPage: React.FC = () => {
             <AlertDialogAction onClick={() => { setShowAiConfirm(false); generatePlan.mutate(); }}>
               <Sparkles className="h-4 w-4 mr-1.5" />{t("feastDetail.aiConfirmAction")}
             </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Feast Confirmation */}
+      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("common.confirmDelete")}</AlertDialogTitle>
+            <AlertDialogDescription>{t("feastDetail.deleteConfirmDesc")}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={() => deleteFeast.mutate()}>{t("common.delete")}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

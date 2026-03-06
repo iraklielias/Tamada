@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
@@ -13,7 +13,9 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
-import { Loader2, Plus, Trash2, ArrowLeft, Wine } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Loader2, ChevronDown } from "lucide-react";
+import SystemIcon from "@/components/SystemIcon";
 import { toast as sonnerToast } from "sonner";
 
 const occasionKeys = ["wedding","birthday","memorial","christening","guest_reception","holiday","business","friendly_gathering","supra","other"];
@@ -40,6 +42,7 @@ const NewFeastPage: React.FC = () => {
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
   const [guests, setGuests] = useState<GuestInput[]>([]);
   const [newGuestName, setNewGuestName] = useState("");
+  const [titleTouched, setTitleTouched] = useState(false);
 
   const { data: templates } = useQuery({
     queryKey: ["templates-for-occasion", occasionType],
@@ -115,7 +118,7 @@ const NewFeastPage: React.FC = () => {
     <div className="p-4 md:p-6 max-w-2xl mx-auto space-y-6 pb-24">
       <div className="flex items-center gap-3">
         <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-          <ArrowLeft className="h-5 w-5" />
+          <SystemIcon name="action.back" size="sm" tone="muted" />
         </Button>
         <div>
           <h1 className="text-heading-1 text-foreground">{t("feasts.newFeast")}</h1>
@@ -123,12 +126,43 @@ const NewFeastPage: React.FC = () => {
         </div>
       </div>
 
+      {/* AI vs Manual creation choice */}
+      <div className="grid grid-cols-2 gap-3">
+        <Card className="border-primary/40 bg-primary/5 cursor-default">
+          <CardContent className="p-4 text-center space-y-2">
+            <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center mx-auto">
+              <SystemIcon name="nav.feasts" size="sm" tone="primary" />
+            </div>
+            <p className="text-sm font-semibold text-foreground">{t("feasts.manualCreate", "Create Manually")}</p>
+            <p className="text-[10px] text-muted-foreground">{t("feasts.manualCreateDesc", "Full control over your feast plan")}</p>
+          </CardContent>
+        </Card>
+        <Card className="border-dashed cursor-pointer hover:border-primary/40 transition-colors" onClick={() => navigate("/ai-generate")}>
+          <CardContent className="p-4 text-center space-y-2">
+            <div className="h-10 w-10 rounded-xl bg-amber-500/10 flex items-center justify-center mx-auto">
+              <SystemIcon name="nav.ai" size="sm" className="text-amber-600" />
+            </div>
+            <p className="text-sm font-semibold text-foreground">{t("feastDetail.aiGenerate", "AI Plan")}</p>
+            <p className="text-[10px] text-muted-foreground">{t("feasts.aiCreateDesc", "Let AI create a complete feast plan")}</p>
+          </CardContent>
+        </Card>
+      </div>
+
       <Card>
         <CardHeader className="pb-3"><CardTitle className="text-heading-3">{t("feasts.basicInfo")}</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <div>
             <label className="text-caption text-muted-foreground mb-1.5 block">{t("feasts.feastName")} *</label>
-            <Input placeholder={t("feasts.feastNamePlaceholder")} value={title} onChange={(e) => setTitle(e.target.value)} />
+            <Input
+              placeholder={t("feasts.feastNamePlaceholder")}
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              onBlur={() => setTitleTouched(true)}
+              className={titleTouched && !title.trim() ? "border-destructive focus-visible:ring-destructive" : ""}
+            />
+            {titleTouched && !title.trim() && (
+              <p className="text-xs text-destructive mt-1">{t("feasts.nameRequired")}</p>
+            )}
           </div>
           <div>
             <label className="text-caption text-muted-foreground mb-1.5 block">{t("ai.occasionType")}</label>
@@ -207,7 +241,7 @@ const NewFeastPage: React.FC = () => {
                   className={`w-full p-3 rounded-xl border text-left transition-all flex items-center justify-between ${selectedTemplateId === tmpl.id ? "border-primary bg-accent" : "border-border hover:border-primary/30"}`}>
                   <div className="flex items-center gap-3">
                     <div className="h-9 w-9 rounded-lg bg-accent flex items-center justify-center shrink-0">
-                      <Wine className="h-4 w-4 text-accent-foreground" />
+                      <SystemIcon name="nav.toasts" size="sm" className="text-accent-foreground" />
                     </div>
                     <div>
                       <p className="text-sm font-semibold text-foreground">{tmpl.name_ka}</p>
@@ -227,31 +261,92 @@ const NewFeastPage: React.FC = () => {
         </Card>
       )}
 
-      <Card>
-        <CardHeader className="pb-3"><CardTitle className="text-heading-3">{t("feasts.guestList")}</CardTitle></CardHeader>
-        <CardContent className="space-y-3">
-          <div className="flex gap-2">
-            <Input placeholder={t("feasts.guestNamePlaceholder")} value={newGuestName} onChange={(e) => setNewGuestName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addGuest()} />
-            <Button variant="outline" size="icon" onClick={addGuest}><Plus className="h-4 w-4" /></Button>
-          </div>
-          {guests.length > 0 && (
-            <div className="space-y-1.5">
-              {guests.map((g, i) => (
-                <div key={i} className="flex items-center justify-between p-2 rounded-lg bg-muted/50">
-                  <span className="text-sm text-foreground">{g.name}</span>
-                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => removeGuest(i)}>
-                    <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
-                  </Button>
+      <Collapsible>
+        <Card>
+          <CollapsibleTrigger asChild>
+            <button className="w-full flex items-center justify-between p-4 text-left">
+              <div className="flex items-center gap-2">
+                <SystemIcon name="nav.profile" size="sm" tone="muted" />
+                <span className="text-heading-3">{t("feasts.guestList")}</span>
+                {guests.length > 0 && (
+                  <Badge variant="secondary" className="text-[10px]">{guests.length}</Badge>
+                )}
+              </div>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <span>{t("feasts.addLater", "add later")}</span>
+                <ChevronDown className="h-4 w-4" />
+              </div>
+            </button>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <CardContent className="pt-0 space-y-3">
+              <div className="flex gap-2">
+                <Input placeholder={t("feasts.guestNamePlaceholder")} value={newGuestName} onChange={(e) => setNewGuestName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addGuest()} />
+                <Button variant="outline" size="icon" onClick={addGuest}>
+                  <SystemIcon name="action.add" size="sm" tone="muted" />
+                </Button>
+              </div>
+              {guests.length > 0 && (
+                <div className="space-y-1.5">
+                  {guests.map((g, i) => (
+                    <div key={i} className="flex items-center justify-between p-2 rounded-lg bg-muted/50">
+                      <span className="text-sm text-foreground">{g.name}</span>
+                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => removeGuest(i)}>
+                          <SystemIcon name="action.delete" size="sm" tone="muted" />
+                      </Button>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+              )}
+            </CardContent>
+          </CollapsibleContent>
+        </Card>
+      </Collapsible>
 
-      <Button className="w-full" size="lg" onClick={() => createFeast.mutate()} disabled={createFeast.isPending || !title.trim()}>
-        {createFeast.isPending ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> {t("common.creating")}</> : t("feasts.createFeast")}
-      </Button>
+      {/* Creation Preview Summary */}
+      {title.trim() && (
+        <Card className="border-dashed border-primary/20 bg-primary/5">
+          <CardContent className="p-4">
+            <p className="text-caption text-muted-foreground mb-2 font-medium">{t("common.ready")}</p>
+            <div className="flex flex-wrap items-center gap-2 text-xs">
+              <Badge variant="outline">{title.trim()}</Badge>
+              <Badge variant="outline">{t(`feasts.occasion.${occasionType}`)}</Badge>
+              <Badge variant="outline">{t(`feasts.formalityOptions.${formality}`)}</Badge>
+              <Badge variant="outline" className="flex items-center gap-1">
+                <Users className="h-3 w-3" /> {guestCount}
+              </Badge>
+              <Badge variant="outline" className="flex items-center gap-1">
+                <Clock className="h-3 w-3" /> {formatDuration(duration[0])}
+              </Badge>
+              {region && region !== "none" && (
+                <Badge variant="outline">{t(`profile.regions.${region}`)}</Badge>
+              )}
+              {selectedTemplateId && (
+                <Badge variant="secondary" className="text-[10px]">
+                  {templates?.find(tp => tp.id === selectedTemplateId)?.name_ka}
+                </Badge>
+              )}
+              {guests.length > 0 && (
+                <Badge variant="secondary" className="text-[10px]">
+                  {guests.length} {t("feastDetail.guestsTab").toLowerCase()}
+                </Badge>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Sticky create button on mobile */}
+      <div className="hidden md:block space-y-3">
+        <Button variant="wine" className="w-full shadow-wine" size="lg" onClick={() => createFeast.mutate()} disabled={createFeast.isPending || !title.trim()}>
+          {createFeast.isPending ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> {t("common.creating")}</> : t("feasts.createFeast")}
+        </Button>
+      </div>
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-card/95 backdrop-blur-sm border-t border-border md:hidden z-40">
+        <Button variant="wine" className="w-full shadow-wine" size="lg" onClick={() => createFeast.mutate()} disabled={createFeast.isPending || !title.trim()}>
+          {createFeast.isPending ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> {t("common.creating")}</> : t("feasts.createFeast")}
+        </Button>
+      </div>
     </div>
   );
 };

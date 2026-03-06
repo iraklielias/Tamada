@@ -1,5 +1,6 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Wine, Home } from "lucide-react";
 import { motion } from "framer-motion";
@@ -7,6 +8,7 @@ import { motion } from "framer-motion";
 const NotFound = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   useEffect(() => {
     console.error("404 Error: User attempted to access non-existent route:", location.pathname);
@@ -37,17 +39,15 @@ const NotFound = () => {
           404
         </h1>
 
-        {/* Georgian message */}
         <div className="space-y-2">
           <p className="text-heading-3 text-foreground">
-            გვერდი ვერ მოიძებნა
+            {t("notFound.title")}
           </p>
           <p className="text-body-sm text-muted-foreground">
-            მოთხოვნილი გვერდი არ არსებობს ან წაშლილია. სუფრაზე დაბრუნდით!
+            {t("notFound.description")}
           </p>
         </div>
 
-        {/* CTA */}
         <Button
           variant="wine"
           size="lg"
@@ -55,7 +55,7 @@ const NotFound = () => {
           onClick={() => navigate("/")}
         >
           <Home className="h-4 w-4 mr-2" />
-          მთავარ გვერდზე დაბრუნება
+          {t("notFound.goHome")}
         </Button>
       </motion.div>
     </div>

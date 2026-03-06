@@ -1,29 +1,44 @@
 import React, { useState } from "react";
-import { Link, Navigate } from "react-router-dom";
+import { Link, Navigate, useSearchParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useTranslation } from "react-i18next";
 import { lovable } from "@/integrations/lovable/index";
 import AuthLayout from "@/components/AuthLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { motion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
+import SystemIcon from "@/components/SystemIcon";
 
 const LoginPage: React.FC = () => {
   const { user, loading, signIn } = useAuth();
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirectTo = searchParams.get("redirect") || "/dashboard";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [touched, setTouched] = useState<{ email?: boolean; password?: boolean }>({});
 
-  if (!loading && user) return <Navigate to="/dashboard" replace />;
+  if (!loading && user) return <Navigate to={redirectTo} replace />;
+
+  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const passwordValid = password.length >= 6;
+  const emailError = touched.email && email.length > 0 && !emailValid;
+  const passwordError = touched.password && password.length > 0 && !passwordValid;
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setTouched({ email: true, password: true });
+    if (!emailValid || !passwordValid) return;
     setSubmitting(true);
     const { error } = await signIn(email, password);
     if (error) {
-      toast.error(error.message || "შესვლა ვერ მოხერხდა");
+      toast.error(error.message || t("auth.loginFailed"));
+    } else {
+      navigate(redirectTo, { replace: true });
     }
     setSubmitting(false);
   };
@@ -33,21 +48,24 @@ const LoginPage: React.FC = () => {
       redirect_uri: window.location.origin,
     });
     if (result.error) {
-      toast.error("Google-ით შესვლა ვერ მოხერხდა");
+      toast.error(t("auth.googleLoginFailed"));
     }
   };
+
+  const signupLink = redirectTo !== "/dashboard"
+    ? `/auth/signup?redirect=${encodeURIComponent(redirectTo)}`
+    : "/auth/signup";
 
   return (
     <AuthLayout>
       <div>
         <h2 className="font-display text-heading-1 text-foreground mb-2">
-          შესვლა
+          {t("auth.loginTitle")}
         </h2>
         <p className="text-body text-muted-foreground mb-8">
-          შეიყვანეთ თქვენი მონაცემები ანგარიშში შესასვლელად
+          {t("auth.enterCredentials")}
         </p>
 
-        {/* Google button */}
         <Button
           variant="outline"
           className="w-full h-12 text-sm font-semibold mb-6 hover:bg-surface-1 transition-colors"
@@ -60,50 +78,66 @@ const LoginPage: React.FC = () => {
             <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
             <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
           </svg>
-          Google-ით შესვლა
+          {t("auth.googleLogin")}
         </Button>
 
-        {/* Divider */}
         <div className="relative mb-6">
           <div className="absolute inset-0 flex items-center">
             <span className="w-full border-t border-border" />
           </div>
           <div className="relative flex justify-center">
             <span className="bg-background px-4 text-caption text-muted-foreground">
-              ან
+              {t("auth.or")}
             </span>
           </div>
         </div>
 
-        {/* Email form */}
         <form onSubmit={handleEmailLogin} className="space-y-5">
           <div>
             <Label htmlFor="email" className="text-body-sm text-foreground font-semibold">
-              ელ. ფოსტა
+              {t("auth.email")}
             </Label>
             <Input
               id="email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              onBlur={() => setTouched((p) => ({ ...p, email: true }))}
               placeholder="tamada@example.com"
               required
-              className="mt-2 h-12 text-base bg-surface-1 border-border focus:bg-background transition-colors"
+              className={`mt-2 h-12 text-base bg-surface-1 border-border focus:bg-background transition-colors ${emailError ? "border-destructive focus-visible:ring-destructive/30" : ""}`}
             />
+            {emailError && (
+              <p className="text-xs text-destructive mt-1">{t("auth.invalidEmail", "Invalid email address")}</p>
+            )}
           </div>
           <div>
             <Label htmlFor="password" className="text-body-sm text-foreground font-semibold">
-              პაროლი
+              {t("auth.password")}
             </Label>
-            <Input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              required
-              className="mt-2 h-12 text-base bg-surface-1 border-border focus:bg-background transition-colors"
-            />
+            <div className="relative mt-2">
+              <Input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                onBlur={() => setTouched((p) => ({ ...p, password: true }))}
+                placeholder="••••••••"
+                required
+                className={`h-12 text-base bg-surface-1 border-border focus:bg-background transition-colors pr-11 ${passwordError ? "border-destructive focus-visible:ring-destructive/30" : ""}`}
+              />
+              <button
+                type="button"
+                tabIndex={-1}
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <SystemIcon name={showPassword ? "action.visibilityOff" : "action.visibility"} size="sm" />
+              </button>
+            </div>
+            {passwordError && (
+              <p className="text-xs text-destructive mt-1">{t("auth.passwordMinLength")}</p>
+            )}
           </div>
           <Button
             type="submit"
@@ -111,20 +145,19 @@ const LoginPage: React.FC = () => {
             className="w-full h-12 text-base"
             disabled={submitting}
           >
-            {submitting ? "შესვლა..." : "შესვლა"}
-            {!submitting && <ArrowRight className="h-4 w-4 ml-1" />}
+            {submitting ? t("auth.signingIn") : t("auth.loginButton")}
+            {!submitting && <SystemIcon name="action.next" size="sm" className="ml-1" />}
           </Button>
         </form>
 
-        {/* Footer link */}
         <div className="mt-8 pt-6 border-t border-border">
           <p className="text-center text-body-sm text-muted-foreground">
-            არ გაქვთ ანგარიში?{" "}
+            {t("auth.noAccount")}{" "}
             <Link
-              to="/auth/signup"
+              to={signupLink}
               className="text-primary font-semibold hover:underline underline-offset-4"
             >
-              რეგისტრაცია
+              {t("auth.signupButton")}
             </Link>
           </p>
         </div>

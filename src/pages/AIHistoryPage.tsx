@@ -9,8 +9,11 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { History, Sparkles, Clock, Pencil, ThumbsUp, ThumbsDown, Wine, AlertCircle, Zap, MessageSquare, BarChart3 } from "lucide-react";
 import { format } from "date-fns";
 import { ka } from "date-fns/locale";
+import { enUS } from "date-fns/locale";
 import { motion } from "framer-motion";
 import { Json } from "@/integrations/supabase/types";
+import { useTranslation } from "react-i18next";
+import EmptyState from "@/components/EmptyState";
 
 interface LogEntry {
   id: string;
@@ -23,26 +26,20 @@ interface LogEntry {
   created_at: string | null;
 }
 
-const occasionLabels: Record<string, string> = {
-  supra: "სუფრა", wedding: "ქორწილი", birthday: "დაბადების დღე", memorial: "პანაშვიდი",
-  christening: "ნათლობა", guest_reception: "სტუმრის მიღება", holiday: "დღესასწაული",
-  business: "საქმიანი", friendly_gathering: "მეგობრული შეკრება", other: "სხვა",
-};
-
-const toneLabels: Record<string, string> = {
-  traditional: "🏛️ ტრადიციული", humorous: "😄 იუმორისტული",
-  emotional: "❤️ ემოციური", philosophical: "🤔 ფილოსოფიური",
-};
-
-const typeConfig: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
-  generate_toast: { label: "გენერაცია", icon: <Sparkles className="h-3.5 w-3.5" />, color: "bg-primary/10 text-primary border-primary/20" },
-  submit_feedback: { label: "უკუკავშირი", icon: <MessageSquare className="h-3.5 w-3.5" />, color: "bg-gold-light text-gold border-gold/20" },
-  analyze_edit_delta: { label: "რედაქტირება", icon: <Pencil className="h-3.5 w-3.5" />, color: "bg-accent text-accent-foreground border-accent" },
-  generate_feast_plan: { label: "გეგმა", icon: <Wine className="h-3.5 w-3.5" />, color: "bg-wine-light text-primary border-primary/20" },
+const typeIcons: Record<string, { icon: React.ReactNode; color: string }> = {
+  generate_toast: { icon: <Sparkles className="h-3.5 w-3.5" />, color: "bg-primary/10 text-primary border-primary/20" },
+  submit_feedback: { icon: <MessageSquare className="h-3.5 w-3.5" />, color: "bg-gold-light text-gold border-gold/20" },
+  analyze_edit_delta: { icon: <Pencil className="h-3.5 w-3.5" />, color: "bg-accent text-accent-foreground border-accent" },
+  generate_feast_plan: { icon: <Wine className="h-3.5 w-3.5" />, color: "bg-wine-light text-primary border-primary/20" },
 };
 
 const AIHistoryPage = () => {
   const { user } = useAuth();
+  const { t, i18n } = useTranslation();
+  const isEn = i18n.language === "en";
+  const dateLocale = isEn ? enUS : ka;
+
+  const typeLabel = (type: string) => t(`aiHistory.types.${type}`, type);
 
   const { data: logs, isLoading } = useQuery({
     queryKey: ["ai-history", user?.id],
@@ -82,27 +79,27 @@ const AIHistoryPage = () => {
   const lengthPref = editKnowledge?.find(k => k.knowledge_key === "length_preference");
 
   return (
-    <div className="p-4 md:p-6 max-w-4xl mx-auto space-y-6">
+    <div className="p-4 md:p-6 max-w-4xl mx-auto space-y-6 pb-24">
       {/* Header */}
       <div>
         <h1 className="text-heading-1 font-display text-foreground flex items-center gap-3">
           <div className="h-10 w-10 rounded-xl bg-surface-2 flex items-center justify-center">
             <History className="h-5 w-5 text-primary" />
           </div>
-          გენერაციის ისტორია
+          {t("aiHistory.title")}
         </h1>
         <p className="text-body-sm text-muted-foreground mt-1">
-          ყველა AI-ით შექმნილი სადღეგრძელო და მათი ცვლილებები
+          {t("aiHistory.subtitle")}
         </p>
       </div>
 
       {/* Stats row */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { value: totalGenerations, label: "გენერაცია", icon: <Sparkles className="h-4 w-4" />, color: "text-primary" },
-          { value: totalFeedback, label: "უკუკავშირი", icon: <MessageSquare className="h-4 w-4" />, color: "text-gold" },
-          { value: totalEdits, label: "რედაქტირება", icon: <Pencil className="h-4 w-4" />, color: "text-accent-foreground" },
-          { value: `${Math.round(avgLatency / latencyCount)}ms`, label: "საშ. ლატენსი", icon: <Zap className="h-4 w-4" />, color: "text-success" },
+          { value: totalGenerations, label: t("aiHistory.stats.generations"), icon: <Sparkles className="h-4 w-4" />, color: "text-primary" },
+          { value: totalFeedback, label: t("aiHistory.stats.feedback"), icon: <MessageSquare className="h-4 w-4" />, color: "text-gold" },
+          { value: totalEdits, label: t("aiHistory.stats.edits"), icon: <Pencil className="h-4 w-4" />, color: "text-accent-foreground" },
+          { value: `${Math.round(avgLatency / latencyCount)}ms`, label: t("aiHistory.stats.avgLatency"), icon: <Zap className="h-4 w-4" />, color: "text-success" },
         ].map((stat, i) => (
           <motion.div key={i} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
             <Card className="overflow-hidden">
@@ -128,27 +125,26 @@ const AIHistoryPage = () => {
                 <div className="h-6 w-6 rounded-md bg-wine-light flex items-center justify-center">
                   <BarChart3 className="h-3.5 w-3.5 text-primary" />
                 </div>
-                ადაპტური სწავლის შეჯამება
+                {t("aiHistory.learningSummary")}
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                 {editBehavior && (
                   <div className="p-3 rounded-lg bg-surface-1 border border-border">
-                    <span className="font-medium text-foreground block mb-1.5">რედაქტირების ქცევა</span>
+                    <span className="font-medium text-foreground block mb-1.5">{t("aiHistory.editBehavior")}</span>
                     <div className="flex items-center gap-3 text-muted-foreground">
-                      <span>დამჯერებლობა: <strong className="text-foreground">{((editBehavior.confidence_score || 0) * 100).toFixed(0)}%</strong></span>
-                      <span>სიგნალები: <strong className="text-foreground">{editBehavior.signal_count}</strong></span>
+                      <span>{t("aiHistory.confidence")}: <strong className="text-foreground">{((editBehavior.confidence_score || 0) * 100).toFixed(0)}%</strong></span>
+                      <span>{t("aiHistory.signals")}: <strong className="text-foreground">{editBehavior.signal_count}</strong></span>
                     </div>
                   </div>
                 )}
                 {lengthPref && (
                   <div className="p-3 rounded-lg bg-surface-1 border border-border">
-                    <span className="font-medium text-foreground block mb-1.5">სიგრძის პრეფერენცია</span>
+                    <span className="font-medium text-foreground block mb-1.5">{t("aiHistory.lengthPref")}</span>
                     <span className="text-muted-foreground">
                       {(() => {
                         const val = lengthPref.knowledge_value as Record<string, unknown>;
                         const pref = val?.preferred as string || "medium";
-                        const prefLabels: Record<string, string> = { short: "მოკლე", medium: "საშუალო", long: "გრძელი" };
-                        return <>{prefLabels[pref] || pref} • დამჯერებლობა: <strong className="text-foreground">{((lengthPref.confidence_score || 0) * 100).toFixed(0)}%</strong></>;
+                        return <>{t(`aiHistory.lengths.${pref}`, pref)} • {t("aiHistory.confidence")}: <strong className="text-foreground">{((lengthPref.confidence_score || 0) * 100).toFixed(0)}%</strong></>;
                       })()}
                     </span>
                   </div>
@@ -167,14 +163,11 @@ const AIHistoryPage = () => {
           ))}
         </div>
       ) : !logs?.length ? (
-        <Card>
-          <CardContent className="p-8 text-center">
-            <div className="h-16 w-16 rounded-2xl bg-surface-1 flex items-center justify-center mx-auto mb-3">
-              <History className="h-8 w-8 text-muted-foreground opacity-40" />
-            </div>
-            <p className="text-muted-foreground">ჯერ არ გაქვთ გენერაციის ისტორია</p>
-          </CardContent>
-        </Card>
+        <EmptyState
+          icon={<History className="h-10 w-10" />}
+          title={t("aiHistory.empty")}
+          description={t("aiHistory.emptyDesc")}
+        />
       ) : (
         <ScrollArea className="h-[calc(100vh-380px)]">
           <div className="relative pr-3">
@@ -189,7 +182,8 @@ const AIHistoryPage = () => {
                   ((params?.feedback_params as Record<string, unknown>)?.generation_params as Record<string, string>) ||
                   ((params?.edit_delta_params as Record<string, unknown>)?.generation_params as Record<string, string>)
                 );
-                const tc = typeConfig[log.generation_type] || { label: log.generation_type, icon: <Sparkles className="h-3.5 w-3.5" />, color: "bg-muted text-muted-foreground" };
+                const ti = typeIcons[log.generation_type] || { icon: <Sparkles className="h-3.5 w-3.5" />, color: "bg-muted text-muted-foreground" };
+                const tc = { ...ti, label: typeLabel(log.generation_type) };
                 const isGeneration = log.generation_type === "generate_toast";
                 const isFeedback = log.generation_type === "submit_feedback";
                 const isEditDelta = log.generation_type === "analyze_edit_delta";
@@ -221,12 +215,12 @@ const AIHistoryPage = () => {
                                 </Badge>
                                 {genParams?.occasion_type && (
                                   <Badge variant="outline" className="text-[10px]">
-                                    {occasionLabels[genParams.occasion_type] || genParams.occasion_type}
+                                    {t(`feasts.occasion.${genParams.occasion_type}`, genParams.occasion_type)}
                                   </Badge>
                                 )}
                                 {genParams?.tone && (
                                   <Badge variant="outline" className="text-[10px]">
-                                    {toneLabels[genParams.tone] || genParams.tone}
+                                    {t(`ai.tones.${genParams.tone}`, genParams.tone)}
                                   </Badge>
                                 )}
                                 {isFeedback && feedbackSignal && (
@@ -235,12 +229,12 @@ const AIHistoryPage = () => {
                                     className={`text-[10px] ${feedbackSignal === "positive" ? "border-success/50 text-success" : "border-destructive/50 text-destructive"}`}
                                   >
                                     {feedbackSignal === "positive" ? <ThumbsUp className="h-2.5 w-2.5 mr-0.5" /> : <ThumbsDown className="h-2.5 w-2.5 mr-0.5" />}
-                                    {feedbackSignal === "positive" ? "დადებითი" : "უარყოფითი"}
+                                    {feedbackSignal === "positive" ? t("aiHistory.positive") : t("aiHistory.negative")}
                                   </Badge>
                                 )}
                                 {isEditDelta && (
                                   <Badge variant="outline" className="text-[10px] border-primary/50 text-primary">
-                                    <Pencil className="h-2.5 w-2.5 mr-0.5" /> რედაქტირებული
+                                    <Pencil className="h-2.5 w-2.5 mr-0.5" /> {t("common.edited")}
                                   </Badge>
                                 )}
                               </div>
@@ -253,7 +247,7 @@ const AIHistoryPage = () => {
                               )}
 
                               {isEditDelta && (
-                                <p className="text-xs text-muted-foreground">ორიგინალი → რედაქტირებული ვერსია</p>
+                                <p className="text-xs text-muted-foreground">{t("aiHistory.originalToEdited")}</p>
                               )}
                             </div>
 
@@ -261,7 +255,7 @@ const AIHistoryPage = () => {
                             <div className="text-right shrink-0 space-y-1">
                               <p className="text-[10px] text-muted-foreground">
                                 {log.created_at
-                                  ? format(new Date(log.created_at), "d MMM, HH:mm", { locale: ka })
+                                  ? format(new Date(log.created_at), "d MMM, HH:mm", { locale: dateLocale })
                                   : "—"}
                               </p>
                               {log.latency_ms && (

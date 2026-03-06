@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -13,7 +14,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { Wine, Heart, Trash2 } from "lucide-react";
+import SystemIcon from "@/components/SystemIcon";
 import EmptyState from "@/components/EmptyState";
 import { useNavigate } from "react-router-dom";
 import { toast as sonnerToast } from "sonner";
@@ -26,6 +27,7 @@ const FavoritesPage = () => {
   const { t, i18n } = useTranslation();
   const isEn = i18n.language === "en";
   const [selectedToast, setSelectedToast] = useState<any | null>(null);
+  const [search, setSearch] = useState("");
 
   const { data: favorites, isLoading } = useQuery({
     queryKey: ["favorites-full"],
@@ -57,7 +59,7 @@ const FavoritesPage = () => {
   });
 
   return (
-    <div className="p-4 md:p-8 max-w-5xl mx-auto space-y-6 pb-24">
+    <div className="p-4 md:p-6 max-w-5xl mx-auto space-y-6 pb-24">
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
@@ -70,10 +72,28 @@ const FavoritesPage = () => {
         </div>
         {favorites && favorites.length > 0 && (
           <Badge variant="secondary" className="text-xs shrink-0 mt-2">
-            {favorites.length} შენახული
+            {favorites.length} {t("favorites.saved")}
           </Badge>
         )}
       </div>
+
+      {/* Search */}
+      {favorites && favorites.length > 0 && (
+        <div className="relative">
+          <SystemIcon
+            name="action.search"
+            size="sm"
+            tone="muted"
+            className="absolute left-3 top-1/2 -translate-y-1/2"
+          />
+          <Input
+            placeholder={t("favorites.searchPlaceholder")}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9 h-11 bg-surface-1 border-border"
+          />
+        </div>
+      )}
 
       {/* List */}
       {isLoading ? (
@@ -96,7 +116,13 @@ const FavoritesPage = () => {
       ) : favorites && favorites.length > 0 ? (
         <AnimatePresence mode="popLayout">
           <div className="space-y-3">
-            {favorites.map((fav, i) => {
+            {favorites.filter((fav) => {
+              if (!search) return true;
+              const td = fav.toasts || fav.custom_toasts;
+              if (!td) return false;
+              const s = search.toLowerCase();
+              return (td.title_ka?.toLowerCase().includes(s) || td.title_en?.toLowerCase().includes(s) || td.body_ka?.toLowerCase().includes(s));
+            }).map((fav, i) => {
               const toastData = fav.toasts || fav.custom_toasts;
               if (!toastData) return null;
               return (
@@ -109,12 +135,16 @@ const FavoritesPage = () => {
                   transition={{ delay: i * 0.04 }}
                 >
                   <Card
-                    className="card-interactive cursor-pointer group"
+                    className="card-interactive cursor-pointer group bg-rose-50/20 dark:bg-rose-950/5 border-rose-200/30 dark:border-rose-800/10"
                     onClick={() => setSelectedToast(toastData)}
                   >
                     <CardContent className="p-5 flex items-start gap-3">
                       <div className="h-10 w-10 rounded-xl bg-wine-light flex items-center justify-center shrink-0 mt-0.5">
-                        <Heart className="h-5 w-5 text-wine fill-wine" />
+                        <SystemIcon
+                          name="nav.favorites"
+                          size="sm"
+                          tone="primary"
+                        />
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
@@ -141,18 +171,39 @@ const FavoritesPage = () => {
                             ? toastData.body_en || toastData.body_ka
                             : toastData.body_ka}
                         </p>
+                        <p className="text-[10px] text-muted-foreground/60 mt-1.5">
+                          {new Date(fav.created_at).toLocaleDateString()}
+                        </p>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="shrink-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          removeFav.mutate(fav.id);
-                        }}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <div className="flex flex-col gap-1 shrink-0">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={(e) => { e.stopPropagation(); navigate("/feasts"); }}
+                        >
+                          <SystemIcon
+                            name="nav.feasts"
+                            size="sm"
+                            tone="muted"
+                          />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeFav.mutate(fav.id);
+                          }}
+                        >
+                          <SystemIcon
+                            name="action.delete"
+                            size="sm"
+                            tone="danger"
+                          />
+                        </Button>
+                      </div>
                     </CardContent>
                   </Card>
                 </motion.div>
@@ -162,7 +213,13 @@ const FavoritesPage = () => {
         </AnimatePresence>
       ) : (
         <EmptyState
-          icon={<Heart className="h-10 w-10" />}
+          icon={
+            <SystemIcon
+              name="nav.favorites"
+              size="lg"
+              tone="primary"
+            />
+          }
           title={t("favorites.empty")}
           description={t("favorites.emptyDesc")}
           actionLabel={t("nav.toasts")}
@@ -234,6 +291,47 @@ const FavoritesPage = () => {
                 {selectedToast.title_en}
               </p>
             )}
+          </div>
+          <div className="flex gap-2 mt-4">
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1"
+              onClick={() => {
+                const body = isEn
+                  ? selectedToast?.body_en || selectedToast?.body_ka
+                  : selectedToast?.body_ka;
+                if (body) {
+                  navigator.clipboard.writeText(body);
+                  sonnerToast.success(t("common.copied"));
+                }
+              }}
+            >
+              <SystemIcon
+                name="action.copy"
+                size="sm"
+                tone="muted"
+                className="mr-1.5"
+              />
+              {t("common.copy")}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1"
+              onClick={() => {
+                setSelectedToast(null);
+                navigate("/feasts");
+              }}
+            >
+            <SystemIcon
+              name="nav.feasts"
+              size="sm"
+              tone="muted"
+              className="mr-1.5"
+            />
+              {t("ai.useInFeast")}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

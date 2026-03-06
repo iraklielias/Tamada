@@ -84,13 +84,60 @@ export const pageTransition: Variants = {
 };
 
 // ─── Hero-specific ───────────────────────────────
-export const heroReveal: Variants = {
-  initial: { opacity: 0, y: 30, scale: 0.98 },
+export const heroBadgeReveal: Variants = {
+  initial: { opacity: 0, y: 16, scale: 0.9 },
   animate: {
     opacity: 1,
     y: 0,
     scale: 1,
+    transition: { duration: 0.45, ease: easeOut },
+  },
+};
+
+export const heroHeadlineReveal: Variants = {
+  initial: { opacity: 0, y: 48 },
+  animate: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.75, ease: easeOut },
+  },
+};
+
+export const heroSubReveal: Variants = {
+  initial: { opacity: 0, y: 24 },
+  animate: {
+    opacity: 1,
+    y: 0,
     transition: { duration: 0.6, ease: easeOut },
+  },
+};
+
+export const heroCTAReveal: Variants = {
+  initial: { opacity: 0, x: -20, y: 12 },
+  animate: {
+    opacity: 1,
+    x: 0,
+    y: 0,
+    transition: { duration: 0.55, ease: easeOut },
+  },
+};
+
+export const heroTestimonialReveal: Variants = {
+  initial: { opacity: 0, scale: 0.94, y: 16 },
+  animate: {
+    opacity: 1,
+    scale: 1,
+    y: 0,
+    transition: { duration: 0.6, ease: easeOut },
+  },
+};
+
+export const heroReveal: Variants = {
+  initial: { opacity: 0, y: 36 },
+  animate: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.7, ease: easeOut },
   },
 };
 
@@ -98,9 +145,20 @@ export const heroStagger: Variants = {
   initial: {},
   animate: {
     transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.2,
+      staggerChildren: 0.14,
+      delayChildren: 0.3,
     },
+  },
+};
+
+export const heroMockupReveal: Variants = {
+  initial: { opacity: 0, y: 50, rotateX: 12, scale: 0.92 },
+  animate: {
+    opacity: 1,
+    y: 0,
+    rotateX: 0,
+    scale: 1,
+    transition: { duration: 1.0, ease: easeOut, delay: 0.5 },
   },
 };
 
@@ -179,3 +237,43 @@ export const modalContent: Variants = {
     transition: { duration: 0.15, ease },
   },
 };
+
+// ─── Landing page: reveal from left ─────────────
+export const revealFromLeft: Variants = {
+  offscreen: { opacity: 0, x: -40 },
+  onscreen: {
+    opacity: 1,
+    x: 0,
+    transition: { duration: 0.6, ease: easeOut },
+  },
+};
+
+export const revealFromRight: Variants = {
+  offscreen: { opacity: 0, x: 40 },
+  onscreen: {
+    opacity: 1,
+    x: 0,
+    transition: { duration: 0.6, ease: easeOut },
+  },
+};
+
+// ─── Landing page: mockup perspective lift ──────
+export const mockupReveal: Variants = {
+  offscreen: { opacity: 0, y: 60, rotateX: 8 },
+  onscreen: {
+    opacity: 1,
+    y: 0,
+    rotateX: 0,
+    transition: { duration: 0.8, ease: easeOut },
+  },
+};
+
+// ─── Landing page: timeline step ────────────────
+export const timelineStep = (i: number): Variants => ({
+  offscreen: { opacity: 0, x: -20 },
+  onscreen: {
+    opacity: 1,
+    x: 0,
+    transition: { delay: i * 0.15, duration: 0.5, ease: easeOut },
+  },
+});

@@ -1,12 +1,20 @@
-import { Outlet, useLocation } from "react-router-dom";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { BottomNav } from "@/components/BottomNav";
 import { AnimatePresence, motion } from "framer-motion";
 import { pageTransition } from "@/lib/animations";
+import { useTranslation } from "react-i18next";
+import { Button } from "@/components/ui/button";
+import { SystemIcon } from "@/components/SystemIcon";
 
 export function AppLayout() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { t } = useTranslation();
+
+  const pageTitle = getPageTitle(location.pathname, t);
+  const headerAction = getHeaderAction(location.pathname, t, navigate);
 
   return (
     <SidebarProvider>
@@ -18,9 +26,10 @@ export function AppLayout() {
           <header className="sticky top-0 z-40 hidden md:flex h-12 items-center gap-3 border-b border-border glass-nav px-4">
             <SidebarTrigger />
             <div className="h-4 w-px bg-border" />
-            <span className="text-caption text-muted-foreground truncate">
-              {getPageTitle(location.pathname)}
+            <span className="text-caption text-muted-foreground truncate flex-1">
+              {pageTitle}
             </span>
+            {headerAction}
           </header>
 
           {/* Main content area with page transitions */}
@@ -47,20 +56,38 @@ export function AppLayout() {
   );
 }
 
-/** Simple breadcrumb label from pathname */
-function getPageTitle(path: string): string {
+function getHeaderAction(
+  path: string,
+  t: (key: string) => string,
+  navigate: (path: string) => void,
+): React.ReactNode {
+  if (path === "/feasts") {
+    return (
+      <Button size="sm" variant="wine" className="h-7 text-xs" onClick={() => navigate("/feasts/new")}>
+        <SystemIcon name="action.add" size="sm" className="mr-1" /> {t("feasts.newFeast")}
+      </Button>
+    );
+  }
+  return null;
+}
+
+function getPageTitle(path: string, t: (key: string) => string): string {
   const map: Record<string, string> = {
-    "/dashboard": "მთავარი",
-    "/feasts": "სუფრები",
-    "/feasts/new": "ახალი სუფრა",
-    "/toasts": "სადღეგრძელოები",
-    "/library": "ბიბლიოთეკა",
-    "/ai-generate": "AI გენერატორი",
-    "/ai-history": "AI ისტორია",
-    "/favorites": "ფავორიტები",
-    "/profile": "პროფილი",
-    "/upgrade": "განახლება",
-    "/admin/telemetry": "ტელემეტრია",
+    "/dashboard": t("nav.dashboard"),
+    "/feasts": t("nav.feasts"),
+    "/feasts/new": t("feasts.newFeast"),
+    "/toasts": t("nav.toasts"),
+    "/library": t("nav.library"),
+    "/ai-generate": t("nav.aiGenerator"),
+    "/favorites": t("nav.favorites"),
+    "/profile": t("nav.profile"),
+    "/upgrade": t("upgrade.title"),
   };
-  return map[path] || "";
+
+  if (map[path]) return map[path];
+
+  if (/^\/feasts\/[^/]+\/live$/.test(path)) return t("live.currentToast");
+  if (/^\/feasts\/[^/]+$/.test(path)) return t("feastDetail.detailsTab");
+
+  return "";
 }

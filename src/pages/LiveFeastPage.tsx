@@ -6,18 +6,27 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger,
 } from "@/components/ui/sheet";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   ArrowLeft, Play, Pause, Square, Check, SkipForward, Undo2,
-  Clock, Wine, Hand,
+  Wine, Hand, Maximize2, Minimize2, ChevronRight, ChevronDown, ChevronUp, Share2,
 } from "lucide-react";
 import { toast as sonnerToast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import FeastAdvisory from "@/components/FeastAdvisory";
+
+const toastTypeAccent: Record<string, string> = {
+  mandatory: "bg-primary/10 text-primary border-primary/20",
+  traditional: "bg-primary/10 text-primary border-primary/20",
+  religious: "bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-500/20",
+  patriotic: "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20",
+  humorous: "bg-orange-500/10 text-orange-700 dark:text-orange-400 border-orange-500/20",
+  personal: "bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/20",
+  custom: "bg-muted text-muted-foreground border-border",
+};
 
 const LiveFeastPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -31,6 +40,8 @@ const LiveFeastPage: React.FC = () => {
   const [alertFired, setAlertFired] = useState<Set<string>>(new Set());
   const audioCtxRef = useRef<AudioContext | null>(null);
   const [lastSkippedToastId, setLastSkippedToastId] = useState<string | null>(null);
+  const [presentationMode, setPresentationMode] = useState(false);
+  const [showEnglish, setShowEnglish] = useState(false);
 
   const { data: feast, isLoading: feastLoading } = useQuery({
     queryKey: ["feast", id],
@@ -63,7 +74,6 @@ const LiveFeastPage: React.FC = () => {
     refetchInterval: false,
   });
 
-  // Fetch assigned toast body text when current toast has assigned_toast_id
   const currentToastIndex = feastToasts?.findIndex((t) => t.status === "pending" || t.status === "active") ?? -1;
   const currentToast = currentToastIndex >= 0 ? feastToasts![currentToastIndex] : null;
 
@@ -77,7 +87,6 @@ const LiveFeastPage: React.FC = () => {
     enabled: !!currentToast?.assigned_toast_id && !currentToast?.assigned_custom_toast_id,
   });
 
-  // Fetch custom toast body when assigned_custom_toast_id is set (AI-generated feast toasts)
   const { data: customToastBody } = useQuery({
     queryKey: ["custom-toast-body", currentToast?.assigned_custom_toast_id],
     queryFn: async () => {
@@ -98,7 +107,6 @@ const LiveFeastPage: React.FC = () => {
   const progressPercent = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
   const upcomingToasts = feastToasts?.slice(currentToastIndex + 1, currentToastIndex + 3) ?? [];
 
-  // Realtime subscriptions
   useEffect(() => {
     if (!id) return;
     const channel = supabase
@@ -113,13 +121,9 @@ const LiveFeastPage: React.FC = () => {
     return () => { supabase.removeChannel(channel); };
   }, [id, queryClient]);
 
-  // Timer: only run when active, calculate from start time
   useEffect(() => { if (!isActive) { setIsTimerRunning(false); return; } setIsTimerRunning(true); }, [isActive]);
   useEffect(() => { if (!isTimerRunning) return; const interval = setInterval(() => setElapsedSeconds((s) => s + 1), 1000); return () => clearInterval(interval); }, [isTimerRunning]);
 
-  // Initialize elapsed from actual_start_time, accounting for paused time
-  // Since we don't track cumulative paused time in DB, we show wall-clock elapsed from start
-  // but stop counting when paused (timer stops via isTimerRunning)
   useEffect(() => {
     if (feast?.actual_start_time && isActive) {
       setElapsedSeconds(Math.max(0, Math.floor((Date.now() - new Date(feast.actual_start_time).getTime()) / 1000)));
@@ -206,124 +210,373 @@ const LiveFeastPage: React.FC = () => {
     (guests || []).map(g => ({ name: g.name, alaverdi_count: g.alaverdi_count })), [guests]);
   const allCompleted = totalCount > 0 && completedCount === totalCount;
 
-  // Get the body text for the current toast: custom_toast > assigned_toast > description
   const currentToastBody = customToastBody?.body_ka || assignedToastBody?.body_ka || currentToast?.description_ka || null;
   const currentToastBodyEn = customToastBody?.body_en || assignedToastBody?.body_en || currentToast?.description_en || null;
 
   if (feastLoading) return <div className="min-h-screen bg-background flex items-center justify-center"><div className="animate-pulse text-muted-foreground">{t("common.loading")}</div></div>;
   if (!feast) return <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4"><p className="text-muted-foreground">{t("common.notFound")}</p><Button variant="outline" onClick={() => navigate("/feasts")}>{t("common.back")}</Button></div>;
 
-  return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <header className="flex items-center justify-between px-4 py-3 border-b border-border bg-card">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => navigate(`/feasts/${id}`)}><ArrowLeft className="h-5 w-5" /></Button>
-          <div>
-            <h1 className="text-heading-3 text-foreground truncate max-w-[200px]">{feast.title}</h1>
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <Badge variant={isActive ? "default" : "secondary"} className="text-[10px]">
-                {isActive ? "🔴 LIVE" : isPaused ? `⏸ ${t("common.pause")}` : feast.status}
-              </Badge>
-              <span className="flex items-center gap-0.5"><Clock className="h-3 w-3" /> {formatTime(elapsedSeconds)}</span>
-            </div>
-          </div>
+  const estimatedTotalMinutes = feast.estimated_duration_minutes || 0;
+  const isOverTime = estimatedTotalMinutes > 0 && elapsedMinutes > estimatedTotalMinutes;
+  const isEnLang = typeof window !== "undefined" && localStorage.getItem("tamada-lang") === "en";
+
+  const getDisplayTitle = (toast: { title_en?: string | null; title_ka: string }) =>
+    isEnLang ? (toast.title_en || toast.title_ka) : toast.title_ka;
+
+  const typeAccentClass = currentToast ? (toastTypeAccent[currentToast.toast_type] || toastTypeAccent.custom) : "";
+
+  /* ── PRESENTATION MODE ── */
+  if (presentationMode && !allCompleted) {
+    const primaryBody = currentToast ? (isEnLang ? (currentToastBodyEn || currentToastBody) : currentToastBody) : null;
+    return (
+      <div className="fixed inset-0 z-[100] flex flex-col live-presentation-bg text-white">
+        {/* Thin progress line at very top */}
+        <div className="h-1 w-full bg-white/10">
+          <motion.div className="h-full bg-white/40" style={{ width: `${progressPercent}%` }} layout transition={{ duration: 0.4 }} />
         </div>
-        {isHost && (
-          <div className="flex gap-1.5">
-            {isPaused && <Button size="sm" onClick={() => updateFeastStatus.mutate("active")}><Play className="h-3.5 w-3.5 mr-1" />{t("common.resume")}</Button>}
-            {isActive && <Button size="sm" variant="outline" onClick={() => updateFeastStatus.mutate("paused")}><Pause className="h-3.5 w-3.5 mr-1" />{t("common.pause")}</Button>}
-            {isLive && <Button size="sm" variant="outline" onClick={() => updateFeastStatus.mutate("completed")}><Square className="h-3.5 w-3.5 mr-1" />{t("common.complete")}</Button>}
-            {feast.status === "draft" && <Button size="sm" onClick={() => updateFeastStatus.mutate("active")}><Play className="h-3.5 w-3.5 mr-1" />{t("common.start")}</Button>}
+
+        {/* Minimal top bar: timer + exit */}
+        <div className="flex items-center justify-between px-6 py-4">
+          <div className="flex items-center gap-3">
+            {isActive && <span className="h-3 w-3 rounded-full bg-green-400 live-pulse-dot" />}
+            <span className="font-mono text-2xl font-bold tabular-nums text-white/90">{formatTime(elapsedSeconds)}</span>
+            {estimatedTotalMinutes > 0 && (
+              <span className="text-sm text-white/40 ml-1">/ {estimatedTotalMinutes}m</span>
+            )}
+          </div>
+          <button onClick={() => setPresentationMode(false)} className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors">
+            <Minimize2 className="h-5 w-5 text-white/70" />
+          </button>
+        </div>
+
+        {/* Main toast content */}
+        <div className="flex-1 flex flex-col items-center justify-center px-8 pb-8 max-w-3xl mx-auto w-full">
+          <AnimatePresence mode="wait">
+            {currentToast ? (
+              <motion.div key={currentToast.id} initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -30 }} transition={{ duration: 0.4 }} className="text-center space-y-8 w-full">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-center gap-3">
+                    <span className="text-white/30 text-xl font-mono">{currentToast.position}/{totalCount}</span>
+                    <Badge className={`border ${typeAccentClass} bg-white/10 text-white/80 border-white/20`}>
+                      {t(`live.toastType.${currentToast.toast_type}`, currentToast.toast_type)}
+                    </Badge>
+                  </div>
+                  <h1 className="text-5xl md:text-6xl font-display font-bold leading-[1.15] text-white">
+                    {getDisplayTitle(currentToast)}
+                  </h1>
+                </div>
+                {primaryBody && (
+                  <ScrollArea className="max-h-[45vh]">
+                    <p className="text-xl md:text-2xl leading-[1.9] text-white/80 max-w-2xl mx-auto">{primaryBody}</p>
+                  </ScrollArea>
+                )}
+                {currentToast.alaverdi_assigned_to && (
+                  <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/10 text-white/90 text-lg">
+                    <Hand className="h-5 w-5" /> {t("feastDetail.alaverdi")}: <strong>{currentToast.alaverdi_assigned_to}</strong>
+                  </div>
+                )}
+              </motion.div>
+            ) : (
+              <p className="text-xl text-white/50">{t("live.noToastsAdded")}</p>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Bottom action */}
+        {isHost && isActive && currentToast && (
+          <div className="flex items-center justify-center gap-6 pb-10">
+            <button className="h-20 w-20 rounded-full bg-white text-[hsl(var(--wine-deep))] shadow-lg flex items-center justify-center active:scale-95 transition-transform" onClick={() => completeToast.mutate(currentToast.id)} disabled={completeToast.isPending}>
+              <Check className="h-8 w-8" />
+            </button>
+            <button className="h-14 w-14 rounded-full border-2 border-white/30 text-white/70 flex items-center justify-center active:scale-95 transition-transform hover:bg-white/10" onClick={() => skipToast.mutate(currentToast.id)} disabled={skipToast.isPending}>
+              <SkipForward className="h-5 w-5" />
+            </button>
           </div>
         )}
+      </div>
+    );
+  }
+
+  /* ── NORMAL MODE ── */
+  return (
+    <div className="min-h-screen flex flex-col live-page-bg">
+      {/* Pulsing top border */}
+      {isActive && <div className="h-[3px] w-full wine-gradient live-pulse-border" />}
+
+      {/* ── Compact Header: title + timer + toggle ── */}
+      <header className="sticky top-0 z-40 bg-card/95 backdrop-blur-sm border-b border-border">
+        <div className="flex items-center justify-between px-3 py-2.5 gap-3">
+          {/* Left: back + title + badge */}
+          <div className="flex items-center gap-2 min-w-0 flex-1">
+            <Button variant="ghost" size="icon" className="shrink-0 h-8 w-8" onClick={() => navigate(`/feasts/${id}`)}>
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <div className="min-w-0 flex items-center gap-2">
+              <h1 className="text-sm font-semibold text-foreground truncate max-w-[120px] sm:max-w-[200px]">{feast.title}</h1>
+              {isActive && (
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 text-[10px] font-bold uppercase tracking-wider">
+                  <span className="h-1.5 w-1.5 rounded-full bg-green-500 live-pulse-dot" />
+                  {t("live.liveLabel", "LIVE")}
+                </span>
+              )}
+              {isPaused && (
+                <Badge variant="secondary" className="text-[10px]">⏸ {t("common.pause")}</Badge>
+              )}
+            </div>
+          </div>
+
+          {/* Center: timer */}
+          <div className="flex flex-col items-center shrink-0">
+            <span className={`font-mono font-bold tabular-nums text-xl ${isOverTime ? "text-amber-600 dark:text-amber-400" : "text-foreground"}`}>
+              {formatTime(elapsedSeconds)}
+            </span>
+            {estimatedTotalMinutes > 0 && (
+              <span className={`text-[10px] ${isOverTime ? "text-amber-600/70 dark:text-amber-400/70" : "text-muted-foreground"}`}>
+                / {estimatedTotalMinutes}{t("common.minAbbrev", "m")}
+              </span>
+            )}
+          </div>
+
+          {/* Right: presentation + pause/stop */}
+          <div className="flex items-center gap-1 shrink-0">
+            {isHost && isPaused && (
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => updateFeastStatus.mutate("active")}>
+                <Play className="h-4 w-4 text-green-600" />
+              </Button>
+            )}
+            {isHost && isActive && (
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => updateFeastStatus.mutate("paused")}>
+                <Pause className="h-4 w-4" />
+              </Button>
+            )}
+            {isHost && isLive && (
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => updateFeastStatus.mutate("completed")}>
+                <Square className="h-3.5 w-3.5" />
+              </Button>
+            )}
+            {isHost && feast.status === "draft" && (
+              <Button variant="ghost" size="icon" className="h-8 w-8 text-green-600" onClick={() => updateFeastStatus.mutate("active")}>
+                <Play className="h-4 w-4" />
+              </Button>
+            )}
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setPresentationMode(true)}>
+              <Maximize2 className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+
+        {/* Thin progress bar at header bottom */}
+        <div className="h-1 w-full bg-border/50">
+          <motion.div
+            className="h-full wine-gradient"
+            style={{ width: `${progressPercent}%` }}
+            layout
+            transition={{ duration: 0.4 }}
+          />
+        </div>
       </header>
 
-      <div className="px-4 py-2 bg-card border-b border-border">
-        <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
-          <span>{completedCount}/{totalCount} {t("live.toastProgress")}</span>
-          <span>{Math.round(progressPercent)}%</span>
+      {/* ── Main Content ── */}
+      <div className="flex-1 flex flex-col items-center px-4 py-6 gap-5 overflow-y-auto">
+        {/* Progress fraction chip */}
+        <div className="text-xs text-muted-foreground font-medium">
+          {completedCount}/{totalCount} {t("live.toastProgress")} &middot; {Math.round(progressPercent)}%
         </div>
-        <Progress value={progressPercent} className="h-2" />
-      </div>
 
-      <div className="flex-1 flex flex-col items-center justify-center p-4 gap-6">
         <AnimatePresence mode="wait">
+          {/* ── COMPLETION SCREEN ── */}
           {allCompleted ? (
-            <motion.div key="completed" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center space-y-4">
-              <div className="text-6xl">🎉</div>
-              <h2 className="text-heading-1 text-foreground">{t("live.allCompleted")}</h2>
+            <motion.div
+              key="completed"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ type: "spring", stiffness: 200, damping: 20 }}
+              className="text-center space-y-6 w-full max-w-md"
+            >
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", stiffness: 300, damping: 15, delay: 0.2 }}
+                className="text-7xl"
+              >
+                🎉
+              </motion.div>
+              <h2 className="font-display text-heading-1 text-foreground">{t("live.allCompleted")}</h2>
               <p className="text-body text-muted-foreground">{t("live.allCompletedDesc")}</p>
-              {/* Summary stats */}
-              <div className="grid grid-cols-3 gap-3 text-center mt-4">
-                <div className="p-3 rounded-xl bg-accent">
-                  <p className="text-heading-2 text-foreground">{feastToasts?.filter(t => t.status === "completed").length}</p>
-                  <p className="text-[10px] text-muted-foreground">{t("common.completed")}</p>
-                </div>
-                <div className="p-3 rounded-xl bg-accent">
-                  <p className="text-heading-2 text-foreground">{skippedCount}</p>
-                  <p className="text-[10px] text-muted-foreground">{t("common.skip")}</p>
-                </div>
-                <div className="p-3 rounded-xl bg-accent">
-                  <p className="text-heading-2 text-foreground">{formatTime(elapsedSeconds)}</p>
-                  <p className="text-[10px] text-muted-foreground">{t("feasts.duration")}</p>
-                </div>
+
+              <div className="grid grid-cols-3 gap-3 mt-6">
+                {[
+                  { value: feastToasts?.filter(t => t.status === "completed").length ?? 0, label: t("common.completed"), color: "bg-green-500/10 border-green-500/20" },
+                  { value: skippedCount, label: t("common.skip"), color: "bg-amber-500/10 border-amber-500/20" },
+                  { value: formatTime(elapsedSeconds), label: t("feasts.duration"), color: "bg-primary/10 border-primary/20" },
+                ].map((stat, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 + i * 0.1 }}
+                    className={`p-4 rounded-2xl border ${stat.color}`}
+                  >
+                    <p className="text-heading-2 text-foreground">{stat.value}</p>
+                    <p className="text-[11px] text-muted-foreground mt-1">{stat.label}</p>
+                  </motion.div>
+                ))}
               </div>
-              {/* Alaverdi leaderboard */}
+
               {guests && guests.some(g => (g.alaverdi_count ?? 0) > 0) && (
-                <div className="mt-4 space-y-1.5 max-w-xs mx-auto">
-                  <p className="text-caption text-muted-foreground">{t("feastDetail.alaverdi")} 🏆</p>
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }} className="mt-6 space-y-2 max-w-xs mx-auto">
+                  <p className="text-sm font-semibold text-foreground">{t("feastDetail.alaverdi")} 🏆</p>
                   {[...guests].sort((a, b) => (b.alaverdi_count ?? 0) - (a.alaverdi_count ?? 0)).filter(g => (g.alaverdi_count ?? 0) > 0).map((g, i) => (
-                    <div key={g.id} className="flex items-center justify-between p-2 rounded-lg bg-muted/50">
-                      <span className="text-sm text-foreground">{i === 0 ? "🥇" : i === 1 ? "🥈" : "🥉"} {g.name}</span>
-                      <Badge variant="secondary" className="text-[10px]">{g.alaverdi_count}</Badge>
+                    <div key={g.id} className="flex items-center justify-between p-3 rounded-xl bg-card border border-border">
+                      <span className="text-sm font-medium text-foreground">{i === 0 ? "🥇" : i === 1 ? "🥈" : "🥉"} {g.name}</span>
+                      <Badge variant="secondary">{g.alaverdi_count}</Badge>
                     </div>
                   ))}
-                </div>
+                </motion.div>
               )}
-              <Button onClick={() => navigate(`/feasts/${id}`)}>{t("live.returnBack")}</Button>
-            </motion.div>
-          ) : currentToast ? (
-            <motion.div key={currentToast.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="w-full max-w-lg text-center space-y-6">
-              <div className="flex items-center justify-center">
-                <div className="h-16 w-16 rounded-full wine-gradient flex items-center justify-center text-2xl font-bold text-primary-foreground shadow-elevated">{currentToast.position}</div>
-              </div>
-              <div>
-                <Badge variant="outline" className="mb-2 text-xs">{t(`live.toastType.${currentToast.toast_type}`, currentToast.toast_type)}</Badge>
-                {(() => {
-                  const isEnLang = typeof window !== 'undefined' && localStorage.getItem('tamada-lang') === 'en';
-                  const displayTitle = isEnLang ? (currentToast.title_en || currentToast.title_ka) : currentToast.title_ka;
-                  const primaryBody = isEnLang ? (currentToastBodyEn || currentToastBody) : currentToastBody;
-                  const secondaryBody = isEnLang ? currentToastBody : currentToastBodyEn;
-                  return (
-                    <>
-                      <h2 className="text-display text-foreground">{displayTitle}</h2>
-                      {primaryBody && <p className="text-body text-muted-foreground mt-3 leading-relaxed">{primaryBody}</p>}
-                      {secondaryBody && <p className="text-body-sm text-muted-foreground/70 mt-2 italic">{secondaryBody}</p>}
-                    </>
-                  );
-                })()}
-              </div>
-              {currentToast.alaverdi_assigned_to && (
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent text-accent-foreground text-sm">
-                  <Hand className="h-4 w-4" /> {t("feastDetail.alaverdi")}: <strong>{currentToast.alaverdi_assigned_to}</strong>
-                </div>
-              )}
-              {currentToast.duration_minutes && <p className="text-caption text-muted-foreground">⏱ {t("live.estimated")}: {currentToast.duration_minutes}m</p>}
-              {isHost && isActive && (
-                <div className="flex items-center justify-center gap-3 pt-4">
-                  <Button size="lg" onClick={() => completeToast.mutate(currentToast.id)} disabled={completeToast.isPending}><Check className="h-4 w-4 mr-2" />{t("common.completed")}</Button>
-                  <Button size="lg" variant="outline" onClick={() => skipToast.mutate(currentToast.id)} disabled={skipToast.isPending}><SkipForward className="h-4 w-4 mr-2" />{t("common.skip")}</Button>
-                </div>
-              )}
-              {/* Undo skip button */}
-              {isHost && lastSkippedToastId && (
-                <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={() => undoSkip.mutate(lastSkippedToastId)} disabled={undoSkip.isPending}>
-                  <Undo2 className="h-3.5 w-3.5 mr-1.5" />{t("feastDetail.undoSkip")}
+
+              <div className="flex gap-3 justify-center pt-4">
+                <Button variant="outline" onClick={() => navigate(`/feasts/${id}`)}>
+                  {t("live.returnBack")}
                 </Button>
+              </div>
+            </motion.div>
+
+          ) : currentToast ? (
+            /* ── CURRENT TOAST CARD ── */
+            <motion.div
+              key={currentToast.id}
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -24 }}
+              transition={{ duration: 0.35 }}
+              className="w-full max-w-2xl"
+            >
+              <div className={`relative rounded-2xl border bg-card p-6 md:p-8 ${isActive ? "shadow-wine border-primary/15" : "border-border shadow-sm"}`}>
+                {/* Position badge overlapping top-left */}
+                <div className="absolute -top-5 left-6">
+                  <div className="h-10 w-10 rounded-full wine-gradient flex items-center justify-center font-bold text-primary-foreground text-lg shadow-wine">
+                    {currentToast.position}
+                  </div>
+                </div>
+
+                <div className="pt-3 space-y-4">
+                  {/* Type badge + duration */}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Badge className={`border text-xs ${typeAccentClass}`}>
+                      {t(`live.toastType.${currentToast.toast_type}`, currentToast.toast_type)}
+                    </Badge>
+                    {currentToast.duration_minutes && (
+                      <span className="text-xs text-muted-foreground">⏱ {currentToast.duration_minutes}{t("common.minAbbrev", "m")}</span>
+                    )}
+                    {currentToast.alaverdi_assigned_to && (
+                      <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                        <Hand className="h-3 w-3" /> {currentToast.alaverdi_assigned_to}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Title */}
+                  <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground leading-[1.2]">
+                    {getDisplayTitle(currentToast)}
+                  </h2>
+
+                  {/* Body text with Georgian typography */}
+                  {(() => {
+                    const primaryBody = isEnLang ? (currentToastBodyEn || currentToastBody) : currentToastBody;
+                    const secondaryBody = isEnLang ? currentToastBody : currentToastBodyEn;
+                    return (
+                      <>
+                        {primaryBody && (
+                          <ScrollArea className="max-h-[40vh]">
+                            <div className="border-l-[3px] border-primary/20 pl-5 py-1">
+                              <p className="text-base md:text-lg leading-[1.85] text-foreground/85 max-w-xl">
+                                {primaryBody}
+                              </p>
+                            </div>
+                          </ScrollArea>
+                        )}
+                        {secondaryBody && (
+                          <div className="pt-1">
+                            <button
+                              onClick={() => setShowEnglish(!showEnglish)}
+                              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                            >
+                              {showEnglish ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                              {isEnLang ? "ქართულად" : "English"}
+                            </button>
+                            <AnimatePresence>
+                              {showEnglish && (
+                                <motion.div
+                                  initial={{ height: 0, opacity: 0 }}
+                                  animate={{ height: "auto", opacity: 1 }}
+                                  exit={{ height: 0, opacity: 0 }}
+                                  transition={{ duration: 0.2 }}
+                                  className="overflow-hidden"
+                                >
+                                  <p className="text-sm leading-relaxed text-muted-foreground/70 italic mt-2 pl-5 border-l-[3px] border-border">
+                                    {secondaryBody}
+                                  </p>
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </div>
+                        )}
+                      </>
+                    );
+                  })()}
+                </div>
+              </div>
+
+              {/* ── Action Zone below the card ── */}
+              {isHost && isActive && (
+                <div className="flex items-center justify-center gap-5 mt-6">
+                  <div className="flex flex-col items-center gap-1.5">
+                    <button
+                      className="h-16 w-16 rounded-full wine-gradient text-white shadow-wine flex items-center justify-center active:scale-95 transition-transform"
+                      onClick={() => completeToast.mutate(currentToast.id)}
+                      disabled={completeToast.isPending}
+                    >
+                      <Check className="h-6 w-6" />
+                    </button>
+                    <span className="text-[10px] text-muted-foreground font-medium">{t("common.complete")}</span>
+                  </div>
+                  <div className="flex flex-col items-center gap-1.5">
+                    <button
+                      className="h-12 w-12 rounded-full border-2 border-border bg-card text-foreground shadow-sm flex items-center justify-center active:scale-95 transition-transform hover:bg-accent"
+                      onClick={() => skipToast.mutate(currentToast.id)}
+                      disabled={skipToast.isPending}
+                    >
+                      <SkipForward className="h-4 w-4" />
+                    </button>
+                    <span className="text-[10px] text-muted-foreground">{t("common.skip")}</span>
+                  </div>
+                  {isPaused && (
+                    <div className="flex flex-col items-center gap-1.5">
+                      <button
+                        className="h-16 w-16 rounded-full wine-gradient text-white shadow-wine flex items-center justify-center active:scale-95 transition-transform"
+                        onClick={() => updateFeastStatus.mutate("active")}
+                      >
+                        <Play className="h-6 w-6 ml-0.5" />
+                      </button>
+                      <span className="text-[10px] text-muted-foreground font-medium">{t("common.resume")}</span>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {isHost && lastSkippedToastId && (
+                <div className="flex justify-center mt-3">
+                  <Button variant="ghost" size="sm" className="text-muted-foreground text-xs" onClick={() => undoSkip.mutate(lastSkippedToastId)} disabled={undoSkip.isPending}>
+                    <Undo2 className="h-3 w-3 mr-1" />{t("feastDetail.undoSkip")}
+                  </Button>
+                </div>
               )}
             </motion.div>
+
           ) : (
-            <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center space-y-4">
+            /* ── EMPTY STATE ── */
+            <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center space-y-4 py-12">
               <Wine className="h-12 w-12 text-muted-foreground mx-auto" />
               <p className="text-body text-muted-foreground">{t("live.noToastsAdded")}</p>
               <Button variant="outline" onClick={() => navigate(`/feasts/${id}`)}>{t("live.editPlan")}</Button>
@@ -331,73 +584,103 @@ const LiveFeastPage: React.FC = () => {
           )}
         </AnimatePresence>
 
+        {/* ── Upcoming strip ── */}
         {upcomingToasts.length > 0 && !allCompleted && (
-          <div className="w-full max-w-lg space-y-2">
-            <p className="text-caption text-muted-foreground text-center">{t("live.upcoming")}</p>
-            {upcomingToasts.map((toast) => (
-              <Card key={toast.id} className="opacity-60">
-                <CardContent className="p-3 flex items-center gap-3">
-                  <div className="h-7 w-7 rounded-full bg-muted flex items-center justify-center shrink-0 text-xs font-bold text-muted-foreground">{toast.position}</div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-foreground truncate">{toast.title_ka}</p>
-                    <span className="text-[10px] text-muted-foreground">{t(`live.toastType.${toast.toast_type}`, toast.toast_type)}</span>
+          <div className="w-full max-w-2xl mt-2">
+            <div className="flex items-start gap-3 px-2">
+              <span className="text-xs text-muted-foreground font-medium shrink-0 pt-0.5">{t("live.nextUp")}:</span>
+              <div className="flex flex-col gap-1.5 flex-1 min-w-0">
+                {upcomingToasts.map((toast) => (
+                  <div key={toast.id} className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <span className="text-xs font-mono text-muted-foreground/50 w-5 text-right shrink-0">{toast.position}</span>
+                    <ChevronRight className="h-3 w-3 shrink-0 text-muted-foreground/30" />
+                    <span className="truncate">{getDisplayTitle(toast)}</span>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
+                ))}
+              </div>
+            </div>
           </div>
         )}
 
-        {/* AI Advisory */}
+        {/* Advisory */}
         {isLive && isHost && feast && (
-          <FeastAdvisory
-            feastId={feast.id}
-            occasionType={feast.occasion_type}
-            currentToastIndex={currentToastIndex}
-            totalToasts={totalCount}
-            elapsedMinutes={elapsedMinutes}
-            totalDurationMinutes={feast.estimated_duration_minutes}
-            guestCount={feast.guest_count ?? guests?.length ?? 0}
-            currentToastTitle={currentToast?.title_ka}
-            currentToastType={currentToast?.toast_type}
-            completedToasts={completedToastsData}
-            guests={guestsForAdvisory}
-            skippedCount={skippedCount}
-          />
+          <div className="w-full max-w-2xl">
+            <FeastAdvisory
+              feastId={feast.id}
+              occasionType={feast.occasion_type}
+              currentToastIndex={currentToastIndex}
+              totalToasts={totalCount}
+              elapsedMinutes={elapsedMinutes}
+              totalDurationMinutes={feast.estimated_duration_minutes}
+              guestCount={feast.guest_count ?? guests?.length ?? 0}
+              currentToastTitle={currentToast ? getDisplayTitle(currentToast) : undefined}
+              currentToastType={currentToast?.toast_type}
+              completedToasts={completedToastsData}
+              guests={guestsForAdvisory}
+              skippedCount={skippedCount}
+            />
+          </div>
         )}
       </div>
 
+      {/* ── Alaverdi FAB ── */}
       {isLive && guests && guests.length > 0 && (
         <Sheet>
           <SheetTrigger asChild>
-            <Button size="lg" className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-elevated wine-gradient border-0 text-primary-foreground z-50">
-              <Hand className="h-6 w-6" />
+            <Button size="lg" className="fixed bottom-6 right-6 h-14 rounded-full shadow-elevated wine-gradient border-0 text-primary-foreground z-50 px-5 gap-2">
+              <Hand className="h-5 w-5" />
+              <span className="text-sm font-semibold">{t("feastDetail.alaverdi")}</span>
             </Button>
           </SheetTrigger>
-          <SheetContent side="bottom" className="max-h-[70vh]">
-            <SheetHeader>
-              <SheetTitle className="flex items-center gap-2"><Hand className="h-5 w-5" /> {t("feastDetail.alaverdi")}</SheetTitle>
-            </SheetHeader>
-            <div className="mt-4 space-y-2 overflow-y-auto max-h-[50vh]">
-              {guests.map((g) => (
-                <div key={g.id} className="flex items-center justify-between p-3 rounded-xl border border-border hover:bg-accent transition-colors">
-                  <div className="flex items-center gap-3">
-                    <div className="h-9 w-9 rounded-full bg-accent flex items-center justify-center text-sm font-bold text-accent-foreground">{g.name.charAt(0).toUpperCase()}</div>
-                    <div>
-                      <p className="text-sm font-semibold text-foreground">{g.name}</p>
-                      <p className="text-[10px] text-muted-foreground">{t("feastDetail.alaverdi")}: {g.alaverdi_count ?? 0}</p>
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
+          <SheetContent side="bottom" className="max-h-[75vh] sm:max-w-lg sm:mx-auto sm:rounded-t-2xl">
+            <SheetHeader className="pb-3 border-b border-border">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-xl bg-wine-light flex items-center justify-center shrink-0">
+                  <Hand className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <SheetTitle className="text-base">{t("feastDetail.alaverdi")}</SheetTitle>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {guests.length} {t("feastDetail.guestsLabel", "guests")}
                     {currentToast && (
-                      <Button size="sm" variant="outline" onClick={() => { assignAlaverdi.mutate({ toastId: currentToast.id, guestName: g.name }); incrementAlaverdi.mutate(g.id); }} disabled={incrementAlaverdi.isPending}>
-                        <Hand className="h-3.5 w-3.5 mr-1" /> {t("common.assign")}
+                      <> &middot; {getDisplayTitle(currentToast)}</>
+                    )}
+                  </p>
+                </div>
+              </div>
+            </SheetHeader>
+            <ScrollArea className="mt-3 max-h-[calc(75vh-100px)]">
+              <div className="space-y-2 pr-1">
+                {[...guests].sort((a, b) => (b.alaverdi_count ?? 0) - (a.alaverdi_count ?? 0)).map((g) => (
+                  <div key={g.id} className="flex items-center justify-between p-3 rounded-xl border border-border hover:bg-accent/50 transition-colors group">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary shrink-0">
+                        {g.name.charAt(0).toUpperCase()}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-foreground truncate">{g.name}</p>
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          <Hand className="h-3 w-3 text-muted-foreground/50" />
+                          <span className="text-xs text-muted-foreground">{g.alaverdi_count ?? 0}</span>
+                          {g.role && <span className="text-[10px] text-muted-foreground/60">&middot; {g.role}</span>}
+                        </div>
+                      </div>
+                    </div>
+                    {currentToast && (
+                      <Button
+                        size="sm"
+                        variant="wine"
+                        className="h-9 px-4 shadow-wine shrink-0 opacity-80 group-hover:opacity-100 transition-opacity"
+                        onClick={() => { assignAlaverdi.mutate({ toastId: currentToast.id, guestName: g.name }); incrementAlaverdi.mutate(g.id); }}
+                        disabled={incrementAlaverdi.isPending}
+                      >
+                        <Hand className="h-3.5 w-3.5 mr-1.5" /> {t("common.assign")}
                       </Button>
                     )}
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            </ScrollArea>
           </SheetContent>
         </Sheet>
       )}

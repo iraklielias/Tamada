@@ -1,20 +1,10 @@
-import {
-  Wine,
-  BookOpen,
-  CalendarDays,
-  Star,
-  Sparkles,
-  UtensilsCrossed,
-  Activity,
-  History,
-} from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useTranslation } from "react-i18next";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import HornIcon from "@/components/icons/HornIcon";
+import { SystemIcon, IconName } from "@/components/SystemIcon";
 import {
   Sidebar,
   SidebarContent,
@@ -31,15 +21,13 @@ import {
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-const mainNav = [
-  { titleKey: "nav.dashboard", url: "/dashboard", icon: CalendarDays },
-  { titleKey: "nav.feasts", url: "/feasts", icon: UtensilsCrossed },
-  { titleKey: "nav.toasts", url: "/toasts", icon: Wine },
-  { titleKey: "nav.library", url: "/library", icon: BookOpen },
-  { titleKey: "nav.aiGenerator", url: "/ai-generate", icon: Sparkles },
-  { titleKey: "nav.aiHistory", url: "/ai-history", icon: History },
-  { titleKey: "nav.favorites", url: "/favorites", icon: Star },
-  { titleKey: "nav.telemetry", url: "/admin/telemetry", icon: Activity },
+const mainNav: { titleKey: string; url: string; icon: IconName }[] = [
+  { titleKey: "nav.dashboard", url: "/dashboard", icon: "nav.dashboard" },
+  { titleKey: "nav.feasts", url: "/feasts", icon: "nav.feasts" },
+  { titleKey: "nav.toasts", url: "/toasts", icon: "nav.toasts" },
+  { titleKey: "nav.library", url: "/library", icon: "nav.library" },
+  { titleKey: "nav.aiGenerator", url: "/ai-generate", icon: "nav.ai" },
+  { titleKey: "nav.favorites", url: "/favorites", icon: "nav.favorites" },
 ];
 
 export function AppSidebar() {
@@ -56,9 +44,13 @@ export function AppSidebar() {
       {/* ─── Header ─── */}
       <SidebarHeader className="p-4">
         <div className="flex items-center gap-2.5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl wine-gradient shadow-wine shrink-0">
-            <HornIcon size={18} className="text-primary-foreground" />
-          </div>
+          <SystemIcon
+            name="decor.horn"
+            variant="chip"
+            tone="primary"
+            size="md"
+            className="shadow-wine shrink-0"
+          />
           {!collapsed && (
             <span className="font-display text-lg font-bold text-foreground tracking-tight">
               TAMADA
@@ -92,7 +84,7 @@ export function AppSidebar() {
                         className="relative rounded-lg transition-all duration-150 hover:bg-accent/60"
                         activeClassName="bg-accent text-accent-foreground font-semibold shadow-card"
                       >
-                        <item.icon className="h-4 w-4 shrink-0" />
+                        <SystemIcon name={item.icon} size="sm" className="shrink-0" />
                         {!collapsed && (
                           <span className="truncate">{t(item.titleKey)}</span>
                         )}

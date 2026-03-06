@@ -10,7 +10,9 @@
     "navigation": "ნავიგაცია",
     "ai": "AI",
     "telemetry": "ტელემეტრია",
-    "aiHistory": "AI ისტორია"
+    "aiHistory": "AI ისტორია",
+    "more": "მეტი",
+    "upgrade": "განახლება"
   },
   "common": {
     "save": "შენახვა",
@@ -58,7 +60,9 @@
     "hideChanges": "ცვლილებების დამალვა",
     "titleLabel": "სათაური",
     "textLabel": "ტექსტი",
-    "editedVersionSaved": "რედაქტირებული ვერსია შეინახა!"
+    "editedVersionSaved": "რედაქტირებული ვერსია შეინახა!",
+    "minAbbrev": "წთ",
+    "hourAbbrev": "სთ"
   },
   "dashboard": {
     "greeting": {
@@ -72,7 +76,10 @@
     "popularToasts": "პოპულარული სადღეგრძელოები",
     "noFeasts": "ჯერ არ გაქვთ სუფრა",
     "createFirst": "შექმენით პირველი სუფრა",
-    "noToasts": "სადღეგრძელოები არ მოიძებნა"
+    "noToasts": "სადღეგრძელოები არ მოიძებნა",
+    "viewAll": "ყველა",
+    "activeFeast": "აქტიური სუფრა",
+    "returnToFeast": "დაბრუნდი სუფრაზე"
   },
   "feasts": {
     "title": "სუფრები",
@@ -203,9 +210,22 @@
       "peace": "მშვიდობის სადღეგრძელო",
       "georgia": "საქართველოს სადღეგრძელო",
       "custom": "მორგებული"
-    }
+    },
+    "fullToast": "სრული სადღეგრძელო",
+    "inGeorgian": "ქართულად",
+    "noBodyYet": "ტექსტი ჯერ არ არის შექმნილი",
+    "generateBodyDesc": "AI შექმნის სრულ სადღეგრძელოს ტექსტს ამ სლოტისთვის",
+    "regenerateToast": "ხელახლა გენერაცია",
+    "generateBody": "ტექსტის გენერაცია",
+    "generatePlan": "გეგმის გენერაცია",
+    "aiPlanTitle": "შექმენი სუფრის გეგმა AI-ით",
+    "aiPlanDesc": "AI შექმნის სრულ სადღეგრძელოების გეგმას შენი სუფრის პარამეტრებზე დაყრდნობით",
+    "aiRegenerate": "ხელახლა გენერაცია",
+    "addNotes": "შენიშვნის დამატება",
+    "insertAfter": "ჩასმა ამის შემდეგ"
   },
   "live": {
+    "liveLabel": "LIVE",
     "toastProgress": "სადღეგრძელო",
     "allCompleted": "გაუმარჯოს!",
     "allCompletedDesc": "ყველა სადღეგრძელო დასრულდა",
@@ -267,6 +287,8 @@
       "emotional": "ემოციური",
       "philosophical": "ფილოსოფიური"
     },
+    "advancedOptions": "დამატებითი პარამეტრები",
+    "useInFeast": "სუფრაზე გამოყენება",
     "feedback": {
       "thanks": "მადლობა! 👍",
       "noted": "გავითვალისწინებთ 📝"
@@ -298,6 +320,42 @@
       "svaneti": "სვანეთი — უძველესი, მისტიკური",
       "meskheti": "მესხეთი — გამძლე, მემორიალური"
     }
+  },
+  "aiHistory": {
+    "title": "გენერაციის ისტორია",
+    "subtitle": "ყველა AI-ით შექმნილი სადღეგრძელო და მათი ცვლილებები",
+    "empty": "ჯერ არ გაქვთ გენერაციის ისტორია",
+    "emptyDesc": "თქვენ მიერ AI-ით შექმნილი სადღეგრძელოები აქ გამოჩნდება",
+    "stats": {
+      "generations": "გენერაცია",
+      "feedback": "უკუკავშირი",
+      "edits": "რედაქტირება",
+      "avgLatency": "საშ. ლატენსი"
+    },
+    "types": {
+      "generate_toast": "გენერაცია",
+      "submit_feedback": "უკუკავშირი",
+      "analyze_edit_delta": "რედაქტირება",
+      "generate_feast_plan": "გეგმა"
+    },
+    "learningSummary": "ადაპტური სწავლის შეჯამება",
+    "editBehavior": "რედაქტირების ქცევა",
+    "lengthPref": "სიგრძის პრეფერენცია",
+    "confidence": "დამჯერებლობა",
+    "signals": "სიგნალები",
+    "lengths": {
+      "short": "მოკლე",
+      "medium": "საშუალო",
+      "long": "გრძელი"
+    },
+    "positive": "დადებითი",
+    "negative": "უარყოფითი",
+    "originalToEdited": "ორიგინალი → რედაქტირებული ვერსია"
+  },
+  "notFound": {
+    "title": "გვერდი ვერ მოიძებნა",
+    "description": "მოთხოვნილი გვერდი არ არსებობს ან წაშლილია. სუფრაზე დაბრუნდით!",
+    "goHome": "მთავარ გვერდზე დაბრუნება"
   },
   "profile": {
     "title": "პროფილი",
@@ -343,7 +401,9 @@
     "emptyDesc": "სადღეგრძელოების გვერდიდან დაამატე შენი ფავორიტები",
     "noFavorites": "ჯერ არ გაქვთ რჩეული",
     "addSome": "დაამატეთ სადღეგრძელოები რჩეულებში",
-    "removed": "წაშლილია რჩეულებიდან"
+    "removed": "წაშლილია რჩეულებიდან",
+    "saved": "შენახული",
+    "searchPlaceholder": "რჩეულებში ძიება..."
   },
   "upgrade": {
     "title": "PRO გეგმა",
@@ -354,8 +414,27 @@
     "free": "უფასო",
     "activate": "გააქტიურე PRO",
     "perMonth": "/თვეში",
+    "perYear": "/წელიწადში",
     "upsellDefault": "ეს ფუნქცია მხოლოდ PRO მომხმარებლებისთვისაა ხელმისაწვდომი.",
-    "becomePro": "გახდი PRO"
+    "becomePro": "გახდი PRO",
+    "aiGeneration": "AI სადღეგრძელო გენერაცია",
+    "activeFeasts": "აქტიური სუფრები",
+    "toastLibrary": "სადღეგრძელოების ბიბლიოთეკა",
+    "cotamadaRealtime": "კო-თამადა & რეალტაიმი",
+    "pdfExport": "PDF ექსპორტი",
+    "prioritySupport": "პრიორიტეტული მხარდაჭერა",
+    "limited": "შეზღუდული",
+    "unlimited": "ულიმიტო",
+    "unlimited": "შეუზღუდავი",
+    "full": "სრული",
+    "basic": "ბაზისური",
+    "comingSoon": "მალე დაემატება",
+    "comingSoonDesc": "Stripe ინტეგრაცია მზადდება. მალე შეძლებთ PRO-ის გააქტიურებას!",
+    "securePayment": "Stripe-ით უსაფრთხო გადახდა. გაუქმება ნებისმიერ დროს.",
+    "annualSave": "2 თვე უფასო",
+    "monthly": "ყოველთვიური",
+    "annual": "წლიური",
+    "orAnnual": "ან {{price}}/წელიწადში"
   },
   "landing": {
     "heroTitle": "TAMADA",
@@ -373,7 +452,8 @@
     "searchPlaceholder": "ძიება...",
     "allOccasions": "ყველა ტიპი",
     "allFormality": "ყველა სტილი",
-    "noToasts": "სადღეგრძელო ვერ მოიძებნა"
+    "noToasts": "სადღეგრძელო ვერ მოიძებნა",
+    "tryOtherFilter": "სცადეთ სხვა ფილტრი ან შექმენით AI-ით"
   },
   "library": {
     "title": "ლექსიკონი",
@@ -390,15 +470,73 @@
     "noAccount": "არ გაქვთ ანგარიში?",
     "hasAccount": "უკვე გაქვთ ანგარიში?",
     "loginButton": "შესვლა",
-    "signupButton": "რეგისტრაცია"
+    "signupButton": "რეგისტრაცია",
+    "enterCredentials": "შეიყვანეთ თქვენი მონაცემები ანგარიშში შესასვლელად",
+    "createAccountDesc": "შექმენით ანგარიში და გახდით ციფრული თამადა",
+    "googleLogin": "Google-ით შესვლა",
+    "googleSignup": "Google-ით რეგისტრაცია",
+    "or": "ან",
+    "confirmPassword": "გაიმეორეთ პაროლი",
+    "loginFailed": "შესვლა ვერ მოხერხდა",
+    "googleLoginFailed": "Google-ით შესვლა ვერ მოხერხდა",
+    "googleSignupFailed": "Google-ით რეგისტრაცია ვერ მოხერხდა",
+    "passwordMismatch": "პაროლები არ ემთხვევა",
+    "passwordMinLength": "პაროლი მინიმუმ 6 სიმბოლო უნდა იყოს",
+    "signupFailed": "რეგისტრაცია ვერ მოხერხდა",
+    "signupSuccess": "რეგისტრაცია წარმატებულია! შეამოწმეთ ელ. ფოსტა დასადასტურებლად.",
+    "signingIn": "შესვლა...",
+    "signingUp": "რეგისტრაცია...",
+    "invalidEmail": "არასწორი ელ.ფოსტის მისამართი",
+    "backToHome": "მთავარ გვერდზე"
   },
   "onboarding": {
-    "welcome": "კეთილი იყოს თქვენი მობრძანება!",
+    "welcome": "მოგესალმებით, თამადა!",
+    "welcomeDesc": "მოდით, შევქმნათ თქვენი პროფილი.",
+    "step": "ნაბიჯი",
     "stepName": "თქვენი სახელი",
     "stepRegion": "რეგიონი",
     "stepExperience": "გამოცდილება",
     "stepOccasions": "წვეულებები",
-    "finish": "დასრულება"
+    "yourName": "თქვენი სახელი",
+    "namePlaceholder": "მაგ. გიორგი",
+    "language": "ენა / Language",
+    "langKa": "🇬🇪 ქართული",
+    "langEn": "🇬🇧 English",
+    "continue": "გაგრძელება",
+    "yourRegion": "თქვენი რეგიონი",
+    "regionDesc": "აირჩიეთ თქვენთვის სასურველი ღვინის რეგიონი",
+    "noPreference": "არ მაქვს უპირატესობა",
+    "skip": "გამოტოვება",
+    "experience": "გამოცდილება",
+    "experienceDesc": "როგორი გამოცდილება გაქვთ სუფრის მართვაში?",
+    "occasions": "შემთხვევები",
+    "occasionsDesc": "რა ტიპის სუფრებს მართავთ ჩვეულებრივ? (მრავალი არჩევანი)",
+    "saving": "შენახვა...",
+    "finish": "დასრულება",
+    "errorOccurred": "შეცდომა მოხდა. სცადეთ თავიდან.",
+    "profileReady": "გილოცავთ! თქვენი პროფილი მზადაა 🍷",
+    "experienceLevels": {
+      "beginner": "დამწყები",
+      "beginnerDesc": "სუფრის ტრადიციებს ვსწავლობ",
+      "intermediate": "საშუალო",
+      "intermediateDesc": "რამდენიმე სუფრა მიმართავს",
+      "experienced": "გამოცდილი",
+      "experiencedDesc": "რეგულარულად ვმართავ სუფრებს",
+      "master": "ოსტატი",
+      "masterDesc": "პროფესიონალი თამადა ვარ"
+    },
+    "occasionTypes": {
+      "supra": "სუფრა",
+      "wedding": "ქორწილი",
+      "birthday": "დაბადების დღე",
+      "memorial": "ქელეხი",
+      "christening": "ნათლობა",
+      "guest_reception": "სტუმრის მიღება",
+      "holiday": "სადღესასწაულო",
+      "corporate": "კორპორატიული",
+      "friendly_gathering": "მეგობრული შეკრება",
+      "other": "სხვა"
+    }
   },
   "history": {
     "title": "AI ისტორია",

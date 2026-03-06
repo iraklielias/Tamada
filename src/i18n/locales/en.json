@@ -10,7 +10,9 @@
     "navigation": "Navigation",
     "ai": "AI",
     "telemetry": "Telemetry",
-    "aiHistory": "AI History"
+    "aiHistory": "AI History",
+    "more": "More",
+    "upgrade": "Upgrade"
   },
   "common": {
     "save": "Save",
@@ -58,7 +60,9 @@
     "hideChanges": "Hide changes",
     "titleLabel": "Title",
     "textLabel": "Text",
-    "editedVersionSaved": "Edited version saved!"
+    "editedVersionSaved": "Edited version saved!",
+    "minAbbrev": "m",
+    "hourAbbrev": "h"
   },
   "dashboard": {
     "greeting": {
@@ -72,7 +76,10 @@
     "popularToasts": "Popular Toasts",
     "noFeasts": "No feasts yet",
     "createFirst": "Create your first feast",
-    "noToasts": "No toasts found"
+    "noToasts": "No toasts found",
+    "viewAll": "View all",
+    "activeFeast": "Active Feast",
+    "returnToFeast": "Return to Live Feast"
   },
   "feasts": {
     "title": "Feasts",
@@ -203,9 +210,22 @@
       "peace": "Toast to Peace",
       "georgia": "Toast to Georgia",
       "custom": "Custom"
-    }
+    },
+    "fullToast": "Full toast",
+    "inGeorgian": "In Georgian",
+    "noBodyYet": "Text not yet created",
+    "generateBodyDesc": "AI will generate full toast text for this slot",
+    "regenerateToast": "Regenerate",
+    "generateBody": "Generate text",
+    "generatePlan": "Generate plan",
+    "aiPlanTitle": "Create a feast plan with AI",
+    "aiPlanDesc": "AI will create a complete toast plan based on your feast parameters",
+    "aiRegenerate": "Regenerate plan",
+    "addNotes": "Add notes",
+    "insertAfter": "Insert after this"
   },
   "live": {
+    "liveLabel": "LIVE",
     "toastProgress": "toast",
     "allCompleted": "Cheers!",
     "allCompletedDesc": "All toasts completed",
@@ -267,6 +287,8 @@
       "emotional": "Emotional",
       "philosophical": "Philosophical"
     },
+    "advancedOptions": "Advanced Options",
+    "useInFeast": "Use in Feast",
     "feedback": {
       "thanks": "Thank you! 👍",
       "noted": "Noted 📝"
@@ -298,6 +320,42 @@
       "svaneti": "Svaneti — archaic, mystical",
       "meskheti": "Meskheti — resilient, memorial"
     }
+  },
+  "aiHistory": {
+    "title": "Generation History",
+    "subtitle": "All AI-generated toasts and their changes",
+    "empty": "No generation history yet",
+    "emptyDesc": "Your AI-generated toasts will appear here",
+    "stats": {
+      "generations": "Generations",
+      "feedback": "Feedback",
+      "edits": "Edits",
+      "avgLatency": "Avg. latency"
+    },
+    "types": {
+      "generate_toast": "Generation",
+      "submit_feedback": "Feedback",
+      "analyze_edit_delta": "Edit",
+      "generate_feast_plan": "Plan"
+    },
+    "learningSummary": "Adaptive Learning Summary",
+    "editBehavior": "Edit behavior",
+    "lengthPref": "Length preference",
+    "confidence": "Confidence",
+    "signals": "Signals",
+    "lengths": {
+      "short": "Short",
+      "medium": "Medium",
+      "long": "Long"
+    },
+    "positive": "Positive",
+    "negative": "Negative",
+    "originalToEdited": "Original → Edited version"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "description": "The page you're looking for doesn't exist or has been removed. Let's get you back to the feast!",
+    "goHome": "Go to Home"
   },
   "profile": {
     "title": "Profile",
@@ -343,7 +401,9 @@
     "emptyDesc": "Add toasts from the toasts page",
     "noFavorites": "No favorites yet",
     "addSome": "Add toasts to your favorites",
-    "removed": "Removed from favorites"
+    "removed": "Removed from favorites",
+    "saved": "Saved",
+    "searchPlaceholder": "Search favorites..."
   },
   "upgrade": {
     "title": "PRO Plan",
@@ -354,8 +414,27 @@
     "free": "Free",
     "activate": "Activate PRO",
     "perMonth": "/month",
+    "perYear": "/year",
     "upsellDefault": "This feature is only available for PRO users.",
-    "becomePro": "Become PRO"
+    "becomePro": "Become PRO",
+    "aiGeneration": "AI Toast Generation",
+    "activeFeasts": "Active Feasts",
+    "toastLibrary": "Toast Library",
+    "cotamadaRealtime": "Co-Tamada & Realtime",
+    "pdfExport": "PDF Export",
+    "prioritySupport": "Priority Support",
+    "limited": "Limited",
+    "unlimited": "Unlimited",
+    "unlimited": "Unlimited",
+    "full": "Full",
+    "basic": "Basic",
+    "comingSoon": "Coming soon",
+    "comingSoonDesc": "Stripe integration is being prepared. You will be able to activate PRO soon!",
+    "securePayment": "Secure payment via Stripe. Cancel anytime.",
+    "annualSave": "2 months free",
+    "monthly": "Monthly",
+    "annual": "Annual",
+    "orAnnual": "or {{price}}/year"
   },
   "landing": {
     "heroTitle": "TAMADA",
@@ -373,7 +452,8 @@
     "searchPlaceholder": "Search...",
     "allOccasions": "All types",
     "allFormality": "All styles",
-    "noToasts": "No toasts found"
+    "noToasts": "No toasts found",
+    "tryOtherFilter": "Try a different filter or create with AI"
   },
   "library": {
     "title": "Library",
@@ -390,15 +470,73 @@
     "noAccount": "Don't have an account?",
     "hasAccount": "Already have an account?",
     "loginButton": "Sign In",
-    "signupButton": "Sign Up"
+    "signupButton": "Sign Up",
+    "enterCredentials": "Enter your credentials to sign in",
+    "createAccountDesc": "Create an account and become a digital Tamada",
+    "googleLogin": "Sign in with Google",
+    "googleSignup": "Sign up with Google",
+    "or": "or",
+    "confirmPassword": "Confirm password",
+    "loginFailed": "Login failed",
+    "googleLoginFailed": "Google sign in failed",
+    "googleSignupFailed": "Google sign up failed",
+    "passwordMismatch": "Passwords don't match",
+    "passwordMinLength": "Password must be at least 6 characters",
+    "signupFailed": "Signup failed",
+    "signupSuccess": "Signup successful! Check your email to confirm.",
+    "signingIn": "Signing in...",
+    "signingUp": "Signing up...",
+    "invalidEmail": "Invalid email address",
+    "backToHome": "Back to home"
   },
   "onboarding": {
-    "welcome": "Welcome!",
+    "welcome": "Welcome, Tamada!",
+    "welcomeDesc": "Let's set up your profile.",
+    "step": "Step",
     "stepName": "Your Name",
     "stepRegion": "Region",
     "stepExperience": "Experience",
     "stepOccasions": "Occasions",
-    "finish": "Finish"
+    "yourName": "Your Name",
+    "namePlaceholder": "e.g. Giorgi",
+    "language": "Language",
+    "langKa": "🇬🇪 Georgian",
+    "langEn": "🇬🇧 English",
+    "continue": "Continue",
+    "yourRegion": "Your Region",
+    "regionDesc": "Choose your preferred wine region",
+    "noPreference": "No preference",
+    "skip": "Skip",
+    "experience": "Experience",
+    "experienceDesc": "What is your experience with hosting feasts?",
+    "occasions": "Occasions",
+    "occasionsDesc": "What types of feasts do you usually host? (multiple choice)",
+    "saving": "Saving...",
+    "finish": "Finish",
+    "errorOccurred": "An error occurred. Please try again.",
+    "profileReady": "Congratulations! Your profile is ready 🍷",
+    "experienceLevels": {
+      "beginner": "Beginner",
+      "beginnerDesc": "Learning feast traditions",
+      "intermediate": "Intermediate",
+      "intermediateDesc": "Hosted a few feasts",
+      "experienced": "Experienced",
+      "experiencedDesc": "Regularly host feasts",
+      "master": "Master",
+      "masterDesc": "Professional Tamada"
+    },
+    "occasionTypes": {
+      "supra": "Supra",
+      "wedding": "Wedding",
+      "birthday": "Birthday",
+      "memorial": "Memorial",
+      "christening": "Christening",
+      "guest_reception": "Guest Reception",
+      "holiday": "Holiday",
+      "corporate": "Corporate",
+      "friendly_gathering": "Friendly Gathering",
+      "other": "Other"
+    }
   },
   "history": {
     "title": "AI History",

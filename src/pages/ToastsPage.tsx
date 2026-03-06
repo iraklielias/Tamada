@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import EmptyState from "@/components/EmptyState";
 import {
   Select,
   SelectContent,
@@ -21,7 +22,8 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { Wine, Search, Heart, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
+import SystemIcon from "@/components/SystemIcon";
 import { toast as sonnerToast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -114,7 +116,7 @@ const ToastsPage = () => {
   const isEn = i18n.language === "en";
 
   return (
-    <div className="p-4 md:p-8 max-w-5xl mx-auto space-y-6 pb-24">
+    <div className="p-4 md:p-6 max-w-5xl mx-auto space-y-6 pb-24">
       {/* Header */}
       <div>
         <h1 className="font-display text-heading-1 text-foreground">
@@ -128,7 +130,12 @@ const ToastsPage = () => {
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <SystemIcon
+            name="action.search"
+            size="sm"
+            tone="muted"
+            className="absolute left-3 top-1/2 -translate-y-1/2"
+          />
           <Input
             placeholder={t("toasts.searchPlaceholder")}
             value={search}
@@ -198,14 +205,19 @@ const ToastsPage = () => {
                   transition={{ delay: i * 0.03 }}
                 >
                   <Card
-                    className="card-interactive cursor-pointer group"
+                    className={`card-interactive cursor-pointer group border-l-[3px] ${i % 3 === 0 ? "border-l-primary/40" : i % 3 === 1 ? "border-l-amber-400/40" : "border-l-emerald-400/40"}`}
                     onClick={() => setSelectedToast(toast)}
                   >
                     <CardContent className="p-5">
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex items-start gap-3 min-w-0 flex-1">
                           <div className="h-10 w-10 rounded-xl bg-wine-light flex items-center justify-center shrink-0 mt-0.5 group-hover:bg-accent transition-colors">
-                            <Wine className="h-5 w-5 text-wine group-hover:text-accent-foreground transition-colors" />
+                            <SystemIcon
+                              name="nav.toasts"
+                              size="sm"
+                              tone="primary"
+                              className="group-hover:text-accent-foreground transition-colors"
+                            />
                           </div>
                           <div className="min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
@@ -241,23 +253,40 @@ const ToastsPage = () => {
                             )}
                           </div>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="shrink-0 hover:bg-wine-light"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleFav.mutate(toast.id);
-                          }}
-                        >
-                          <Heart
-                            className={`h-4 w-4 transition-colors ${
-                              isFav
-                                ? "fill-primary text-primary"
-                                : "text-muted-foreground"
-                            }`}
-                          />
-                        </Button>
+                        <div className="flex flex-col gap-1 shrink-0">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 hover:bg-wine-light"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleFav.mutate(toast.id);
+                            }}
+                          >
+                            <SystemIcon
+                              name="action.favorite"
+                              size="sm"
+                              tone={isFav ? "primary" : "muted"}
+                              className={isFav ? "" : ""}
+                            />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const body = isEn ? (toast.body_en || toast.body_ka) : toast.body_ka;
+                              if (body) { navigator.clipboard.writeText(body); sonnerToast.success(t("common.copied")); }
+                            }}
+                          >
+                            <SystemIcon
+                              name="action.copy"
+                              size="sm"
+                              tone="muted"
+                            />
+                          </Button>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
@@ -267,25 +296,19 @@ const ToastsPage = () => {
           </div>
         </AnimatePresence>
       ) : (
-        <div className="flex flex-col items-center justify-center py-16 text-center rounded-2xl border border-dashed border-border bg-surface-1/50">
-          <div className="w-16 h-16 rounded-2xl bg-wine-light/60 flex items-center justify-center mb-5">
-            <Wine className="h-8 w-8 text-wine-muted" />
-          </div>
-          <p className="text-heading-3 text-foreground mb-2">
-            {t("toasts.noToasts") as string}
-          </p>
-          <p className="text-body-sm text-muted-foreground mb-6">
-            სცადეთ სხვა ფილტრი ან შექმენით AI-ით
-          </p>
-          <Button
-            variant="wine"
-            className="shadow-wine"
-            onClick={() => navigate("/ai-generate")}
-          >
-            <Sparkles className="h-4 w-4 mr-1.5" />{" "}
-            {t("nav.aiGenerator") as string}
-          </Button>
-        </div>
+        <EmptyState
+          icon={
+            <SystemIcon
+              name="nav.toasts"
+              size="lg"
+              tone="primary"
+            />
+          }
+          title={t("toasts.noToasts")}
+          description={t("toasts.tryOtherFilter")}
+          actionLabel={t("nav.aiGenerator")}
+          onAction={() => navigate("/ai-generate")}
+        />
       )}
 
       {/* Toast Detail Dialog */}
@@ -383,6 +406,23 @@ const ToastsPage = () => {
                   variant="outline"
                   size="sm"
                   className="flex-1"
+                  onClick={() => {
+                    const body = isEn
+                      ? selectedToast.body_en || selectedToast.body_ka
+                      : selectedToast.body_ka;
+                    if (body) {
+                      navigator.clipboard.writeText(body);
+                      sonnerToast.success(t("common.copied"));
+                    }
+                  }}
+                >
+                  <Copy className="h-4 w-4 mr-1.5" />
+                  {t("common.copy")}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1"
                   onClick={(e) => {
                     e.stopPropagation();
                     toggleFav.mutate(selectedToast.id);
@@ -396,14 +436,23 @@ const ToastsPage = () => {
                     }`}
                   />
                   {favorites?.has(selectedToast.id)
-                    ? t("favorites.remove")
-                    : t("favorites.add")}
+                    ? t("common.remove")
+                    : t("common.save")}
                 </Button>
               </div>
             </>
           )}
         </DialogContent>
       </Dialog>
+
+      {/* AI Generate FAB */}
+      <button
+        className="fixed bottom-20 right-4 h-14 px-5 rounded-full wine-gradient text-white shadow-wine flex items-center gap-2 md:bottom-6 z-40 active:scale-95 transition-transform"
+        onClick={() => navigate("/ai-generate")}
+      >
+        <Sparkles className="h-5 w-5" />
+        <span className="text-sm font-semibold hidden sm:inline">AI</span>
+      </button>
     </div>
   );
 };

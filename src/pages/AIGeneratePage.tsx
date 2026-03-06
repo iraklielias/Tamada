@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useProGate } from "@/hooks/useProGate";
@@ -13,9 +14,25 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Sparkles, Copy, Heart, Loader2, Wine, RefreshCw, Lock, MapPin, User, Clock, Volume2, Hand, ThumbsUp, ThumbsDown, Palette, Pencil, Check, Eye, EyeOff, Undo2 } from "lucide-react";
+import {
+  Collapsible, CollapsibleContent, CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import {
+  Sparkles,
+  Loader2,
+  Volume2,
+  Hand,
+  Palette,
+  Eye,
+  EyeOff,
+  ChevronDown,
+} from "lucide-react";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { toast as sonnerToast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
+import SystemIcon from "@/components/SystemIcon";
 
 // Simple word-level diff
 function computeWordDiff(original: string, edited: string): { type: "same" | "added" | "removed"; text: string }[] {
@@ -112,7 +129,9 @@ const AIGeneratePage = () => {
   const [upsellMessage, setUpsellMessage] = useState("");
   const [feedbackGiven, setFeedbackGiven] = useState<"positive" | "negative" | null>(null);
   const [showReveal, setShowReveal] = useState(false);
+  const [advancedOpen, setAdvancedOpen] = useState(false);
   const { user } = useAuth();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { checkFeature, dailyAICount, limits, canGenerateAI } = useProGate();
 
@@ -173,7 +192,7 @@ const AIGeneratePage = () => {
       setShowDiff(false);
       setFeedbackGiven(null);
       setShowReveal(true);
-      setTimeout(() => setShowReveal(false), 1200);
+      setTimeout(() => setShowReveal(false), 600);
       queryClient.invalidateQueries({ queryKey: ["daily-ai-count"] });
       sonnerToast.success(t("ai.created"));
     },
@@ -284,13 +303,13 @@ const AIGeneratePage = () => {
   const meta = result?.metadata;
 
   return (
-    <div className="p-4 md:p-6 max-w-3xl mx-auto space-y-6">
+    <div className="p-4 md:p-6 max-w-3xl mx-auto space-y-6 pb-24">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-heading-1 font-display text-foreground flex items-center gap-2">
             <div className="h-10 w-10 rounded-xl wine-gradient flex items-center justify-center shadow-wine">
-              <Sparkles className="h-5 w-5 text-primary-foreground" />
+              <SystemIcon name="nav.ai" size="sm" tone="accent" />
             </div>
             {t("ai.title")}
           </h1>
@@ -307,14 +326,14 @@ const AIGeneratePage = () => {
       <Card className="border-border/60 shadow-card overflow-hidden">
         <div className="h-1 wine-gradient" />
         <CardContent className="p-5 space-y-4">
-          {/* Row 1: Occasion + Formality */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {/* Required fields — wine tint background */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 -mx-1 rounded-xl bg-primary/[0.03] border border-primary/10">
             <div>
               <label className="text-caption text-muted-foreground mb-1.5 flex items-center gap-1.5">
-                <Wine className="h-3.5 w-3.5 text-primary" /> {t("ai.occasionType")}
+              <SystemIcon name="nav.toasts" size="xs" tone="primary" /> {t("ai.occasionType")} <span className="text-primary">*</span>
               </label>
               <Select value={occasion} onValueChange={(v) => setOccasion(v)}>
-                <SelectTrigger className="bg-surface-1"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="bg-card"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {occasionKeys.map((k) => (
                     <SelectItem key={k} value={k}>{t(`feasts.occasion.${k}`)}</SelectItem>
@@ -324,10 +343,10 @@ const AIGeneratePage = () => {
             </div>
             <div>
               <label className="text-caption text-muted-foreground mb-1.5 flex items-center gap-1.5">
-                <Lock className="h-3.5 w-3.5 text-primary" /> {t("ai.formality")}
+              <SystemIcon name="status.info" size="xs" tone="primary" /> {t("ai.formality")} <span className="text-primary">*</span>
               </label>
               <Select value={formality} onValueChange={(v) => setFormality(v)}>
-                <SelectTrigger className="bg-surface-1"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="bg-card"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {formalityKeys.map((k) => (
                     <SelectItem key={k} value={k}>{t(`feasts.formalityOptions.${k}`)}</SelectItem>
@@ -337,11 +356,11 @@ const AIGeneratePage = () => {
             </div>
           </div>
 
-          {/* Row 2: Tone + Region */}
+          {/* Optional style fields */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="text-caption text-muted-foreground mb-1.5 flex items-center gap-1.5">
-                <Palette className="h-3.5 w-3.5 text-primary" /> {t("ai.tone")}
+              <Palette className="h-3.5 w-3.5 text-muted-foreground" /> {t("ai.tone")}
               </label>
               <Select value={tone} onValueChange={(v) => setTone(v)}>
                 <SelectTrigger className="bg-surface-1"><SelectValue /></SelectTrigger>
@@ -354,7 +373,7 @@ const AIGeneratePage = () => {
             </div>
             <div>
               <label className="text-caption text-muted-foreground mb-1.5 flex items-center gap-1.5">
-                <MapPin className="h-3.5 w-3.5 text-primary" /> {t("ai.region")}
+              <SystemIcon name="status.time" size="xs" tone="muted" /> {t("ai.region")}
               </label>
               <Select value={region} onValueChange={(v) => setRegion(v)}>
                 <SelectTrigger className="bg-surface-1"><SelectValue /></SelectTrigger>
@@ -367,43 +386,69 @@ const AIGeneratePage = () => {
             </div>
           </div>
 
-          {/* Row 3: Person Name + Details */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="text-caption text-muted-foreground mb-1.5 flex items-center gap-1.5">
-                <User className="h-3.5 w-3.5 text-primary" /> {t("ai.personName")}
-              </label>
-              <Input
-                placeholder={t("ai.personNamePlaceholder")}
-                value={personName}
-                onChange={(e) => setPersonName(e.target.value)}
-                className="bg-surface-1"
-              />
-            </div>
-            <div>
-              <label className="text-caption text-muted-foreground mb-1.5 block">
-                {t("ai.personDetails")}
-              </label>
-              <Input
-                placeholder={t("ai.personDetailsPlaceholder")}
-                value={personDetails}
-                onChange={(e) => setPersonDetails(e.target.value)}
-                className="bg-surface-1"
-              />
-            </div>
-          </div>
+          {/* Advanced Options (collapsed by default) */}
+          <Collapsible open={advancedOpen} onOpenChange={setAdvancedOpen}>
+            <CollapsibleTrigger asChild>
+              <button
+                type="button"
+                className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors w-full"
+              >
+                <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${advancedOpen ? "rotate-180" : ""}`} />
+                {t("ai.advancedOptions")}
+                {(personName || personDetails || topic) && (
+                  <Badge variant="secondary" className="text-[10px] ml-auto">
+                    {[personName, personDetails, topic].filter(Boolean).length}
+                  </Badge>
+                )}
+              </button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="space-y-3 pt-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-caption text-muted-foreground mb-1.5 flex items-center gap-1.5">
+                    <SystemIcon name="nav.profile" size="xs" tone="primary" /> {t("ai.personName")}
+                  </label>
+                  <Input
+                    placeholder={t("ai.personNamePlaceholder")}
+                    value={personName}
+                    onChange={(e) => setPersonName(e.target.value)}
+                    className="bg-surface-1"
+                  />
+                </div>
+                <div>
+                  <label className="text-caption text-muted-foreground mb-1.5 block">
+                    {t("ai.personDetails")}
+                  </label>
+                  <Input
+                    placeholder={t("ai.personDetailsPlaceholder")}
+                    value={personDetails}
+                    onChange={(e) => setPersonDetails(e.target.value)}
+                    className="bg-surface-1"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="text-caption text-muted-foreground mb-1.5 block">
+                  {t("ai.topic")}
+                </label>
+                <Textarea
+                  placeholder={t("ai.topicPlaceholder")}
+                  value={topic}
+                  onChange={(e) => setTopic(e.target.value)}
+                  rows={2}
+                  className="bg-surface-1"
+                />
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
 
-          <div>
-            <label className="text-caption text-muted-foreground mb-1.5 block">
-              {t("ai.topic")}
-            </label>
-            <Textarea
-              placeholder={t("ai.topicPlaceholder")}
-              value={topic}
-              onChange={(e) => setTopic(e.target.value)}
-              rows={2}
-              className="bg-surface-1"
-            />
+          {/* Generation summary strip */}
+          <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground px-1">
+            <span>{t("ai.generatingSummary", "Generating")}:</span>
+            <Badge variant="outline" className="text-[10px] font-normal">{t(`feasts.formalityOptions.${formality}`)}</Badge>
+            <Badge variant="outline" className="text-[10px] font-normal">{t(`feasts.occasion.${occasion}`)}</Badge>
+            {tone !== "traditional" && <Badge variant="outline" className="text-[10px] font-normal">{toneIcons[tone]} {t(`ai.tones.${tone}`)}</Badge>}
+            {region !== "general" && <Badge variant="outline" className="text-[10px] font-normal">{t(`ai.regions.${region}`)}</Badge>}
           </div>
 
           <Button
@@ -415,9 +460,15 @@ const AIGeneratePage = () => {
             {generate.isPending ? (
               <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> {t("ai.generating")}</>
             ) : !canGenerateAI ? (
-              <><Lock className="h-4 w-4 mr-2" /> {t("ai.limitReached")}</>
+              <>
+                <SystemIcon name="status.warning" size="sm" tone="danger" className="mr-2" />
+                {t("ai.limitReached")}
+              </>
             ) : (
-              <><Sparkles className="h-4 w-4 mr-2" /> {t("ai.generate")}</>
+              <>
+                <SystemIcon name="nav.ai" size="sm" tone="accent" className="mr-2" />
+                {t("ai.generate")}
+              </>
             )}
           </Button>
         </CardContent>
@@ -451,7 +502,7 @@ const AIGeneratePage = () => {
                     className="relative"
                   >
                     <div className="h-24 w-24 rounded-full wine-gradient flex items-center justify-center shadow-wine">
-                      <Wine className="h-12 w-12 text-primary-foreground" />
+                      <SystemIcon name="decor.wineGlass" size="xl" tone="accent" />
                     </div>
                     {/* Sparkle particles */}
                     {[...Array(6)].map((_, i) => (
@@ -481,7 +532,7 @@ const AIGeneratePage = () => {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div className="h-8 w-8 rounded-lg bg-wine-light flex items-center justify-center">
-                      <Wine className="h-4 w-4 text-primary" />
+                      <SystemIcon name="nav.toasts" size="sm" tone="primary" />
                     </div>
                     {isEditing ? (
                       <Input
@@ -506,7 +557,7 @@ const AIGeneratePage = () => {
                     )}
                     {meta?.region_style && meta.region_style !== "general" && (
                       <Badge variant="outline" className="text-[10px]">
-                        <MapPin className="h-2.5 w-2.5 mr-0.5" />
+                        <SystemIcon name="status.time" size="xs" tone="muted" className="mr-0.5" />
                         {t(`profile.regions.${meta.region_style}`, meta.region_style)}
                       </Badge>
                     )}
@@ -592,73 +643,82 @@ const AIGeneratePage = () => {
                   </div>
                 )}
 
-                {/* Actions + Feedback */}
-                <div className="flex items-center justify-between gap-2 flex-wrap pt-2 border-t border-border/50">
-                  <div className="flex gap-2 flex-wrap">
-                    {isEditing ? (
-                      <>
-                        <Button variant="default" size="sm" onClick={() => setIsEditing(false)}>
-                          <Check className="h-3.5 w-3.5 mr-1.5" /> {t("common.ready")}
-                        </Button>
-                        {originalResult && (editedTitle !== originalResult.title_ka || editedBody !== originalResult.body_ka) && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              setEditedTitle(originalResult.title_ka);
-                              setEditedBody(originalResult.body_ka);
-                              setShowDiff(false);
-                            }}
-                          >
-                            <Undo2 className="h-3.5 w-3.5 mr-1.5" /> {t("common.restore")}
-                          </Button>
-                        )}
-                      </>
-                    ) : (
-                      <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
-                        <Pencil className="h-3.5 w-3.5 mr-1.5" /> {t("common.edit")}
+                {/* Actions — primary row + overflow */}
+                <div className="pt-2 border-t border-border/50 space-y-3">
+                  {isEditing ? (
+                    <div className="flex gap-2">
+                      <Button variant="default" size="sm" onClick={() => setIsEditing(false)}>
+                        <SystemIcon name="action.complete" size="sm" tone="success" className="mr-1.5" /> {t("common.ready")}
                       </Button>
-                    )}
-                    <Button variant="outline" size="sm" onClick={copyToClipboard}>
-                      <Copy className="h-3.5 w-3.5 mr-1.5" /> {t("common.copy")}
-                    </Button>
-                    <Button
-                      variant="outline" size="sm"
-                      onClick={() => saveToFavorites.mutate()}
-                      disabled={saveToFavorites.isPending}
-                    >
-                      <Heart className="h-3.5 w-3.5 mr-1.5" /> {t("common.save")}
-                    </Button>
-                    <Button
-                      variant="ghost" size="sm"
-                      onClick={() => generate.mutate()}
-                      disabled={generate.isPending}
-                    >
-                      <RefreshCw className="h-3.5 w-3.5 mr-1.5" /> {t("ai.regenerate")}
-                    </Button>
-                  </div>
-
-                  {/* Feedback buttons */}
-                  <div className="flex items-center gap-1 bg-surface-1 rounded-lg p-1">
-                    <Button
-                      variant={feedbackGiven === "positive" ? "default" : "ghost"}
-                      size="sm"
-                      className={`h-8 w-8 p-0 ${feedbackGiven === "positive" ? "bg-success hover:bg-success/90 text-success-foreground" : ""}`}
-                      onClick={() => sendFeedback.mutate("positive")}
-                      disabled={feedbackGiven !== null || sendFeedback.isPending}
-                    >
-                      <ThumbsUp className="h-3.5 w-3.5" />
-                    </Button>
-                    <Button
-                      variant={feedbackGiven === "negative" ? "default" : "ghost"}
-                      size="sm"
-                      className={`h-8 w-8 p-0 ${feedbackGiven === "negative" ? "bg-destructive hover:bg-destructive/90 text-destructive-foreground" : ""}`}
-                      onClick={() => sendFeedback.mutate("negative")}
-                      disabled={feedbackGiven !== null || sendFeedback.isPending}
-                    >
-                      <ThumbsDown className="h-3.5 w-3.5" />
-                    </Button>
-                  </div>
+                      {originalResult && (editedTitle !== originalResult.title_ka || editedBody !== originalResult.body_ka) && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setEditedTitle(originalResult.title_ka);
+                            setEditedBody(originalResult.body_ka);
+                            setShowDiff(false);
+                          }}
+                        >
+                          <SystemIcon name="action.back" size="sm" tone="muted" className="mr-1.5" /> {t("common.restore")}
+                        </Button>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      {/* Primary actions */}
+                      <Button variant="outline" size="sm" onClick={copyToClipboard}>
+                        <SystemIcon name="action.copy" size="sm" tone="muted" className="mr-1.5" /> {t("common.copy")}
+                      </Button>
+                      <Button
+                        variant="outline" size="sm"
+                        onClick={() => saveToFavorites.mutate()}
+                        disabled={saveToFavorites.isPending}
+                      >
+                        <SystemIcon name="action.favorite" size="sm" tone="primary" className="mr-1.5" /> {t("common.save")}
+                      </Button>
+                      {/* Overflow actions */}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0 ml-auto">
+                            <SystemIcon name="nav.more" size="sm" tone="muted" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => setIsEditing(true)}>
+                            <SystemIcon name="action.edit" size="sm" tone="muted" className="mr-2" /> {t("common.edit")}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => navigate("/feasts")}>
+                            <SystemIcon name="nav.feasts" size="sm" tone="muted" className="mr-2" /> {t("ai.useInFeast")}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => generate.mutate()} disabled={generate.isPending}>
+                            <SystemIcon name="action.regenerate" size="sm" tone="muted" className="mr-2" /> {t("ai.regenerate")}
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                      {/* Inline feedback */}
+                      <div className="flex items-center gap-1 bg-surface-1 rounded-lg p-1">
+                        <Button
+                          variant={feedbackGiven === "positive" ? "default" : "ghost"}
+                          size="sm"
+                          className={`h-8 w-8 p-0 ${feedbackGiven === "positive" ? "bg-success hover:bg-success/90 text-success-foreground" : ""}`}
+                          onClick={() => sendFeedback.mutate("positive")}
+                          disabled={feedbackGiven !== null || sendFeedback.isPending}
+                        >
+                          <SystemIcon name="status.success" size="sm" tone="success" />
+                        </Button>
+                        <Button
+                          variant={feedbackGiven === "negative" ? "default" : "ghost"}
+                          size="sm"
+                          className={`h-8 w-8 p-0 ${feedbackGiven === "negative" ? "bg-destructive hover:bg-destructive/90 text-destructive-foreground" : ""}`}
+                          onClick={() => sendFeedback.mutate("negative")}
+                          disabled={feedbackGiven !== null || sendFeedback.isPending}
+                        >
+                          <SystemIcon name="status.error" size="sm" tone="danger" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -678,7 +738,7 @@ const AIGeneratePage = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                     {dg.recommended_pace && (
                       <div className="flex items-start gap-2 p-2.5 rounded-lg bg-background border border-border">
-                        <Clock className="h-3.5 w-3.5 text-muted-foreground mt-0.5 shrink-0" />
+                        <SystemIcon name="status.time" size="sm" tone="muted" className="mt-0.5 shrink-0" />
                         <div>
                           <span className="font-medium text-foreground block">{t("ai.delivery.pace")}</span>
                           <span className="text-muted-foreground">
