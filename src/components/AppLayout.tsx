@@ -82,6 +82,7 @@ function getPageTitle(path: string, t: (key: string) => string): string {
     "/favorites": t("nav.favorites"),
     "/profile": t("nav.profile"),
     "/upgrade": t("upgrade.title"),
+    "/api-testing": t("nav.apiTesting"),
   };
 
   if (map[path]) return map[path];
