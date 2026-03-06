@@ -888,17 +888,17 @@ async function handleChatMessageVoice(body: Record<string, unknown>, apiKeyData:
   const isToast = detectToast(aiContent, !!quickParams);
   const messageType = isToast ? "toast" : "text";
 
-  // TTS Stage
+  // TTS Stage (gracefully degrades if ElevenLabs is unavailable)
   const audioBytes = await synthesizeSpeech(aiContent.replace(/---/g, "").trim(), language);
 
   // Generate message ID first
   const msgId = crypto.randomUUID();
 
-  // Upload audio
-  const audioUrl = await uploadAudioToStorage(session.id, msgId, audioBytes);
+  // Upload audio (only if TTS succeeded)
+  const audioUrl = audioBytes ? await uploadAudioToStorage(session.id, msgId, audioBytes) : null;
 
   // Estimate duration (~150 chars per 10 seconds is rough)
-  const audioDuration = Math.max(1, (aiContent.length / 15));
+  const audioDuration = audioBytes ? Math.max(1, (aiContent.length / 15)) : null;
 
   // Store assistant message
   const { data: savedMsg } = await db.from("external_chat_messages").insert({
