@@ -33,6 +33,7 @@ import {
   Lock,
   Eye,
   EyeOff,
+  Terminal,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import HornIcon from "@/components/icons/HornIcon";
