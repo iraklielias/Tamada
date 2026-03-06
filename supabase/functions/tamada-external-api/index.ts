@@ -689,10 +689,13 @@ async function transcribeAudio(audioBase64: string, audioFormat: string, languag
 // ElevenLabs TTS (Text-to-Speech)
 // ============================================================
 
-async function synthesizeSpeech(text: string, language: string): Promise<Uint8Array> {
+async function synthesizeSpeech(text: string, language: string): Promise<Uint8Array | null> {
   const ELEVENLABS_API_KEY = Deno.env.get("ELEVENLABS_API_KEY");
   const VOICE_ID = Deno.env.get("ELEVENLABS_VOICE_ID") || "JBFqnCBsd6RMkjVDRZzb";
-  if (!ELEVENLABS_API_KEY) throw new Error("ELEVENLABS_API_KEY is not configured");
+  if (!ELEVENLABS_API_KEY) {
+    console.warn("ELEVENLABS_API_KEY not configured, skipping TTS");
+    return null;
+  }
 
   const response = await fetch(
     `https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}?output_format=mp3_44100_128`,
@@ -718,6 +721,11 @@ async function synthesizeSpeech(text: string, language: string): Promise<Uint8Ar
   if (!response.ok) {
     const errText = await response.text();
     console.error("ElevenLabs TTS error:", response.status, errText);
+    // Gracefully degrade on payment/quota errors instead of crashing
+    if (response.status === 402 || response.status === 403 || response.status === 429) {
+      console.warn(`TTS unavailable (${response.status}), returning text-only response`);
+      return null;
+    }
     throw new Error(`TTS failed: ${response.status}`);
   }
 
