@@ -827,7 +827,7 @@ function AlaverdiMockup() {
               animate={inView ? { scale: 1 } : {}}
               transition={{ type: "spring", stiffness: 300, damping: 15, delay: 0.3 + i * 0.1 }}
               className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
-                g.active ? "bg-wine-deep text-white" : "bg-wine-light text-wine-deep"
+                ('active' in g && g.active) ? "bg-wine-deep text-white" : "bg-wine-light text-wine-deep"
               }`}
             >
               {g.name[0]}
