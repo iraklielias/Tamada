@@ -323,10 +323,18 @@ const ToastDetailDialog: React.FC<ToastDetailDialogProps> = ({
         .update({ assigned_custom_toast_id: newCustomToast.id, assigned_toast_id: null })
         .eq("id", selectedToast.id);
       if (updateErr) throw updateErr;
+
+      return newCustomToast.id;
     },
-    onSuccess: () => {
+    onSuccess: (newCustomToastId) => {
       sonnerToast.success(t("feastDetail.versionRestored", "ვერსია აღდგენილია"));
       setShowVersions(false);
+      if (newCustomToastId && onUpdateSelectedToast) {
+        onUpdateSelectedToast({
+          assigned_custom_toast_id: newCustomToastId,
+          assigned_toast_id: null,
+        });
+      }
       onToastUpdated();
       queryClient.invalidateQueries({ queryKey: ["custom-toast-body"] });
       queryClient.invalidateQueries({ queryKey: ["assigned-toast-body"] });
