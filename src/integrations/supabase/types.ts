@@ -58,6 +58,51 @@ export type Database = {
           },
         ]
       }
+      api_keys: {
+        Row: {
+          allowed_origins: string[] | null
+          client_id: string
+          client_name: string
+          created_at: string | null
+          daily_limit_per_user: number | null
+          expires_at: string | null
+          id: string
+          is_active: boolean | null
+          key_hash: string
+          key_prefix: string
+          last_used_at: string | null
+          total_daily_limit: number | null
+        }
+        Insert: {
+          allowed_origins?: string[] | null
+          client_id: string
+          client_name: string
+          created_at?: string | null
+          daily_limit_per_user?: number | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          key_hash: string
+          key_prefix: string
+          last_used_at?: string | null
+          total_daily_limit?: number | null
+        }
+        Update: {
+          allowed_origins?: string[] | null
+          client_id?: string
+          client_name?: string
+          created_at?: string | null
+          daily_limit_per_user?: number | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          key_hash?: string
+          key_prefix?: string
+          last_used_at?: string | null
+          total_daily_limit?: number | null
+        }
+        Relationships: []
+      }
       custom_toasts: {
         Row: {
           ai_generation_params: Json | null
@@ -107,6 +152,144 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      external_chat_messages: {
+        Row: {
+          audio_duration_seconds: number | null
+          audio_url: string | null
+          content: string
+          created_at: string | null
+          generation_duration_ms: number | null
+          id: string
+          message_type: string | null
+          metadata: Json | null
+          role: string
+          session_id: string
+          tokens_used: number | null
+        }
+        Insert: {
+          audio_duration_seconds?: number | null
+          audio_url?: string | null
+          content: string
+          created_at?: string | null
+          generation_duration_ms?: number | null
+          id?: string
+          message_type?: string | null
+          metadata?: Json | null
+          role: string
+          session_id: string
+          tokens_used?: number | null
+        }
+        Update: {
+          audio_duration_seconds?: number | null
+          audio_url?: string | null
+          content?: string
+          created_at?: string | null
+          generation_duration_ms?: number | null
+          id?: string
+          message_type?: string | null
+          metadata?: Json | null
+          role?: string
+          session_id?: string
+          tokens_used?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "external_chat_messages_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "external_chat_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      external_chat_sessions: {
+        Row: {
+          api_key_id: string
+          created_at: string | null
+          external_user_id: string
+          id: string
+          metadata: Json | null
+          preferred_language: string | null
+          preferred_mode: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          api_key_id: string
+          created_at?: string | null
+          external_user_id: string
+          id?: string
+          metadata?: Json | null
+          preferred_language?: string | null
+          preferred_mode?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          api_key_id?: string
+          created_at?: string | null
+          external_user_id?: string
+          id?: string
+          metadata?: Json | null
+          preferred_language?: string | null
+          preferred_mode?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "external_chat_sessions_api_key_id_fkey"
+            columns: ["api_key_id"]
+            isOneToOne: false
+            referencedRelation: "api_keys"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      external_usage_tracking: {
+        Row: {
+          api_key_id: string
+          created_at: string | null
+          external_user_id: string
+          generation_count: number | null
+          id: string
+          total_audio_seconds: number | null
+          total_tokens_used: number | null
+          updated_at: string | null
+          usage_date: string
+          voice_generation_count: number | null
+        }
+        Insert: {
+          api_key_id: string
+          created_at?: string | null
+          external_user_id: string
+          generation_count?: number | null
+          id?: string
+          total_audio_seconds?: number | null
+          total_tokens_used?: number | null
+          updated_at?: string | null
+          usage_date?: string
+          voice_generation_count?: number | null
+        }
+        Update: {
+          api_key_id?: string
+          created_at?: string | null
+          external_user_id?: string
+          generation_count?: number | null
+          id?: string
+          total_audio_seconds?: number | null
+          total_tokens_used?: number | null
+          updated_at?: string | null
+          usage_date?: string
+          voice_generation_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "external_usage_tracking_api_key_id_fkey"
+            columns: ["api_key_id"]
+            isOneToOne: false
+            referencedRelation: "api_keys"
             referencedColumns: ["id"]
           },
         ]
