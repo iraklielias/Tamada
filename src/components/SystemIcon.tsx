@@ -55,6 +55,7 @@ export type IconName =
   | "nav.favorites"
   | "nav.profile"
   | "nav.upgrade"
+  | "nav.apiTesting"
   | "nav.more"
   | "action.add"
   | "action.search"
