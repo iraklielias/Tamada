@@ -548,5 +548,21 @@
     "avgLatency": "Avg Latency",
     "adaptiveLearning": "Adaptive Learning",
     "noHistory": "No history yet"
+  },
+  "apiTesting": {
+    "title": "API Testing Dashboard",
+    "tabs": {
+      "chat": "Chat Simulator",
+      "endpoints": "Endpoint Tester",
+      "keys": "API Keys",
+      "usage": "Usage Analytics",
+      "voice": "Voice Settings"
+    },
+    "loadHistory": "Load",
+    "generating": "Generating...",
+    "keys": {
+      "generate": "Generate New Key",
+      "existing": "Existing Keys"
+    }
   }
 }
