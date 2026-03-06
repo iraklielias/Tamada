@@ -27,6 +27,7 @@ import JoinFeastPage from "./pages/JoinFeastPage";
 import UpgradePage from "./pages/UpgradePage";
 import AdminTelemetryPage from "./pages/AdminTelemetryPage";
 import AIHistoryPage from "./pages/AIHistoryPage";
+import ApiTestingPage from "./pages/ApiTestingPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -73,6 +74,7 @@ const App = () => (
                 <Route path="/favorites" element={<FavoritesPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/upgrade" element={<UpgradePage />} />
+                <Route path="/api-testing" element={<ApiTestingPage />} />
                 <Route path="/admin/telemetry" element={<AdminTelemetryPage />} />
               </Route>
 

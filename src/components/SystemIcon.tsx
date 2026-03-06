@@ -33,6 +33,7 @@ import {
   Lock,
   Eye,
   EyeOff,
+  Terminal,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import HornIcon from "@/components/icons/HornIcon";
@@ -54,6 +55,7 @@ export type IconName =
   | "nav.favorites"
   | "nav.profile"
   | "nav.upgrade"
+  | "nav.apiTesting"
   | "nav.more"
   | "action.add"
   | "action.search"
@@ -111,6 +113,7 @@ const ICON_COMPONENTS: Record<IconName, React.ComponentType<React.SVGProps<SVGSV
   "nav.favorites": Star,
   "nav.profile": User,
   "nav.upgrade": Crown,
+  "nav.apiTesting": Terminal,
   "nav.more": MoreHorizontal,
 
   // Actions

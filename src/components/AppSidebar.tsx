@@ -28,6 +28,7 @@ const mainNav: { titleKey: string; url: string; icon: IconName }[] = [
   { titleKey: "nav.library", url: "/library", icon: "nav.library" },
   { titleKey: "nav.aiGenerator", url: "/ai-generate", icon: "nav.ai" },
   { titleKey: "nav.favorites", url: "/favorites", icon: "nav.favorites" },
+  { titleKey: "nav.apiTesting", url: "/api-testing", icon: "nav.apiTesting" },
 ];
 
 export function AppSidebar() {

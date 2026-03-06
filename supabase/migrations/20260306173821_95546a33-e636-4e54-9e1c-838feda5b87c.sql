@@ -1,0 +1,1 @@
+INSERT INTO storage.buckets (id, name, public) VALUES ('chat-audio', 'chat-audio', true) ON CONFLICT (id) DO NOTHING;
