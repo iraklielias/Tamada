@@ -595,11 +595,12 @@ function buildQuickParamsContext(quickParams: Record<string, string> | null, lan
 }
 
 function detectToast(content: string, hasQuickParams: boolean): boolean {
-  const hasDelimiters = content.includes("---");
+  const hasNewDelimiters = content.includes("===TOAST_START===") || content.includes("===TOAST_END===");
+  const hasOldDelimiters = content.includes("---");
   const hasCheers = content.includes("გაუმარჯოს");
   const hasMemorial = content.includes("ნათელი იყოს") || content.includes("ღვთის შეუნდოს");
   const isLong = content.length > 100 && hasQuickParams;
-  return hasDelimiters || hasCheers || hasMemorial || isLong;
+  return hasNewDelimiters || hasOldDelimiters || hasCheers || hasMemorial || isLong;
 }
 
 // ============================================================
