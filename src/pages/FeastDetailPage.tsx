@@ -153,10 +153,11 @@ interface ToastDetailDialogProps {
   feastId: string | undefined;
   feast: any;
   onToastUpdated: () => void;
+  onUpdateSelectedToast?: (updates: Partial<any>) => void;
 }
 
 const ToastDetailDialog: React.FC<ToastDetailDialogProps> = ({
-  selectedToast, onClose, t, isHost, isDraft, feastId, feast, onToastUpdated,
+  selectedToast, onClose, t, isHost, isDraft, feastId, feast, onToastUpdated, onUpdateSelectedToast,
 }) => {
   const [retryComment, setRetryComment] = useState("");
   const [selectedTone, setSelectedTone] = useState<string | null>(null);
