@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Loader2, ChevronDown } from "lucide-react";
+import { Loader2, ChevronDown, Users, Clock } from "lucide-react";
 import SystemIcon from "@/components/SystemIcon";
 import { toast as sonnerToast } from "sonner";
 

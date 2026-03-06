@@ -819,7 +819,7 @@ function AlaverdiMockup() {
             animate={inView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.35, delay: 0.2 + i * 0.1 }}
             className={`flex items-center gap-3 py-3 px-3.5 rounded-lg bg-card border ${
-              g.active ? "border-wine-muted/40 bg-wine-light/20" : "border-border"
+              ('active' in g && g.active) ? "border-wine-muted/40 bg-wine-light/20" : "border-border"
             }`}
           >
             <motion.div
@@ -827,7 +827,7 @@ function AlaverdiMockup() {
               animate={inView ? { scale: 1 } : {}}
               transition={{ type: "spring", stiffness: 300, damping: 15, delay: 0.3 + i * 0.1 }}
               className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
-                g.active ? "bg-wine-deep text-white" : "bg-wine-light text-wine-deep"
+                ('active' in g && g.active) ? "bg-wine-deep text-white" : "bg-wine-light text-wine-deep"
               }`}
             >
               {g.name[0]}
