@@ -819,7 +819,7 @@ function AlaverdiMockup() {
             animate={inView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.35, delay: 0.2 + i * 0.1 }}
             className={`flex items-center gap-3 py-3 px-3.5 rounded-lg bg-card border ${
-              g.active ? "border-wine-muted/40 bg-wine-light/20" : "border-border"
+              ('active' in g && g.active) ? "border-wine-muted/40 bg-wine-light/20" : "border-border"
             }`}
           >
             <motion.div
