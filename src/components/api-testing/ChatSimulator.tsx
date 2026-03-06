@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Mic, Send, ChevronDown, Loader2, Volume2, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { ChatBubble } from "./ChatBubble";
 import { ToastCard } from "./ToastCard";
 import { ApiInspector } from "./ApiInspector";
@@ -95,7 +96,16 @@ export function ChatSimulator({ api }: ChatSimulatorProps) {
 
   const handleVoiceRecord = async () => {
     if (recorder.state === "idle") {
-      await recorder.startRecording();
+      try {
+        await recorder.startRecording();
+      } catch (err) {
+        const msg = err instanceof Error && err.name === "NotAllowedError"
+          ? "მიკროფონზე წვდომა უარყოფილია. შეამოწმეთ ბრაუზერის ნებართვები."
+          : "მიკროფონის გაშვება ვერ მოხერხდა.";
+        toast.error(msg);
+        recorder.resetState();
+        return;
+      }
     } else if (recorder.state === "recording") {
       setIsLoading(true);
       setVoiceStage("transcribing");

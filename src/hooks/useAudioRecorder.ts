@@ -44,9 +44,11 @@ export function useAudioRecorder() {
         const blob = new Blob(chunksRef.current, { type: "audio/webm" });
         const arrayBuffer = await blob.arrayBuffer();
         const bytes = new Uint8Array(arrayBuffer);
+        const chunkSize = 8192;
         let binary = "";
-        for (let i = 0; i < bytes.length; i++) {
-          binary += String.fromCharCode(bytes[i]);
+        for (let i = 0; i < bytes.length; i += chunkSize) {
+          const chunk = bytes.subarray(i, Math.min(i + chunkSize, bytes.length));
+          binary += String.fromCharCode(...chunk);
         }
         const base64 = btoa(binary);
 

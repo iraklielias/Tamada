@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import type {
   ChatResponse,
   VoiceChatResponse,
@@ -10,7 +10,16 @@ import type {
 const API_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/tamada-external-api`;
 
 export function useTamadaExternalApi() {
-  const [apiKey, setApiKey] = useState("");
+  const [apiKey, setApiKeyState] = useState(() =>
+    typeof window !== "undefined" ? sessionStorage.getItem("tamada_api_key") || "" : ""
+  );
+
+  const setApiKey = useCallback((key: string) => {
+    setApiKeyState(key);
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("tamada_api_key", key);
+    }
+  }, []);
   const [inspectorLog, setInspectorLog] = useState<ApiInspectorEntry[]>([]);
 
   const addInspectorEntry = useCallback((entry: ApiInspectorEntry) => {
