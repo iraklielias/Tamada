@@ -871,11 +871,16 @@ async function handleChatMessage(body: Record<string, unknown>, apiKeyData: Reco
     metadata: quickParams ? { quick_params: quickParams } : null,
   });
 
-  // Load recent messages for context
-  const recentMessages = await loadRecentMessages(session.id);
+  // Load recent messages for context (increased limit for better memory)
+  const recentMessages = await loadRecentMessages(session.id, 20);
+
+  // Inject gathered params so AI remembers what it already collected
+  const gatheredContext = session.gathered_params && Object.keys(session.gathered_params).length > 0
+    ? [{ role: "system", content: `[ALREADY_GATHERED_PARAMS: ${JSON.stringify(session.gathered_params)}]\nDo NOT re-ask for information that is already gathered above. Use these values directly when generating toasts.` }]
+    : [];
 
   // Generate AI response
-  const { content: aiContent, tokensUsed, durationMs } = await generateAIResponse(recentMessages);
+  const { content: aiContent, tokensUsed, durationMs } = await generateAIResponse([...gatheredContext, ...recentMessages]);
 
   // Extract params from AI response
   const { cleanContent, params: extractedParams } = extractParams(aiContent);
