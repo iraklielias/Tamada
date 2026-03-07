@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Copy, Volume2, Pause, Wine } from "lucide-react";
 import { toast as sonnerToast } from "sonner";
+import WineGlassIcon from "@/components/icons/WineGlassIcon";
 import type { ExternalChatMessage } from "@/types/external-api";
 
 interface ToastCardProps {
