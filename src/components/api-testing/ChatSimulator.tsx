@@ -140,7 +140,7 @@ export function ChatSimulator({ api, onOpenVoiceMode, language, onLanguageChange
 
   return (
     <>
-      <Card className="flex flex-col h-[calc(100vh-8rem)] md:h-[700px] overflow-hidden">
+      <Card className="flex flex-col h-[100dvh] md:h-[700px] overflow-hidden rounded-none md:rounded-xl border-x-0 md:border-x">
         <ChatHeader
           language={language}
           onToggleLanguage={() => onLanguageChange(language === "ka" ? "en" : "ka")}
@@ -208,24 +208,23 @@ export function ChatSimulator({ api, onOpenVoiceMode, language, onLanguageChange
           )}
         </CardContent>
 
-        {/* Input bar */}
-        <div className="p-3 border-t border-border bg-card/50 backdrop-blur-sm">
-          <div className="flex items-center gap-2">
+        {/* Input bar — safe area padding on mobile */}
+        <div className="p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] border-t border-border bg-card/50 backdrop-blur-sm">
+          <div className="flex items-center gap-1.5">
             <Button
-              size="sm"
+              size="icon"
               variant="ghost"
-              className="flex-shrink-0 text-primary hover:bg-primary/10 gap-1.5 px-2.5"
+              className="h-9 w-9 flex-shrink-0 text-primary hover:bg-primary/10"
               onClick={onOpenVoiceMode}
-              title={language === "ka" ? "ხმოვანი რეჟიმი — ხელისუფლებად საუბარი" : "Voice Mode — hands-free conversation"}
+              title={language === "ka" ? "ხმოვანი რეჟიმი" : "Voice Mode"}
             >
               <Mic className="h-4 w-4" />
-              <span className="text-xs hidden sm:inline">{language === "ka" ? "ხმოვანი" : "Voice"}</span>
             </Button>
             <Input
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
-              placeholder={language === "ka" ? "დაწერეთ შეტყობინება..." : "Type a message..."}
-              className="h-9 rounded-full bg-muted/50 border-none focus-visible:ring-1 focus-visible:ring-primary/30"
+              placeholder={language === "ka" ? "შეტყობინება..." : "Message..."}
+              className="h-9 rounded-full bg-muted/50 border-none focus-visible:ring-1 focus-visible:ring-primary/30 text-sm"
               onKeyDown={(e) => e.key === "Enter" && handleSendText()}
               disabled={needsApiKey}
             />

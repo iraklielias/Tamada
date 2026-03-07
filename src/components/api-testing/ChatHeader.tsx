@@ -28,16 +28,16 @@ export function ChatHeader({ language, onToggleLanguage, onOpenSettings, onReset
   }
 
   return (
-    <div className="flex items-center gap-2 px-4 py-3 border-b border-border bg-card/50 backdrop-blur-sm">
-      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center flex-shrink-0">
-        <Wine className="w-4 h-4 text-primary-foreground" />
+    <div className="flex items-center gap-1.5 px-3 py-2.5 border-b border-border bg-card/50 backdrop-blur-sm">
+      <div className="w-7 h-7 md:w-8 md:h-8 rounded-lg bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center flex-shrink-0">
+        <Wine className="w-3.5 h-3.5 md:w-4 md:h-4 text-primary-foreground" />
       </div>
       <div className="flex-1 min-w-0">
-        <h1 className="text-sm font-display font-bold text-foreground leading-tight">
+        <h1 className="text-xs md:text-sm font-display font-bold text-foreground leading-tight truncate">
           {language === "ka" ? "თამადა AI" : "TAMADA AI"}
         </h1>
         {paramBadges.length > 0 && (
-          <div className="flex items-center gap-1 mt-0.5 overflow-x-auto">
+          <div className="flex items-center gap-1 mt-0.5 overflow-x-auto scrollbar-none">
             {paramBadges.map((b, i) => (
               <Badge key={i} variant="secondary" className="text-[10px] px-1.5 py-0 h-4 whitespace-nowrap">
                 {b}
@@ -48,7 +48,7 @@ export function ChatHeader({ language, onToggleLanguage, onOpenSettings, onReset
       </div>
 
       {usage && (
-        <Badge variant="outline" className="text-[10px] h-5 flex-shrink-0">
+        <Badge variant="outline" className="text-[10px] h-5 flex-shrink-0 hidden sm:flex">
           {usage.used_today}/{usage.daily_limit}
         </Badge>
       )}
@@ -57,27 +57,26 @@ export function ChatHeader({ language, onToggleLanguage, onOpenSettings, onReset
         <Button
           size="icon"
           variant="ghost"
-          className="h-8 w-8 flex-shrink-0 text-destructive/70 hover:text-destructive hover:bg-destructive/10"
+          className="h-7 w-7 md:h-8 md:w-8 flex-shrink-0 text-destructive/70 hover:text-destructive hover:bg-destructive/10"
           onClick={onReset}
           title={language === "ka" ? "თავიდან დაწყება" : "Start over"}
         >
-          <RotateCcw className="h-4 w-4" />
+          <RotateCcw className="h-3.5 w-3.5" />
         </Button>
       )}
 
-      {/* Language badge toggle */}
       <Button
         size="sm"
         variant="outline"
-        className="h-7 px-2 text-xs font-bold flex-shrink-0 border-primary/30 hover:bg-primary/10"
+        className="h-6 md:h-7 px-1.5 md:px-2 text-[10px] md:text-xs font-bold flex-shrink-0 border-primary/30 hover:bg-primary/10"
         onClick={onToggleLanguage}
         title={language === "ka" ? "Switch to English" : "ქართულზე გადართვა"}
       >
         {language === "ka" ? "KA" : "EN"}
       </Button>
 
-      <Button size="icon" variant="ghost" className="h-8 w-8 flex-shrink-0" onClick={onOpenSettings}>
-        <Settings className="h-4 w-4" />
+      <Button size="icon" variant="ghost" className="h-7 w-7 md:h-8 md:w-8 flex-shrink-0" onClick={onOpenSettings}>
+        <Settings className="h-3.5 w-3.5 md:h-4 md:w-4" />
       </Button>
     </div>
   );
