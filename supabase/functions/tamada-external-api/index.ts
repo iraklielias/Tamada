@@ -977,7 +977,7 @@ async function handleChatMessageVoice(body: Record<string, unknown>, apiKeyData:
   const isVoiceMode = body.mode === "voice";
   const { content: aiContent, tokensUsed, durationMs } = await generateAIResponse(
     isVoiceMode
-      ? [...recentMessages, { role: "system", content: "VOICE_CONVERSATION_MODE is active. Keep responses very short." }]
+      ? [...recentMessages, { role: "system", content: "VOICE_CONVERSATION_MODE is active. Keep responses concise (1-2 sentences) but ALWAYS follow PARAMETER_GATHERING rules — you MUST ask for occasion and recipient before generating any toast. Never skip this." }]
       : recentMessages
   );
 

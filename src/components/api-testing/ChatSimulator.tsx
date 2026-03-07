@@ -138,8 +138,10 @@ export function ChatSimulator({ api, onOpenVoiceMode, language, onLanguageChange
           language={language}
           onToggleLanguage={() => onLanguageChange(language === "ka" ? "en" : "ka")}
           onOpenSettings={() => setSettingsOpen(true)}
+          onReset={handleClear}
           usage={usage}
           extractedParams={extractedParams}
+          hasMessages={messages.length > 0}
         />
 
         {/* Messages area */}

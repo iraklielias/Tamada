@@ -53,6 +53,18 @@ export function ChatHeader({ language, onToggleLanguage, onOpenSettings, onReset
         </Badge>
       )}
 
+      {hasMessages && onReset && (
+        <Button
+          size="icon"
+          variant="ghost"
+          className="h-8 w-8 flex-shrink-0 text-destructive/70 hover:text-destructive hover:bg-destructive/10"
+          onClick={onReset}
+          title={language === "ka" ? "თავიდან დაწყება" : "Start over"}
+        >
+          <RotateCcw className="h-4 w-4" />
+        </Button>
+      )}
+
       <Button size="icon" variant="ghost" className="h-8 w-8 flex-shrink-0" onClick={onToggleLanguage}>
         <Globe className="h-4 w-4" />
       </Button>

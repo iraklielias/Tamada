@@ -135,6 +135,8 @@ export function FullVoiceMode({ api, userId, language, onClose, onMessage, onPar
   const handleOrbClick = useCallback(() => {
     if (voice.stage === "idle") {
       voice.startSession();
+    } else if (voice.stage === "listening") {
+      voice.stopListening();
     } else if (voice.stage === "speaking") {
       voice.interrupt();
     }
