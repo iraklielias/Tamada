@@ -1,51 +1,109 @@
 
 
-# Fix Plan: Chat Parameter Gathering, Voice Mode Controls, Reset Button
+## TAMADA — Status Audit & Master Execution Plan
 
-## Issues Found
+### What Is Built
 
-### 1. Chat still doesn't ask for details — AI generates toast immediately
-**Root cause**: The `<BILINGUAL_OUTPUT>` section (lines 353-361) in the CORE prompt tells the AI to always output Georgian + English with separator. Even though `<LANGUAGE_ENFORCEMENT>` overrides it in `CONVERSATIONAL_ADDITIONS`, the core prompt's `<CONVERSATIONAL_BEHAVIOR>` section (line 363-376) has its OWN interaction patterns that compete with `<PARAMETER_GATHERING>`. Specifically, line 368: "Vague request → ask occasion" and line 369 suggest the AI CAN generate after occasion only. The AI follows whichever section it "feels" is stronger. The `<PARAMETER_GATHERING>` says "MUST have occasion + person_name" but the `<CONVERSATIONAL_BEHAVIOR>` section's patterns encourage quicker generation.
+| Area | Status |
+|------|--------|
+| Landing page (`/`) | Done — hero, features, how-it-works, footer |
+| Auth (login, signup, callback) | Done — email/password, onAuthStateChange, protected routes |
+| Onboarding wizard (`/onboarding`) | Done — 4 steps: name, region, experience, occasions |
+| App shell (sidebar + bottom nav) | Done — collapsible sidebar, mobile bottom nav, profile footer |
+| Dashboard (`/dashboard`) | Done — greeting, quick actions, recent feasts, popular toasts |
+| Toasts browse (`/toasts`) | Done — search, occasion/formality filters, favorite toggle |
+| AI Generator (`/ai-generate`) | Done — occasion/formality/topic form, edge function, save to favorites |
+| Favorites (`/favorites`) | Done — list system + custom favorites, remove |
+| Library (`/library`) | Done — reads toast_templates (currently 0 rows) |
+| Profile (`/profile`) | Done — read-only display, logout |
+| Edge function: `generate-toast` | Done — Lovable AI gateway, JSON parse |
+| Database schema + RLS | Done — all 11 tables, policies in place |
+| Seed data: toasts | Done — 11 system toasts |
 
-**Fix**: Remove the competing patterns from `<CONVERSATIONAL_BEHAVIOR>` and make it defer to `<PARAMETER_GATHERING>`. Add explicit: "NEVER generate a toast until PARAMETER_GATHERING requirements are met." Also, the `<BILINGUAL_OUTPUT>` section itself should be removed from the core prompt since it conflicts with the language enforcement — or at minimum explicitly disabled.
+### What Is NOT Built
 
-### 2. Voice mode: tapping orb while listening doesn't stop recording
-**Root cause**: `handleOrbClick` only handles `idle` and `speaking` stages. No `stopListening()` method is exposed from `useVoiceConversation`. When user taps mic during `listening`, nothing happens.
-
-**Fix**: Add `stopListening()` to `useVoiceConversation` that manually stops the MediaRecorder. Add `listening` case to `handleOrbClick` in `FullVoiceMode`.
-
-### 3. No "Reset" button in chat
-**Root cause**: The "Clear History" is buried in the Settings drawer. User wants a visible reset button that clears context and makes the AI re-ask all gathering questions.
-
-**Fix**: Add a reset button in the chat header (or as a floating button). On reset: call `clearHistory`, clear local messages + extractedParams, and the next message will trigger a fresh session with welcome + parameter gathering.
-
-### 4. Thinking loader in voice mode is too plain
-**Current**: Spinning border ring. Need a classier 3-dot pulse animation.
-
-**Fix**: Replace the spinning border with wine-colored animated dots during `thinking` and `transcribing` states.
+| Area | Spec Section |
+|------|-------------|
+| **Feast CRUD** — `/feasts`, `/feasts/new`, `/feasts/:id` | Sections 3, 4, 5 |
+| **Live Feast Mode** — `/feasts/:id/live` with timer, toast progression, alerts, audio | Section 6 |
+| **Alaverdi tracking** — FAB, guest assignment, count increment | Section 6 |
+| **Co-Tamada / Realtime** — share code, join link, Supabase Realtime sync | Section 6 + Realtime spec |
+| **Toast template seeding** — 7 templates with JSONB sequences | Seed Data |
+| **More sample toasts** — spec calls for 50-100; we have 11 | Seed Data |
+| **Feast plan from template** — selecting a template populates feast_toasts | Section 4 |
+| **AI Feast Plan generator** — `generate-feast-plan` edge function | AI Integration |
+| **Pro gating / useProGate hook** — daily limits, feature locks, upsell modals | Free vs Pro |
+| **Upgrade page** (`/upgrade`) — comparison table, Stripe checkout | Section 11 |
+| **Stripe integration** — checkout session, webhook, subscription management | Edge Functions |
+| **Profile editing** — avatar upload, edit name/region/experience/language | Section 10 |
+| **PDF export** — jsPDF feast plan export (Pro) | Section 5 |
+| **i18n** — i18next setup, language toggle, all strings externalized | i18n spec |
+| **Dark mode** | Design System |
+| **Keyboard shortcuts** | Desktop spec |
+| **Additional occasion types** in filters (christening, guest_reception, friendly_gathering) | Throughout |
+| **config.toml** — `generate-toast` function entry with `verify_jwt = false` | Edge function config |
 
 ---
 
-## Implementation
+### Master Execution Plan (8 Phases)
 
-### File 1: `supabase/functions/tamada-external-api/index.ts`
-- **Remove** or comment out `<BILINGUAL_OUTPUT>` section (lines 353-361) from core prompt — it's already overridden by `<LANGUAGE_ENFORCEMENT>` and causes confusion
-- **Update** `<CONVERSATIONAL_BEHAVIOR>` to add: "IMPORTANT: Before generating any toast, ensure all PARAMETER_GATHERING requirements are satisfied. Do not generate until you have both occasion AND recipient."
-- In the `generateAIResponse` call for voice mode (line 991), update the injected system message to: "VOICE_CONVERSATION_MODE is active. Keep responses concise but ALWAYS follow PARAMETER_GATHERING rules — ask for occasion and recipient before generating."
+#### Phase 8 — Seed Data & Config Fixes
+- Seed 7 toast templates into `toast_templates` table (wedding, birthday, memorial, guest reception, holiday, corporate, friendly gathering) with proper `toast_sequence` JSONB arrays
+- Add `[functions.generate-toast]` with `verify_jwt = false` to `supabase/config.toml`
+- Add missing occasion types to all filter dropdowns across pages (christening, guest_reception, friendly_gathering, other)
 
-### File 2: `src/hooks/useVoiceConversation.ts`
-- Add `stopListening()` method that stops `mediaRecorderRef.current` if recording
-- Expose it in the return object
+#### Phase 9 — Feast CRUD (Core)
+- Create `/feasts` page — list user's feasts with status filter pills + search
+- Create `/feasts/new` page — multi-section form: basic info, details (guest count, formality, region, duration), template selection, optional guest list
+- Create `/feasts/:id` page — tabbed view (Plan, Guests, Details) with toast timeline, guest management, edit metadata, delete
+- Add routes to `App.tsx`, add "სუფრები" nav item to sidebar and bottom nav
+- Dashboard "ახალი სუფრა" quick action routes to `/feasts/new`; feast cards link to `/feasts/:id`
 
-### File 3: `src/components/api-testing/FullVoiceMode.tsx`
-- Add `listening` case to `handleOrbClick` → call `voice.stopListening()`
-- Replace spinning border loader with a 3-dot wine-colored pulse animation for `thinking`/`transcribing` states
+#### Phase 10 — Live Feast Mode
+- Create `/feasts/:id/live` — full-screen immersive view
+- Current toast display with complete text, toast number, type
+- Next-up preview (2 upcoming toasts)
+- Elapsed time tracker + progress bar
+- "Completed" and "Skip" buttons that update `feast_toasts` status
+- Pause/Resume/End feast controls updating `feasts.status`
+- Timer alert system: amber glow + audio chime at configurable intervals before next toast (Web Audio API)
+- Alaverdi FAB: bottom sheet with guest list, tap to assign, increment `alaverdi_count` via `increment_alaverdi` RPC
 
-### File 4: `src/components/api-testing/ChatSimulator.tsx` or `ChatHeader.tsx`
-- Add a visible "Reset / ახალი" button in the chat area (visible when messages exist)
-- On click: calls `handleClear` (which already calls `api.clearHistory` + resets messages/params)
-- This triggers fresh session + welcome on next message
+#### Phase 11 — Co-Tamada & Realtime
+- Generate `share_code` on feast, build `/feasts/:id/join/:shareCode` route
+- Add user as `feast_collaborator` on join
+- Subscribe to Supabase Realtime channels for `feast_toasts`, `feast_guests`, `feasts` changes
+- Enable realtime publication on relevant tables (`ALTER PUBLICATION supabase_realtime ADD TABLE ...`)
+- Co-Tamada sees live view with read-only controls (can assign alaverdi, cannot pause/end)
+- Online indicator for connected collaborators
 
-### File 5: `src/components/api-testing/ChatHeader.tsx`
-- Add reset button (refresh icon) to the header bar
+#### Phase 12 — Profile Editing & Pro Gating
+- Make profile page editable: avatar upload (to `avatars` bucket), display name, region, experience, language
+- Build `useProGate` hook checking `is_pro` + `pro_expires_at`
+- Enforce free limits: 5 AI generations/day (server + client), 10 favorites, 1 active feast
+- Add server-side rate limit check in `generate-toast` edge function using `get_daily_ai_count`
+- Soft upsell modals when limits reached; gold lock icons on Pro features
+- Create `/upgrade` page with feature comparison table and pricing
+
+#### Phase 13 — Stripe & Subscriptions
+- Enable Stripe integration
+- Create `create-checkout-session` edge function
+- Create `stripe-webhook` edge function handling subscription lifecycle events
+- Wire `/upgrade` page CTA to checkout session
+- Add `/profile/subscription` route for managing active subscription
+
+#### Phase 14 — i18n & Polish
+- Set up i18next with `ka` (default) and `en` locales
+- Extract all hardcoded Georgian strings to locale JSON files
+- Add language toggle to sidebar footer and profile settings
+- Persist language choice to `profiles.preferred_language`
+- Toast content displays `_ka` or `_en` based on selected language
+
+#### Phase 15 — Advanced Features & Hardening
+- `generate-feast-plan` edge function — AI-generated toast schedule based on occasion/duration/formality
+- PDF export of feast plan using jsPDF (Pro only)
+- Dark mode support
+- Keyboard shortcuts in live feast mode (Space = complete, Esc = pause)
+- Additional seed toasts (expand from 11 to 50+)
+- Error boundary components, offline queue for failed writes, optimistic updates throughout
 

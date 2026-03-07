@@ -208,5 +208,11 @@ export function useVoiceConversation({ api, userId, language, onMessage, onParam
     };
   }, []);
 
-  return { stage, startSession, endSession, interrupt, getVolume: vad.getVolume };
+  const stopListening = useCallback(() => {
+    if (mediaRecorderRef.current?.state === "recording") {
+      mediaRecorderRef.current.stop();
+    }
+  }, []);
+
+  return { stage, startSession, endSession, interrupt, stopListening, getVolume: vad.getVolume };
 }

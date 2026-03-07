@@ -1,5 +1,5 @@
 import React from "react";
-import { Wine, Settings, Globe } from "lucide-react";
+import { Wine, Settings, Globe, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { UsageInfo } from "@/types/external-api";
@@ -8,15 +8,17 @@ interface ChatHeaderProps {
   language: "ka" | "en";
   onToggleLanguage: () => void;
   onOpenSettings: () => void;
+  onReset?: () => void;
   usage: UsageInfo | null;
   extractedParams: Record<string, unknown> | null;
+  hasMessages?: boolean;
 }
 
 const PARAM_LABELS: Record<string, Record<string, string>> = {
   occasion_type: { wedding: "💒 ქორწილი", birthday: "🎂 დაბადების დღე", memorial: "🕯️ ქელეხი", christening: "⛪ ნათლობა", guest: "🏠 სტუმარი", friendly: "🤝 მეგობრული", holiday: "🎉 სადღესასწაულო", corporate: "💼 კორპორატიული", supra: "🍷 სუფრა" },
 };
 
-export function ChatHeader({ language, onToggleLanguage, onOpenSettings, usage, extractedParams }: ChatHeaderProps) {
+export function ChatHeader({ language, onToggleLanguage, onOpenSettings, onReset, usage, extractedParams, hasMessages }: ChatHeaderProps) {
   const paramBadges: string[] = [];
   if (extractedParams) {
     const occ = extractedParams.occasion_type as string;
@@ -49,6 +51,18 @@ export function ChatHeader({ language, onToggleLanguage, onOpenSettings, usage, 
         <Badge variant="outline" className="text-[10px] h-5 flex-shrink-0">
           {usage.used_today}/{usage.daily_limit}
         </Badge>
+      )}
+
+      {hasMessages && onReset && (
+        <Button
+          size="icon"
+          variant="ghost"
+          className="h-8 w-8 flex-shrink-0 text-destructive/70 hover:text-destructive hover:bg-destructive/10"
+          onClick={onReset}
+          title={language === "ka" ? "თავიდან დაწყება" : "Start over"}
+        >
+          <RotateCcw className="h-4 w-4" />
+        </Button>
       )}
 
       <Button size="icon" variant="ghost" className="h-8 w-8 flex-shrink-0" onClick={onToggleLanguage}>
