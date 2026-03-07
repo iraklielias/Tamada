@@ -122,6 +122,11 @@ export function FullVoiceMode({ api, userId, language, onClose, onMessage, onPar
     onParamsExtracted,
   });
 
+  const handleClose = useCallback(() => {
+    voice.endSession();
+    onClose();
+  }, [voice, onClose]);
+
   const handleOrbClick = useCallback(() => {
     if (voice.stage === "idle") {
       voice.startSession();
@@ -139,14 +144,14 @@ export function FullVoiceMode({ api, userId, language, onClose, onMessage, onPar
     >
       {/* Close button */}
       <div className="absolute top-4 right-4 flex gap-2">
-        <Button size="icon" variant="ghost" onClick={onClose} className="h-10 w-10">
+        <Button size="icon" variant="ghost" onClick={handleClose} className="h-10 w-10">
           <X className="h-5 w-5" />
         </Button>
       </div>
 
       {/* Switch to text */}
       <div className="absolute top-4 left-4">
-        <Button size="sm" variant="ghost" className="gap-1.5 text-xs" onClick={onClose}>
+        <Button size="sm" variant="ghost" className="gap-1.5 text-xs" onClick={handleClose}>
           <Keyboard className="h-3.5 w-3.5" />
           {language === "ka" ? "ტექსტი" : "Text"}
         </Button>

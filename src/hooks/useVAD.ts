@@ -3,12 +3,14 @@ import { useRef, useCallback, useEffect } from "react";
 interface UseVADOptions {
   silenceThreshold?: number;
   silenceDurationMs?: number;
+  speechThreshold?: number;
   onSilenceDetected?: () => void;
 }
 
 export function useVAD({
   silenceThreshold = 0.01,
   silenceDurationMs = 1500,
+  speechThreshold = 0.03,
   onSilenceDetected,
 }: UseVADOptions = {}) {
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -18,6 +20,7 @@ export function useVAD({
   const silenceStartRef = useRef<number | null>(null);
   const activeRef = useRef(false);
   const callbackRef = useRef(onSilenceDetected);
+  const speechDetectedRef = useRef(false);
 
   useEffect(() => {
     callbackRef.current = onSilenceDetected;
@@ -35,6 +38,7 @@ export function useVAD({
     sourceRef.current = source;
     activeRef.current = true;
     silenceStartRef.current = null;
+    speechDetectedRef.current = false;
 
     const dataArray = new Float32Array(analyser.fftSize);
 
@@ -47,6 +51,15 @@ export function useVAD({
         sum += dataArray[i] * dataArray[i];
       }
       const rms = Math.sqrt(sum / dataArray.length);
+
+      // Gate: only start silence detection after speech is first detected
+      if (!speechDetectedRef.current) {
+        if (rms >= speechThreshold) {
+          speechDetectedRef.current = true;
+        }
+        rafRef.current = requestAnimationFrame(check);
+        return;
+      }
 
       if (rms < silenceThreshold) {
         if (!silenceStartRef.current) {
@@ -64,7 +77,7 @@ export function useVAD({
     };
 
     check();
-  }, [silenceThreshold, silenceDurationMs]);
+  }, [silenceThreshold, silenceDurationMs, speechThreshold]);
 
   const stopMonitoring = useCallback(() => {
     activeRef.current = false;
@@ -74,6 +87,7 @@ export function useVAD({
     audioContextRef.current = null;
     analyserRef.current = null;
     sourceRef.current = null;
+    speechDetectedRef.current = false;
   }, []);
 
   const getVolume = useCallback((): number => {
