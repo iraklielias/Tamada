@@ -17,6 +17,8 @@ import type { ExternalChatMessage, UsageInfo } from "@/types/external-api";
 interface ChatSimulatorProps {
   api: ReturnType<typeof import("@/hooks/useTamadaExternalApi").useTamadaExternalApi>;
   onOpenVoiceMode: () => void;
+  language: "ka" | "en";
+  onLanguageChange: (lang: "ka" | "en") => void;
 }
 
 export function ChatSimulator({ api, onOpenVoiceMode }: ChatSimulatorProps) {
