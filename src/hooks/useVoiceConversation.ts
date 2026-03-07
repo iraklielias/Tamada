@@ -223,6 +223,12 @@ export function useVoiceConversation({ api, userId, language, onMessage, onParam
   }, []);
 
   const stopListening = useCallback(() => {
+    // Pre-create and unlock Audio element NOW, inside the user gesture (tap),
+    // so it can autoplay later after the async API call completes
+    const audio = new Audio();
+    audio.play().catch(() => {});
+    preloadedAudioRef.current = audio;
+
     if (mediaRecorderRef.current?.state === "recording") {
       mediaRecorderRef.current.stop();
     }
