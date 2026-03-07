@@ -149,6 +149,7 @@ export function FullVoiceMode({ api, userId, language, onClose, onMessage, onPar
     (userMsg: ExternalChatMessage | null, assistantMsg: ExternalChatMessage) => {
       if (userMsg) setTranscript(userMsg.content);
       setLastResponse(assistantMsg.content.replace(/===TOAST_START===|===TOAST_END===/g, "").trim());
+      setExpanded(false);
       onMessage(userMsg, assistantMsg);
     },
     [onMessage]
