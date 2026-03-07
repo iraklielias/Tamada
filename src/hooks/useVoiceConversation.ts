@@ -176,7 +176,13 @@ export function useVoiceConversation({ api, userId, language, onMessage, onParam
                 startListening();
               }
             } else if (activeRef.current) {
-              setStage("error");
+              // Check if it's a "no speech" response — silently restart
+              const errMsg = ((res as any).error || "").toLowerCase();
+              if (errMsg.includes("no speech") || errMsg.includes("could not transcribe")) {
+                startListening();
+              } else {
+                setStage("error");
+              }
             }
           } catch (err: any) {
             console.error("Voice conversation error:", err);
