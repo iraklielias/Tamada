@@ -188,15 +188,122 @@ export const tamadaFacts: TamadaFact[] = [
     en: "Bread-baking is sacred in Georgia \u2014 shotis puri is the traditional tandoor bread.",
     category: "food",
   },
+  // Dance traditions
+  {
+    ka: "ქართული ცეკვა „კართული" სიყვარულის ამბავს მოგვითხრობს — მამაკაცი ქალს მოწიწებით უვლის",
+    en: "The 'Kartuli' dance tells a love story — the man courts the woman with grace and reverence.",
+    category: "dance",
+  },
+  {
+    ka: "ცეკვა „ხორუმი" ომის ცეკვაა — 40-მდე მეომარი სინქრონულად მოძრაობს",
+    en: "The 'Khorumi' is a war dance performed by up to 40 warriors moving in perfect sync.",
+    category: "dance",
+  },
+  {
+    ka: "აჭარული ცეკვა ცნობილია თავისი სიმხიარულითა და ფეხის თითებზე ცეკვით",
+    en: "The 'Acharuli' dance is famous for its joyful energy and men dancing on their toes.",
+    category: "dance",
+  },
+  {
+    ka: "ქართველი მამაკაცები ფეხის თითებზე ცეკვავენ პუანტების გარეშე — მხოლოდ ფეხსამოსით",
+    en: "Georgian men dance on their toes without pointe shoes — only in soft leather boots.",
+    category: "dance",
+  },
+  {
+    ka: "„მთიულური" ცეკვა მთიელთა ძალასა და სიმამაცეს ასახავს",
+    en: "The 'Mtiuluri' dance captures the strength and bravery of Georgian mountain people.",
+    category: "dance",
+  },
+  // Famous historical figures
+  {
+    ka: "დავით აღმაშენებელმა საქართველო ძლიერ სამეფოდ აქცია XII საუკუნეში",
+    en: "King David the Builder transformed Georgia into a powerful kingdom in the 12th century.",
+    category: "history",
+  },
+  {
+    ka: "თამარ მეფე საქართველოს ოქროს ხანის მმართველი იყო — პირველი ქალი მეფე კავკასიაში",
+    en: "Queen Tamar ruled Georgia's Golden Age — the first woman monarch in the Caucasus.",
+    category: "history",
+  },
+  {
+    ka: "შოთა რუსთაველი XII საუკუნის პოეტია — „ვეფხისტყაოსანი" მსოფლიო ლიტერატურის შედევრია",
+    en: "Shota Rustaveli, the 12th-century poet, wrote 'The Knight in the Panther's Skin' — a world literary masterpiece.",
+    category: "history",
+  },
+  {
+    ka: "ნიკო ფიროსმანი — თვითნასწავლი მხატვარი, რომლის ნამუშევრები მსოფლიო მუზეუმებშია",
+    en: "Niko Pirosmani was a self-taught painter whose works hang in museums worldwide.",
+    category: "culture",
+  },
+  {
+    ka: "ილია ჭავჭავაძე „ერის მამას" უწოდებენ — თანამედროვე ქართული ერის ფუძემდებელი",
+    en: "Ilia Chavchavadze is called the 'Father of the Nation' — founder of modern Georgian identity.",
+    category: "history",
+  },
+  // Architecture
+  {
+    ka: "ჯვარის მონასტერი (VI ს.) UNESCO-ს მსოფლიო მემკვიდრეობის ძეგლია",
+    en: "Jvari Monastery (6th century) is a UNESCO World Heritage Site overlooking Mtskheta.",
+    category: "architecture",
+  },
+  {
+    ka: "სვანური კოშკები თავდაცვის მიზნით აშენდა — ზოგიერთი 1000 წელზე მეტის არის",
+    en: "Svan towers were built for defense — some are over 1,000 years old and still standing.",
+    category: "architecture",
+  },
+  {
+    ka: "გელათის მონასტერი XII საუკუნეშია აშენებული და ქართული კულტურის სიმბოლოა",
+    en: "Gelati Monastery, built in the 12th century, is a symbol of Georgian cultural achievement.",
+    category: "architecture",
+  },
+  {
+    ka: "ვარძია — კლდეში ნაკვეთი ქალაქი 6000 ოთახით, XII საუკუნეში აშენებული",
+    en: "Vardzia is a cave city carved into a cliff with 6,000 rooms, built in the 12th century.",
+    category: "architecture",
+  },
+  {
+    ka: "თბილისის აბანოთუბანი ცნობილია გოგირდის აბანოებით — ქალაქის სახელიც „თბილი" წყალს ნიშნავს",
+    en: "Tbilisi's Abanotubani is famous for its sulfur baths — the city's name means 'warm waters.'",
+    category: "architecture",
+  },
+  // Regional cuisine differences
+  {
+    ka: "კახეთში მწვადი და ბადრიჯნის როლი ძირითადია — მუქი ღვინო სამზარეულოში ყველგანაა",
+    en: "In Kakheti, grilled meats and eggplant rolls dominate — rich red wine is in every dish.",
+    category: "cuisine",
+  },
+  {
+    ka: "იმერეთში ხაჭაპური თხელია და ნაკლები ყველით — იმერული ხაჭაპური ყველაზე პოპულარულია",
+    en: "In Imereti, khachapuri is thin with less cheese — Imeruli khachapuri is the most popular nationwide.",
+    category: "cuisine",
+  },
+  {
+    ka: "აჭარაში ხაჭაპური ნავის ფორმისაა, კვერცხითა და კარაქით — „აჭარული"",
+    en: "In Adjara, khachapuri is boat-shaped with egg and butter — the famous 'Adjaruli.'",
+    category: "cuisine",
+  },
+  {
+    ka: "მეგრეულ სამზარეულოში ცხარე აჯიკა და გებჟალია ხაშხაშია — ნამდვილი სპაისი",
+    en: "Megrelian cuisine is the spiciest in Georgia — ajika sauce and gebzhalia cheese are fiery staples.",
+    category: "cuisine",
+  },
+  {
+    ka: "ფხალი — სხვადასხვა ბოსტნეულისგან მომზადებული ნიგვზიანი პასტა, ყველა რეგიონს თავისი აქვს",
+    en: "Pkhali is a walnut-herb paste made from different greens — every region has its own version.",
+    category: "cuisine",
+  },
 ];
 
 export const CATEGORY_ICONS: Record<TamadaFact["category"], string> = {
-  history: "\uD83D\uDCDC",
-  tamada: "\uD83C\uDFA9",
-  wine: "\uD83C\uDF77",
-  qvevri: "\uD83C\uDFFA",
-  proverb: "\uD83D\uDCAC",
-  region: "\uD83D\uDDFA\uFE0F",
-  culture: "\uD83C\uDFB6",
-  food: "\uD83C\uDF7D\uFE0F",
+  history: "📜",
+  tamada: "🎩",
+  wine: "🍷",
+  qvevri: "🏺",
+  proverb: "💬",
+  region: "🗺️",
+  culture: "🎶",
+  food: "🍽️",
+  dance: "💃",
+  architecture: "🏛️",
+  cuisine: "🧑‍🍳",
 };
