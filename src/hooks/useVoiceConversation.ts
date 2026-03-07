@@ -103,10 +103,10 @@ export function useVoiceConversation({ api, userId, language, onMessage, onParam
           return;
         }
 
-        // Pre-create and unlock Audio element while still in user-gesture context
-        // This prevents autoplay policy from blocking playback after the async API call
-        const preloadedAudio = new Audio();
-        preloadedAudio.play().catch(() => {});
+        // Use the pre-unlocked Audio element (created in stopListening gesture handler)
+        // Fall back to creating one here (e.g. VAD auto-stop or max timer)
+        const preloadedAudio = preloadedAudioRef.current || new Audio();
+        preloadedAudioRef.current = null;
         audioRef.current = preloadedAudio;
 
         setStage("transcribing");
