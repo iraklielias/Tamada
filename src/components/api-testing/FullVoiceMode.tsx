@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useVoiceConversation, VoiceStage } from "@/hooks/useVoiceConversation";
 import WineGlassIcon from "@/components/icons/WineGlassIcon";
 import type { ExternalChatMessage } from "@/types/external-api";
+import { ThinkingFacts } from "./ThinkingFacts";
 
 interface FullVoiceModeProps {
   api: {
