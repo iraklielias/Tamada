@@ -1,7 +1,7 @@
 export interface TamadaFact {
   ka: string;
   en: string;
-  category: "history" | "tamada" | "wine" | "qvevri" | "proverb" | "region" | "culture" | "food";
+  category: "history" | "tamada" | "wine" | "qvevri" | "proverb" | "region" | "culture" | "food" | "dance" | "architecture" | "cuisine";
 }
 
 export const tamadaFacts: TamadaFact[] = [
