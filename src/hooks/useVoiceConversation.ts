@@ -29,10 +29,12 @@ export function useVoiceConversation({ api, userId, language, onMessage, onParam
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const preloadedAudioRef = useRef<HTMLAudioElement | null>(null);
   const activeRef = useRef(false);
   const maxRecordingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Web Audio API refs for reliable cross-browser playback
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const sourceNodeRef = useRef<AudioBufferSourceNode | null>(null);
 
   useEffect(() => {
     stageRef.current = stage;
@@ -57,18 +59,25 @@ export function useVoiceConversation({ api, userId, language, onMessage, onParam
   }, []);
 
   const stopAudio = useCallback(() => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-      audioRef.current = null;
+    if (sourceNodeRef.current) {
+      try { sourceNodeRef.current.stop(); } catch {}
+      sourceNodeRef.current = null;
     }
   }, []);
 
-  // Stop existing stream tracks before acquiring new ones
   const releaseStream = useCallback(() => {
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((t) => t.stop());
       streamRef.current = null;
+    }
+  }, []);
+
+  /** Ensure AudioContext exists and is unlocked. Call inside user gesture handlers. */
+  const ensureAudioContext = useCallback(() => {
+    if (!audioCtxRef.current) {
+      audioCtxRef.current = new AudioContext();
+    } else if (audioCtxRef.current.state === "suspended") {
+      audioCtxRef.current.resume();
     }
   }, []);
 
@@ -78,7 +87,6 @@ export function useVoiceConversation({ api, userId, language, onMessage, onParam
     chunksRef.current = [];
 
     try {
-      // Release any previous stream to prevent mic leaks
       releaseStream();
 
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -102,12 +110,6 @@ export function useVoiceConversation({ api, userId, language, onMessage, onParam
           startListening();
           return;
         }
-
-        // Use the pre-unlocked Audio element (created in stopListening gesture handler)
-        // Fall back to creating one here (e.g. VAD auto-stop or max timer)
-        const preloadedAudio = preloadedAudioRef.current || new Audio();
-        preloadedAudioRef.current = null;
-        audioRef.current = preloadedAudio;
 
         setStage("transcribing");
 
@@ -142,20 +144,34 @@ export function useVoiceConversation({ api, userId, language, onMessage, onParam
                 onParamsExtracted?.((res as any).extracted_params);
               }
 
+              // Play response audio via Web Audio API
               if (res.message.audio_url && activeRef.current) {
                 setStage("speaking");
-                preloadedAudio.src = res.message.audio_url;
-                preloadedAudio.onended = () => {
+                try {
+                  const ctx = audioCtxRef.current!;
+                  if (ctx.state === "suspended") await ctx.resume();
+
+                  const response = await fetch(res.message.audio_url);
+                  const arrayBuffer = await response.arrayBuffer();
+                  const audioBuffer = await ctx.decodeAudioData(arrayBuffer);
+
+                  if (!activeRef.current) return;
+
+                  const source = ctx.createBufferSource();
+                  source.buffer = audioBuffer;
+                  source.connect(ctx.destination);
+                  sourceNodeRef.current = source;
+
+                  source.onended = () => {
+                    sourceNodeRef.current = null;
+                    if (activeRef.current) startListening();
+                  };
+
+                  source.start(0);
+                } catch (err) {
+                  console.warn("Web Audio playback failed:", err);
                   if (activeRef.current) startListening();
-                };
-                preloadedAudio.onerror = () => {
-                  console.warn("Voice playback error for URL:", res.message.audio_url);
-                  if (activeRef.current) startListening();
-                };
-                await preloadedAudio.play().catch((err) => {
-                  console.warn("Voice autoplay blocked or failed:", err);
-                  if (activeRef.current) startListening();
-                });
+                }
               } else if (activeRef.current) {
                 startListening();
               }
@@ -187,9 +203,10 @@ export function useVoiceConversation({ api, userId, language, onMessage, onParam
   }, [api, userId, language, onMessage, onParamsExtracted, vad, clearMaxRecordingTimer, releaseStream]);
 
   const startSession = useCallback(async () => {
+    ensureAudioContext();
     activeRef.current = true;
     await startListening();
-  }, [startListening]);
+  }, [startListening, ensureAudioContext]);
 
   const endSession = useCallback(() => {
     activeRef.current = false;
@@ -202,6 +219,11 @@ export function useVoiceConversation({ api, userId, language, onMessage, onParam
     }
     releaseStream();
     mediaRecorderRef.current = null;
+
+    audioCtxRef.current?.close();
+    audioCtxRef.current = null;
+    sourceNodeRef.current = null;
+
     setStage("idle");
   }, [vad, stopAudio, clearMaxRecordingTimer, releaseStream]);
 
@@ -219,20 +241,16 @@ export function useVoiceConversation({ api, userId, language, onMessage, onParam
       stopAudio();
       clearMaxRecordingTimer();
       releaseStream();
+      audioCtxRef.current?.close();
     };
   }, []);
 
   const stopListening = useCallback(() => {
-    // Pre-create and unlock Audio element NOW, inside the user gesture (tap),
-    // so it can autoplay later after the async API call completes
-    const audio = new Audio();
-    audio.play().catch(() => {});
-    preloadedAudioRef.current = audio;
-
+    ensureAudioContext();
     if (mediaRecorderRef.current?.state === "recording") {
       mediaRecorderRef.current.stop();
     }
-  }, []);
+  }, [ensureAudioContext]);
 
   const retryFromError = useCallback(() => {
     if (activeRef.current) {
