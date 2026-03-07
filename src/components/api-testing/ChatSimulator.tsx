@@ -21,10 +21,9 @@ interface ChatSimulatorProps {
   onLanguageChange: (lang: "ka" | "en") => void;
 }
 
-export function ChatSimulator({ api, onOpenVoiceMode }: ChatSimulatorProps) {
+export function ChatSimulator({ api, onOpenVoiceMode, language, onLanguageChange }: ChatSimulatorProps) {
   const { t } = useTranslation();
   const [userId, setUserId] = useState("test_user_001");
-  const [language, setLanguage] = useState<"ka" | "en">("ka");
   const [messages, setMessages] = useState<ExternalChatMessage[]>([]);
   const [inputText, setInputText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
