@@ -72,9 +72,12 @@ export function ToastCard({ message, onPlay, isPlaying }: ToastCardProps) {
           </div>
 
           {/* Attribution */}
-          <p className="text-[10px] text-muted-foreground/40 text-right pt-1">
-            Powered by TAMADA AI
-          </p>
+          <div className="flex items-center justify-end gap-1 pt-1">
+            <WineGlassIcon className="w-3 h-3 text-primary/50" />
+            <p className="text-[11px] font-medium text-primary/50 tracking-wide">
+              Powered by TAMADA AI
+            </p>
+          </div>
         </div>
       </div>
     </motion.div>

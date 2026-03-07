@@ -4,6 +4,8 @@ import type { ExternalChatMessage, VoiceChatResponse } from "@/types/external-ap
 
 export type VoiceStage = "idle" | "listening" | "transcribing" | "thinking" | "speaking";
 
+const MAX_RECORDING_DURATION_MS = 30000; // 30 seconds safety net
+
 interface UseVoiceConversationOptions {
   api: {
     sendVoiceMessage: (
@@ -29,6 +31,7 @@ export function useVoiceConversation({ api, userId, language, onMessage, onParam
   const streamRef = useRef<MediaStream | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const activeRef = useRef(false);
+  const maxRecordingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Keep stageRef in sync
   useEffect(() => {
@@ -36,14 +39,22 @@ export function useVoiceConversation({ api, userId, language, onMessage, onParam
   }, [stage]);
 
   const vad = useVAD({
-    silenceThreshold: 0.008,
+    silenceThreshold: 0.02,
     silenceDurationMs: 1800,
+    speechThreshold: 0.03,
     onSilenceDetected: () => {
       if (stageRef.current === "listening" && mediaRecorderRef.current?.state === "recording") {
         mediaRecorderRef.current.stop();
       }
     },
   });
+
+  const clearMaxRecordingTimer = useCallback(() => {
+    if (maxRecordingTimerRef.current) {
+      clearTimeout(maxRecordingTimerRef.current);
+      maxRecordingTimerRef.current = null;
+    }
+  }, []);
 
   const stopAudio = useCallback(() => {
     if (audioRef.current) {
@@ -72,6 +83,7 @@ export function useVoiceConversation({ api, userId, language, onMessage, onParam
 
       recorder.onstop = async () => {
         vad.stopMonitoring();
+        clearMaxRecordingTimer();
         if (!activeRef.current) return;
 
         const blob = new Blob(chunksRef.current, { type: "audio/webm" });
@@ -144,12 +156,19 @@ export function useVoiceConversation({ api, userId, language, onMessage, onParam
       };
 
       recorder.start(250);
+
+      // Safety: auto-stop after max duration
+      maxRecordingTimerRef.current = setTimeout(() => {
+        if (mediaRecorderRef.current?.state === "recording") {
+          mediaRecorderRef.current.stop();
+        }
+      }, MAX_RECORDING_DURATION_MS);
     } catch (err) {
       console.error("Failed to start mic:", err);
       setStage("idle");
       activeRef.current = false;
     }
-  }, [api, userId, language, onMessage, onParamsExtracted, vad]);
+  }, [api, userId, language, onMessage, onParamsExtracted, vad, clearMaxRecordingTimer]);
 
   const startSession = useCallback(async () => {
     activeRef.current = true;
@@ -160,6 +179,7 @@ export function useVoiceConversation({ api, userId, language, onMessage, onParam
     activeRef.current = false;
     vad.stopMonitoring();
     stopAudio();
+    clearMaxRecordingTimer();
 
     if (mediaRecorderRef.current?.state === "recording") {
       mediaRecorderRef.current.stop();
@@ -168,7 +188,7 @@ export function useVoiceConversation({ api, userId, language, onMessage, onParam
     streamRef.current = null;
     mediaRecorderRef.current = null;
     setStage("idle");
-  }, [vad, stopAudio]);
+  }, [vad, stopAudio, clearMaxRecordingTimer]);
 
   const interrupt = useCallback(() => {
     stopAudio();
@@ -183,6 +203,7 @@ export function useVoiceConversation({ api, userId, language, onMessage, onParam
       activeRef.current = false;
       vad.stopMonitoring();
       stopAudio();
+      clearMaxRecordingTimer();
       streamRef.current?.getTracks().forEach((t) => t.stop());
     };
   }, []);
