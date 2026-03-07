@@ -179,11 +179,17 @@ export function FullVoiceMode({ api, userId, language, onClose, onMessage, onPar
     onClose();
   }, [voice, onClose]);
 
-  // Detect text overflow to show/hide "View more" button
-  useLayoutEffect(() => {
-    const el = responseRef.current;
-    if (!el) { setIsOverflowing(false); return; }
-    setIsOverflowing(el.scrollHeight > el.clientHeight + 2);
+  // Detect text overflow after animation settles
+  useEffect(() => {
+    const raf = requestAnimationFrame(() => {
+      const timer = setTimeout(() => {
+        const el = responseRef.current;
+        if (!el) { setIsOverflowing(false); return; }
+        setIsOverflowing(el.scrollHeight > el.clientHeight + 2);
+      }, 350);
+      return () => clearTimeout(timer);
+    });
+    return () => cancelAnimationFrame(raf);
   }, [lastResponse, expanded]);
 
   const handleOrbClick = useCallback(() => {
