@@ -767,6 +767,10 @@ async function transcribeAudio(audioBase64: string, audioFormat: string, languag
 // ============================================================
 
 async function synthesizeSpeech(text: string, language: string): Promise<Uint8Array | null> {
+  if (!text || !text.trim()) {
+    console.warn("Empty text provided to TTS, skipping");
+    return null;
+  }
   const ELEVENLABS_API_KEY = Deno.env.get("ELEVENLABS_API_KEY");
   const VOICE_ID = Deno.env.get("ELEVENLABS_VOICE_ID") || "JBFqnCBsd6RMkjVDRZzb";
   if (!ELEVENLABS_API_KEY) {
