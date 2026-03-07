@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback, useRef, useLayoutEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Keyboard, Mic, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -138,6 +138,9 @@ function VoiceOrb({ stage, getVolume }: { stage: VoiceStage; getVolume: () => nu
 export function FullVoiceMode({ api, userId, language, onClose, onMessage, onParamsExtracted }: FullVoiceModeProps) {
   const [transcript, setTranscript] = useState("");
   const [lastResponse, setLastResponse] = useState("");
+  const [expanded, setExpanded] = useState(false);
+  const [isOverflowing, setIsOverflowing] = useState(false);
+  const responseRef = useRef<HTMLParagraphElement>(null);
   const [showInstructions, setShowInstructions] = useState(() => {
     return !localStorage.getItem("tamada-voice-instructions-seen");
   });
@@ -146,6 +149,7 @@ export function FullVoiceMode({ api, userId, language, onClose, onMessage, onPar
     (userMsg: ExternalChatMessage | null, assistantMsg: ExternalChatMessage) => {
       if (userMsg) setTranscript(userMsg.content);
       setLastResponse(assistantMsg.content.replace(/===TOAST_START===|===TOAST_END===/g, "").trim());
+      setExpanded(false);
       onMessage(userMsg, assistantMsg);
     },
     [onMessage]
@@ -160,6 +164,16 @@ export function FullVoiceMode({ api, userId, language, onClose, onMessage, onPar
   });
 
   const handleClose = useCallback(() => {
+
+  // Detect text overflow to show/hide "View more" button
+  useLayoutEffect(() => {
+    const el = responseRef.current;
+    if (!el) { setIsOverflowing(false); return; }
+    // Compare scroll height vs visible height
+    setIsOverflowing(el.scrollHeight > el.clientHeight + 2);
+  }, [lastResponse, expanded]);
+
+
     voice.endSession();
     onClose();
   }, [voice, onClose]);
@@ -242,7 +256,7 @@ export function FullVoiceMode({ api, userId, language, onClose, onMessage, onPar
       </motion.p>
 
       {/* Transcript & Response */}
-      <div className="w-full max-w-md px-4 md:px-6 pb-4 space-y-2 text-center min-h-[100px]">
+      <div className={`w-full max-w-md px-4 md:px-6 pb-4 space-y-2 text-center ${expanded ? "max-h-[40vh] overflow-y-auto" : "min-h-[100px]"}`}>
         <AnimatePresence mode="wait">
           {transcript && (
             <motion.p
@@ -258,15 +272,30 @@ export function FullVoiceMode({ api, userId, language, onClose, onMessage, onPar
         </AnimatePresence>
         <AnimatePresence mode="wait">
           {lastResponse && voice.stage !== "listening" && (
-            <motion.p
+            <motion.div
               key={`r-${lastResponse.slice(0, 30)}`}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
-              className="text-sm text-foreground font-serif leading-relaxed line-clamp-4"
+              className="flex flex-col items-center gap-1"
             >
-              {lastResponse}
-            </motion.p>
+              <p
+                ref={responseRef}
+                className={`text-sm text-foreground font-serif leading-relaxed ${expanded ? "" : "line-clamp-4"}`}
+              >
+                {lastResponse}
+              </p>
+              {isOverflowing && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); setExpanded((v) => !v); }}
+                  className="text-xs text-primary font-medium mt-1 hover:underline"
+                >
+                  {expanded
+                    ? language === "ka" ? "შემოკლება" : "View less"
+                    : language === "ka" ? "სრულად" : "View more"}
+                </button>
+              )}
+            </motion.div>
           )}
         </AnimatePresence>
       </div>
