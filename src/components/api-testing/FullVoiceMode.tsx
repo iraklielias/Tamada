@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Keyboard, Mic, AlertCircle } from "lucide-react";
+import { X, Keyboard, Mic, AlertCircle, Volume2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useVoiceConversation, VoiceStage } from "@/hooks/useVoiceConversation";
-import WineGlassIcon from "@/components/icons/WineGlassIcon";
 import type { ExternalChatMessage } from "@/types/external-api";
 import { ThinkingFacts } from "./ThinkingFacts";
 
@@ -27,6 +26,7 @@ interface FullVoiceModeProps {
 
 const STAGE_LABELS: Record<VoiceStage, { ka: string; en: string }> = {
   idle: { ka: "დააჭირეთ დასაწყებად", en: "Tap to start" },
+  ready: { ka: "დააჭირეთ გასაგრძელებლად", en: "Tap to continue" },
   listening: { ka: "გისმენთ — დააჭირეთ გასაგზავნად", en: "Listening — tap to send" },
   transcribing: { ka: "ვამუშავებ...", en: "Processing..." },
   thinking: { ka: "თამადა ფიქრობს...", en: "Tamada is thinking..." },
@@ -46,6 +46,53 @@ const INSTRUCTIONS = {
     "🔇 Tap while speaking to interrupt",
   ],
 };
+
+/* ─── Animated waveform bars for speaking state ─── */
+function SpeakingWaveform() {
+  return (
+    <div className="flex items-center justify-center gap-[3px]">
+      {[0, 1, 2, 3, 4].map((i) => (
+        <motion.div
+          key={i}
+          className="w-[3px] rounded-full bg-primary"
+          animate={{
+            height: [8, 18 + Math.random() * 6, 10, 20 + Math.random() * 4, 8],
+          }}
+          transition={{
+            duration: 1.0 + i * 0.08,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: i * 0.1,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+/* ─── Concentric volume rings for listening state ─── */
+function VolumeRings({ volume }: { volume: number }) {
+  const intensity = Math.min(volume * 10, 1);
+  return (
+    <>
+      {[0, 1, 2].map((i) => (
+        <motion.div
+          key={i}
+          className="absolute rounded-full border border-primary/20"
+          style={{
+            width: `${140 + i * 24}px`,
+            height: `${140 + i * 24}px`,
+          }}
+          animate={{
+            scale: 1 + intensity * (0.06 * (i + 1)),
+            opacity: Math.max(0.08, 0.3 - i * 0.08) * (0.5 + intensity * 0.5),
+          }}
+          transition={{ duration: 0.15, ease: "linear" }}
+        />
+      ))}
+    </>
+  );
+}
 
 function VoiceOrb({ stage, getVolume }: { stage: VoiceStage; getVolume: () => number }) {
   const [volume, setVolume] = useState(0);
@@ -67,59 +114,85 @@ function VoiceOrb({ stage, getVolume }: { stage: VoiceStage; getVolume: () => nu
     };
   }, [stage, getVolume]);
 
-  const scale = 1 + Math.min(volume * 8, 0.3);
+  const scale = stage === "listening" ? 1 + Math.min(volume * 8, 0.3) : 1;
   const isActive = stage !== "idle";
+  const isReady = stage === "ready";
   const isError = stage === "error";
+  const isSpeaking = stage === "speaking";
+  const isListening = stage === "listening";
+  const isProcessing = stage === "thinking" || stage === "transcribing";
+
+  const borderColor = isError
+    ? "hsl(var(--destructive))"
+    : isActive
+    ? "hsl(var(--primary))"
+    : "hsl(var(--primary) / 0.25)";
+
+  const bgGradient = isError
+    ? `radial-gradient(circle at 40% 40%, hsl(var(--destructive) / 0.2), hsl(var(--destructive) / 0.05))`
+    : isActive
+    ? `radial-gradient(circle at 40% 40%, hsl(var(--primary) / 0.2), hsl(var(--primary) / 0.05))`
+    : `radial-gradient(circle at 35% 35%, hsl(var(--primary) / 0.08), hsl(var(--muted) / 0.6))`;
 
   return (
     <div className="relative flex items-center justify-center">
-      {/* Secondary outer ring — idle pulse */}
-      {!isActive && !isError && (
+      {/* Idle / Ready pulse ring */}
+      {(stage === "idle" || isReady) && (
         <motion.div
           className="absolute w-44 h-44 rounded-full border border-primary/10"
-          animate={{ scale: [1, 1.08, 1], opacity: [0.3, 0.6, 0.3] }}
-          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+          animate={{
+            scale: [1, 1.08, 1],
+            opacity: isReady ? [0.4, 0.8, 0.4] : [0.3, 0.6, 0.3],
+          }}
+          transition={{ duration: isReady ? 2 : 3, repeat: Infinity, ease: "easeInOut" }}
         />
       )}
 
-      {/* Outer glow */}
-      <motion.div
-        className="absolute w-48 h-48 rounded-full"
-        style={{
-          background: isError
-            ? `radial-gradient(circle, hsl(var(--destructive) / 0.15) 0%, transparent 70%)`
-            : `radial-gradient(circle, hsl(var(--primary) / 0.15) 0%, transparent 70%)`,
-        }}
-        animate={{
-          scale: stage === "listening" ? [1, 1.15, 1] : stage === "thinking" ? [1, 1.1, 1] : 1,
-          opacity: isActive ? 1 : 0,
-        }}
-        transition={{
-          duration: stage === "thinking" ? 1.5 : 2,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
-      />
+      {/* Ready: secondary glow to indicate session is alive */}
+      {isReady && (
+        <motion.div
+          className="absolute w-40 h-40 rounded-full"
+          style={{
+            background: `radial-gradient(circle, hsl(var(--primary) / 0.1) 0%, transparent 70%)`,
+          }}
+          animate={{ scale: [1, 1.06, 1], opacity: [0.6, 1, 0.6] }}
+          transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+        />
+      )}
+
+      {/* Listening: concentric volume rings */}
+      {isListening && <VolumeRings volume={volume} />}
+
+      {/* Outer glow for active states */}
+      {!isReady && stage !== "idle" && (
+        <motion.div
+          className="absolute w-48 h-48 rounded-full"
+          style={{
+            background: isError
+              ? `radial-gradient(circle, hsl(var(--destructive) / 0.15) 0%, transparent 70%)`
+              : `radial-gradient(circle, hsl(var(--primary) / 0.15) 0%, transparent 70%)`,
+          }}
+          animate={{
+            scale: isListening ? [1, 1.15, 1] : isProcessing ? [1, 1.1, 1] : 1,
+            opacity: 1,
+          }}
+          transition={{
+            duration: isProcessing ? 1.5 : 2,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        />
+      )}
 
       {/* Main orb */}
       <motion.div
         className="relative w-32 h-32 rounded-full border-2 flex items-center justify-center cursor-pointer shadow-lg"
-        style={{
-          borderColor: isError
-            ? "hsl(var(--destructive))"
-            : isActive
-            ? "hsl(var(--primary))"
-            : "hsl(var(--primary) / 0.25)",
-          background: isError
-            ? `radial-gradient(circle at 40% 40%, hsl(var(--destructive) / 0.2), hsl(var(--destructive) / 0.05))`
-            : isActive
-            ? `radial-gradient(circle at 40% 40%, hsl(var(--primary) / 0.2), hsl(var(--primary) / 0.05))`
-            : `radial-gradient(circle at 35% 35%, hsl(var(--primary) / 0.08), hsl(var(--muted) / 0.6))`,
-        }}
+        style={{ borderColor, background: bgGradient }}
         animate={{ scale }}
         transition={{ duration: 0.1, ease: "linear" }}
       >
-        {(stage === "thinking" || stage === "transcribing") && (
+        {/* Processing dots */}
+        {isProcessing && (
           <div className="absolute inset-0 flex items-center justify-center gap-2">
             {[0, 1, 2].map((i) => (
               <motion.div
@@ -132,14 +205,23 @@ function VoiceOrb({ stage, getVolume }: { stage: VoiceStage; getVolume: () => nu
           </div>
         )}
 
+        {/* Icon layer */}
         {isError ? (
-          <AlertCircle className="w-8 h-8 text-destructive" />
+          <AlertCircle className="w-9 h-9 text-destructive" />
+        ) : isSpeaking ? (
+          <SpeakingWaveform />
         ) : (
-          <Mic
-            className={`w-8 h-8 ${isActive ? "text-primary" : "text-primary/60"} ${
-              (stage === "thinking" || stage === "transcribing") ? "opacity-0" : ""
-            }`}
-          />
+          <div className={`relative flex items-center justify-center ${isProcessing ? "opacity-0" : ""}`}>
+            {/* Subtle ring behind mic for idle/ready */}
+            {(stage === "idle" || isReady) && (
+              <motion.div
+                className="absolute w-14 h-14 rounded-full border border-primary/15"
+                animate={{ scale: [1, 1.1, 1], opacity: [0.3, 0.6, 0.3] }}
+                transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+              />
+            )}
+            <Mic className={`w-9 h-9 ${isActive ? "text-primary" : "text-primary/60"}`} />
+          </div>
         )}
       </motion.div>
     </div>
@@ -201,6 +283,8 @@ export function FullVoiceMode({ api, userId, language, onClose, onMessage, onPar
 
     if (voice.stage === "idle") {
       voice.startSession();
+    } else if (voice.stage === "ready") {
+      voice.resumeListening();
     } else if (voice.stage === "listening") {
       voice.stopListening();
     } else if (voice.stage === "speaking") {

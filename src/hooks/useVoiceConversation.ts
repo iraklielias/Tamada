@@ -2,7 +2,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { useVAD } from "./useVAD";
 import type { ExternalChatMessage, VoiceChatResponse } from "@/types/external-api";
 
-export type VoiceStage = "idle" | "listening" | "transcribing" | "thinking" | "speaking" | "error";
+export type VoiceStage = "idle" | "ready" | "listening" | "transcribing" | "thinking" | "speaking" | "error";
 
 const MAX_RECORDING_DURATION_MS = 30000;
 
@@ -162,18 +162,22 @@ export function useVoiceConversation({ api, userId, language, onMessage, onParam
                   source.connect(ctx.destination);
                   sourceNodeRef.current = source;
 
+                  // ← KEY CHANGE: go to "ready" instead of auto-listening
                   source.onended = () => {
                     sourceNodeRef.current = null;
-                    if (activeRef.current) startListening();
+                    if (activeRef.current) {
+                      setStage("ready");
+                    }
                   };
 
                   source.start(0);
                 } catch (err) {
                   console.warn("Web Audio playback failed:", err);
-                  if (activeRef.current) startListening();
+                  if (activeRef.current) setStage("ready");
                 }
               } else if (activeRef.current) {
-                startListening();
+                // No audio URL — go to ready instead of auto-listening
+                setStage("ready");
               }
             } else if (activeRef.current) {
               // Check if it's a "no speech" response — silently restart
@@ -186,7 +190,6 @@ export function useVoiceConversation({ api, userId, language, onMessage, onParam
             }
           } catch (err: any) {
             console.error("Voice conversation error:", err);
-            // If "no speech detected" 400, silently restart listening
             const msg = err?.message || "";
             if (msg.toLowerCase().includes("no speech") || msg.toLowerCase().includes("could not transcribe")) {
               if (activeRef.current) startListening();
@@ -246,6 +249,14 @@ export function useVoiceConversation({ api, userId, language, onMessage, onParam
     }
   }, [stopAudio, startListening]);
 
+  /** Resume listening from the "ready" state — user tapped the orb */
+  const resumeListening = useCallback(() => {
+    ensureAudioContext();
+    if (activeRef.current) {
+      startListening();
+    }
+  }, [startListening, ensureAudioContext]);
+
   useEffect(() => {
     return () => {
       activeRef.current = false;
@@ -272,5 +283,5 @@ export function useVoiceConversation({ api, userId, language, onMessage, onParam
     }
   }, [startListening]);
 
-  return { stage, startSession, endSession, interrupt, stopListening, retryFromError, getVolume: vad.getVolume };
+  return { stage, startSession, endSession, interrupt, stopListening, retryFromError, resumeListening, getVolume: vad.getVolume };
 }
