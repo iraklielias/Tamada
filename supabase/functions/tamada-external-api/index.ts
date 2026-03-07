@@ -592,10 +592,27 @@ async function getOrCreateSession(apiKeyId: string, externalUserId: string, lang
     .single();
 
   if (existing) {
+    // Check if session is stale (>2 hours since last activity) — reset gathered_params
+    const TWO_HOURS_MS = 2 * 60 * 60 * 1000;
+    const lastActivity = existing.updated_at ? new Date(existing.updated_at).getTime() : 0;
+    const isStale = Date.now() - lastActivity > TWO_HOURS_MS;
+
     await db.from("external_chat_sessions").update({
       preferred_language: language,
       updated_at: new Date().toISOString(),
+      ...(isStale ? { gathered_params: {} } : {}),
     }).eq("id", existing.id);
+
+    if (isStale) {
+      // Add a system note so AI knows context was reset
+      await db.from("external_chat_messages").insert({
+        session_id: existing.id,
+        role: "system",
+        content: "[New conversation — previous context cleared. Start fresh by asking about the occasion.]",
+        message_type: "system",
+      });
+    }
+
     return { session: existing, isNew: false };
   }
 
@@ -613,7 +630,7 @@ async function getOrCreateSession(apiKeyId: string, externalUserId: string, lang
 
   // Insert welcome message
   const welcomeContent = language === "en"
-    ? "გამარჯობა! I'm TAMADA AI — your personal digital feastmaster. Tell me what occasion you need a toast for, and I'll craft something memorable. 🍷"
+    ? "Hello! I'm TAMADA AI — your personal digital feastmaster. Tell me what occasion you need a toast for, and I'll craft something memorable. 🍷"
     : "გამარჯობა! მე ვარ თამადა AI — თქვენი პირადი ციფრული თამადა. მითხარით, რა შემთხვევისთვის გჭირდებათ სადღეგრძელო და შევქმნი რაღაც დასამახსოვრებელს. 🍷";
 
   await db.from("external_chat_messages").insert({
