@@ -30,6 +30,7 @@ export function useVoiceConversation({ api, userId, language, onMessage, onParam
   const chunksRef = useRef<Blob[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const preloadedAudioRef = useRef<HTMLAudioElement | null>(null);
   const activeRef = useRef(false);
   const maxRecordingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
