@@ -851,20 +851,32 @@ async function handleChatMessage(body: Record<string, unknown>, apiKeyData: Reco
   // Generate AI response
   const { content: aiContent, tokensUsed, durationMs } = await generateAIResponse(recentMessages);
 
+  // Extract params from AI response
+  const { cleanContent, params: extractedParams } = extractParams(aiContent);
+
+  // Store gathered params on session
+  if (extractedParams) {
+    const mergedParams = { ...(session.gathered_params || {}), ...extractedParams };
+    await db.from("external_chat_sessions").update({
+      gathered_params: mergedParams,
+    }).eq("id", session.id);
+  }
+
   // Detect toast
-  const isToast = detectToast(aiContent, !!quickParams);
+  const isToast = detectToast(cleanContent, !!quickParams);
   const messageType = isToast ? "toast" : "text";
 
-  // Store assistant message
+  // Store assistant message (clean content without params block)
   const { data: savedMsg } = await db.from("external_chat_messages").insert({
     session_id: session.id,
     role: "assistant",
-    content: aiContent,
+    content: cleanContent,
     message_type: messageType,
     metadata: {
-      occasion_type: quickParams?.occasion_type,
-      tone: quickParams?.tone,
+      occasion_type: extractedParams?.occasion_type || quickParams?.occasion_type,
+      tone: extractedParams?.tone || quickParams?.tone,
       is_toast: isToast,
+      extracted_params: extractedParams,
     },
     tokens_used: tokensUsed,
     generation_duration_ms: durationMs,
@@ -882,12 +894,13 @@ async function handleChatMessage(body: Record<string, unknown>, apiKeyData: Reco
     message: {
       id: savedMsg?.id,
       role: "assistant",
-      content: aiContent,
+      content: cleanContent,
       message_type: messageType,
       metadata: savedMsg?.metadata,
       audio_url: null,
       created_at: savedMsg?.created_at,
     },
+    extracted_params: extractedParams,
     usage: {
       used_today: updatedRate.used,
       daily_limit: apiKeyData.daily_limit_per_user,
