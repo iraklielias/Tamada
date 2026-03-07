@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useCallback, useRef, useLayoutEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Keyboard, Mic, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useVoiceConversation, VoiceStage } from "@/hooks/useVoiceConversation";
 import WineGlassIcon from "@/components/icons/WineGlassIcon";
 import type { ExternalChatMessage } from "@/types/external-api";
+import { ThinkingFacts } from "./ThinkingFacts";
 
 interface FullVoiceModeProps {
   api: {
@@ -178,11 +179,17 @@ export function FullVoiceMode({ api, userId, language, onClose, onMessage, onPar
     onClose();
   }, [voice, onClose]);
 
-  // Detect text overflow to show/hide "View more" button
-  useLayoutEffect(() => {
-    const el = responseRef.current;
-    if (!el) { setIsOverflowing(false); return; }
-    setIsOverflowing(el.scrollHeight > el.clientHeight + 2);
+  // Detect text overflow after animation settles
+  useEffect(() => {
+    const raf = requestAnimationFrame(() => {
+      const timer = setTimeout(() => {
+        const el = responseRef.current;
+        if (!el) { setIsOverflowing(false); return; }
+        setIsOverflowing(el.scrollHeight > el.clientHeight + 2);
+      }, 350);
+      return () => clearTimeout(timer);
+    });
+    return () => cancelAnimationFrame(raf);
   }, [lastResponse, expanded]);
 
   const handleOrbClick = useCallback(() => {
@@ -251,8 +258,9 @@ export function FullVoiceMode({ api, userId, language, onClose, onMessage, onPar
       </AnimatePresence>
 
       {/* Orb */}
-      <div className="flex-1 flex items-center justify-center w-full" onClick={handleOrbClick}>
+      <div className="flex-1 flex flex-col items-center justify-center w-full gap-4" onClick={handleOrbClick}>
         <VoiceOrb stage={voice.stage} getVolume={voice.getVolume} />
+        <ThinkingFacts stage={voice.stage} language={language} />
       </div>
 
       {/* Stage label */}
