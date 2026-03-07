@@ -69,6 +69,11 @@ export function ToastCard({ message, onPlay, isPlaying }: ToastCardProps) {
               </span>
             )}
           </div>
+
+          {/* Attribution */}
+          <p className="text-[10px] text-muted-foreground/40 text-right pt-1">
+            Powered by TAMADA AI
+          </p>
         </div>
       </div>
     </motion.div>

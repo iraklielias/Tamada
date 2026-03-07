@@ -149,7 +149,7 @@ export function useVoiceConversation({ api, userId, language, onMessage, onParam
       setStage("idle");
       activeRef.current = false;
     }
-  }, [api, userId, language, onMessage, onParamsExtracted, vad, stage]);
+  }, [api, userId, language, onMessage, onParamsExtracted, vad]);
 
   const startSession = useCallback(async () => {
     activeRef.current = true;
