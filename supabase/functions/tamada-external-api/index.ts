@@ -767,8 +767,10 @@ async function transcribeAudio(audioBase64: string, audioFormat: string, languag
 // ============================================================
 
 async function synthesizeSpeech(text: string, language: string): Promise<Uint8Array | null> {
-  if (!text || !text.trim()) {
-    console.warn("Empty text provided to TTS, skipping");
+  // Strip non-speech characters to detect truly empty/punctuation-only text
+  const speakable = text.replace(/[\s\-=_*#`~>|.,:;!?"""''()\[\]{}]/g, "").trim();
+  if (!speakable) {
+    console.warn("TTS text has no speakable content, skipping");
     return null;
   }
   const ELEVENLABS_API_KEY = Deno.env.get("ELEVENLABS_API_KEY");
@@ -802,8 +804,8 @@ async function synthesizeSpeech(text: string, language: string): Promise<Uint8Ar
   if (!response.ok) {
     const errText = await response.text();
     console.error("ElevenLabs TTS error:", response.status, errText);
-    // Gracefully degrade on payment/quota errors instead of crashing
-    if (response.status === 402 || response.status === 403 || response.status === 429) {
+    // Gracefully degrade on validation/payment/quota/rate-limit errors
+    if ([400, 402, 403, 429].includes(response.status)) {
       console.warn(`TTS unavailable (${response.status}), returning text-only response`);
       return null;
     }
