@@ -1,0 +1,1 @@
+ALTER TABLE public.external_chat_sessions ADD COLUMN gathered_params jsonb DEFAULT '{}'::jsonb;

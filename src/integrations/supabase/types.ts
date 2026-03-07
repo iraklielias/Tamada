@@ -211,6 +211,7 @@ export type Database = {
           api_key_id: string
           created_at: string | null
           external_user_id: string
+          gathered_params: Json | null
           id: string
           metadata: Json | null
           preferred_language: string | null
@@ -221,6 +222,7 @@ export type Database = {
           api_key_id: string
           created_at?: string | null
           external_user_id: string
+          gathered_params?: Json | null
           id?: string
           metadata?: Json | null
           preferred_language?: string | null
@@ -231,6 +233,7 @@ export type Database = {
           api_key_id?: string
           created_at?: string | null
           external_user_id?: string
+          gathered_params?: Json | null
           id?: string
           metadata?: Json | null
           preferred_language?: string | null
