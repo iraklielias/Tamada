@@ -1,72 +1,109 @@
 
 
-# Fix: Voice Mode Transcribing Noise as Speech
+## TAMADA — Status Audit & Master Execution Plan
 
-## Root Cause Analysis
+### What Is Built
 
-The screenshot shows the core issue: STT is returning `[clicking]`, `[pause]`, `[background noise]` as transcriptions. These are **audio event tags** from ElevenLabs Scribe v2. The system then sends them to the AI as real user messages, producing empty or confused assistant responses.
+| Area | Status |
+|------|--------|
+| Landing page (`/`) | Done — hero, features, how-it-works, footer |
+| Auth (login, signup, callback) | Done — email/password, onAuthStateChange, protected routes |
+| Onboarding wizard (`/onboarding`) | Done — 4 steps: name, region, experience, occasions |
+| App shell (sidebar + bottom nav) | Done — collapsible sidebar, mobile bottom nav, profile footer |
+| Dashboard (`/dashboard`) | Done — greeting, quick actions, recent feasts, popular toasts |
+| Toasts browse (`/toasts`) | Done — search, occasion/formality filters, favorite toggle |
+| AI Generator (`/ai-generate`) | Done — occasion/formality/topic form, edge function, save to favorites |
+| Favorites (`/favorites`) | Done — list system + custom favorites, remove |
+| Library (`/library`) | Done — reads toast_templates (currently 0 rows) |
+| Profile (`/profile`) | Done — read-only display, logout |
+| Edge function: `generate-toast` | Done — Lovable AI gateway, JSON parse |
+| Database schema + RLS | Done — all 11 tables, policies in place |
+| Seed data: toasts | Done — 11 system toasts |
 
-**Three compounding problems:**
+### What Is NOT Built
 
-1. **STT returns audio event tags** — Scribe v2 defaults `tag_audio_events` to `true`, so non-speech sounds produce bracketed tags like `[clicking]`. The edge function does not filter these out.
+| Area | Spec Section |
+|------|-------------|
+| **Feast CRUD** — `/feasts`, `/feasts/new`, `/feasts/:id` | Sections 3, 4, 5 |
+| **Live Feast Mode** — `/feasts/:id/live` with timer, toast progression, alerts, audio | Section 6 |
+| **Alaverdi tracking** — FAB, guest assignment, count increment | Section 6 |
+| **Co-Tamada / Realtime** — share code, join link, Supabase Realtime sync | Section 6 + Realtime spec |
+| **Toast template seeding** — 7 templates with JSONB sequences | Seed Data |
+| **More sample toasts** — spec calls for 50-100; we have 11 | Seed Data |
+| **Feast plan from template** — selecting a template populates feast_toasts | Section 4 |
+| **AI Feast Plan generator** — `generate-feast-plan` edge function | AI Integration |
+| **Pro gating / useProGate hook** — daily limits, feature locks, upsell modals | Free vs Pro |
+| **Upgrade page** (`/upgrade`) — comparison table, Stripe checkout | Section 11 |
+| **Stripe integration** — checkout session, webhook, subscription management | Edge Functions |
+| **Profile editing** — avatar upload, edit name/region/experience/language | Section 10 |
+| **PDF export** — jsPDF feast plan export (Pro) | Section 5 |
+| **i18n** — i18next setup, language toggle, all strings externalized | i18n spec |
+| **Dark mode** | Design System |
+| **Keyboard shortcuts** | Desktop spec |
+| **Additional occasion types** in filters (christening, guest_reception, friendly_gathering) | Throughout |
+| **config.toml** — `generate-toast` function entry with `verify_jwt = false` | Edge function config |
 
-2. **No non-speech filter on transcription results** — After STT returns, the code only checks `!transcribedText.trim()`. Text like `[background noise]` passes this check and gets sent to the AI.
+---
 
-3. **VAD thresholds too sensitive** — Speech threshold at `0.03` RMS triggers on ambient noise, causing the recorder to "detect speech" from background sounds, then auto-stop after 1.8s silence, sending garbage audio to STT.
+### Master Execution Plan (8 Phases)
 
-## Fix Plan (2 files)
+#### Phase 8 — Seed Data & Config Fixes
+- Seed 7 toast templates into `toast_templates` table (wedding, birthday, memorial, guest reception, holiday, corporate, friendly gathering) with proper `toast_sequence` JSONB arrays
+- Add `[functions.generate-toast]` with `verify_jwt = false` to `supabase/config.toml`
+- Add missing occasion types to all filter dropdowns across pages (christening, guest_reception, friendly_gathering, other)
 
-### 1. `supabase/functions/tamada-external-api/index.ts` — Filter non-speech STT results
+#### Phase 9 — Feast CRUD (Core)
+- Create `/feasts` page — list user's feasts with status filter pills + search
+- Create `/feasts/new` page — multi-section form: basic info, details (guest count, formality, region, duration), template selection, optional guest list
+- Create `/feasts/:id` page — tabbed view (Plan, Guests, Details) with toast timeline, guest management, edit metadata, delete
+- Add routes to `App.tsx`, add "სუფრები" nav item to sidebar and bottom nav
+- Dashboard "ახალი სუფრა" quick action routes to `/feasts/new`; feast cards link to `/feasts/:id`
 
-**In `transcribeAudio` function (~line 746):**
-- Explicitly set `tag_audio_events` to `false` in the form data to prevent Scribe from returning bracketed event tags at all.
+#### Phase 10 — Live Feast Mode
+- Create `/feasts/:id/live` — full-screen immersive view
+- Current toast display with complete text, toast number, type
+- Next-up preview (2 upcoming toasts)
+- Elapsed time tracker + progress bar
+- "Completed" and "Skip" buttons that update `feast_toasts` status
+- Pause/Resume/End feast controls updating `feasts.status`
+- Timer alert system: amber glow + audio chime at configurable intervals before next toast (Web Audio API)
+- Alaverdi FAB: bottom sheet with guest list, tap to assign, increment `alaverdi_count` via `increment_alaverdi` RPC
 
-**After STT result (~line 962):**
-- Add a regex filter that strips bracketed audio events: `text.replace(/\[.*?\]/g, "").trim()`
-- If the cleaned text is empty after stripping, return a 400 "no speech detected" response (same as current empty check)
+#### Phase 11 — Co-Tamada & Realtime
+- Generate `share_code` on feast, build `/feasts/:id/join/:shareCode` route
+- Add user as `feast_collaborator` on join
+- Subscribe to Supabase Realtime channels for `feast_toasts`, `feast_guests`, `feasts` changes
+- Enable realtime publication on relevant tables (`ALTER PUBLICATION supabase_realtime ADD TABLE ...`)
+- Co-Tamada sees live view with read-only controls (can assign alaverdi, cannot pause/end)
+- Online indicator for connected collaborators
 
-```typescript
-// After line 960
-const cleanedTranscription = transcribedText.replace(/\[.*?\]/g, "").trim();
+#### Phase 12 — Profile Editing & Pro Gating
+- Make profile page editable: avatar upload (to `avatars` bucket), display name, region, experience, language
+- Build `useProGate` hook checking `is_pro` + `pro_expires_at`
+- Enforce free limits: 5 AI generations/day (server + client), 10 favorites, 1 active feast
+- Add server-side rate limit check in `generate-toast` edge function using `get_daily_ai_count`
+- Soft upsell modals when limits reached; gold lock icons on Pro features
+- Create `/upgrade` page with feature comparison table and pricing
 
-if (!cleanedTranscription) {
-  return new Response(JSON.stringify({ 
-    error: "No speech detected. Please try again." 
-  }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-}
-```
+#### Phase 13 — Stripe & Subscriptions
+- Enable Stripe integration
+- Create `create-checkout-session` edge function
+- Create `stripe-webhook` edge function handling subscription lifecycle events
+- Wire `/upgrade` page CTA to checkout session
+- Add `/profile/subscription` route for managing active subscription
 
-### 2. `src/hooks/useVoiceConversation.ts` — Handle 400 gracefully + raise VAD thresholds
+#### Phase 14 — i18n & Polish
+- Set up i18next with `ka` (default) and `en` locales
+- Extract all hardcoded Georgian strings to locale JSON files
+- Add language toggle to sidebar footer and profile settings
+- Persist language choice to `profiles.preferred_language`
+- Toast content displays `_ka` or `_en` based on selected language
 
-**Handle 400 "no speech" responses (~line 130):**
-- When the API returns `{ success: false }` or a 400 error specifically for "no speech", don't set `error` stage — just silently restart listening. This prevents the error screen from showing when the user hasn't spoken yet.
-
-```typescript
-// In the catch block and success check
-} catch (err: any) {
-  // If it's a "no speech" 400, just restart listening
-  if (err?.message?.includes("No speech") || err?.message?.includes("no speech")) {
-    if (activeRef.current) startListening();
-    return;
-  }
-  // ... existing error handling
-}
-```
-
-**Raise VAD thresholds:**
-- `silenceThreshold`: `0.02` → `0.025` (less sensitive to ambient)
-- `speechThreshold`: `0.03` → `0.045` (requires louder sound to count as speech)
-- `silenceDurationMs`: `1800` → `2000` (longer pause before auto-stop)
-
-These changes ensure:
-- Background noise doesn't trigger speech detection
-- Audio event tags from STT are never sent to the AI
-- If only noise is recorded, the system silently restarts listening instead of showing an error
-
-### Files Changed
-
-| File | Changes |
-|------|---------|
-| `tamada-external-api/index.ts` | Disable `tag_audio_events`, filter bracketed tags from STT output |
-| `useVoiceConversation.ts` | Handle "no speech" 400s gracefully, raise VAD thresholds |
+#### Phase 15 — Advanced Features & Hardening
+- `generate-feast-plan` edge function — AI-generated toast schedule based on occasion/duration/formality
+- PDF export of feast plan using jsPDF (Pro only)
+- Dark mode support
+- Keyboard shortcuts in live feast mode (Space = complete, Esc = pause)
+- Additional seed toasts (expand from 11 to 50+)
+- Error boundary components, offline queue for failed writes, optimistic updates throughout
 

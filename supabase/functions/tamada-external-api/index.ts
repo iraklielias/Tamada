@@ -745,6 +745,7 @@ async function transcribeAudio(audioBase64: string, audioFormat: string, languag
   formData.append("file", blob, `recording.${audioFormat}`);
   formData.append("model_id", "scribe_v2");
   formData.append("language_code", language === "en" ? "eng" : "kat");
+  formData.append("tag_audio_events", "false");
 
   const response = await fetch("https://api.elevenlabs.io/v1/speech-to-text", {
     method: "POST",
@@ -957,10 +958,13 @@ async function handleChatMessageVoice(body: Record<string, unknown>, apiKeyData:
   const { session } = await getOrCreateSession(apiKeyData.id as string, externalUserId, language);
 
   // STT Stage
-  const transcribedText = await transcribeAudio(audioBase64, audioFormat, language);
+  const rawTranscribedText = await transcribeAudio(audioBase64, audioFormat, language);
 
-  if (!transcribedText.trim()) {
-    return new Response(JSON.stringify({ error: "Could not transcribe audio. Please try again." }), {
+  // Strip any remaining bracketed audio event tags (e.g. [clicking], [background noise])
+  const transcribedText = rawTranscribedText.replace(/\[.*?\]/g, "").trim();
+
+  if (!transcribedText) {
+    return new Response(JSON.stringify({ error: "No speech detected. Please try again." }), {
       status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }

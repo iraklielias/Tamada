@@ -41,9 +41,9 @@ export function useVoiceConversation({ api, userId, language, onMessage, onParam
   }, [stage]);
 
   const vad = useVAD({
-    silenceThreshold: 0.02,
-    silenceDurationMs: 1800,
-    speechThreshold: 0.03,
+    silenceThreshold: 0.025,
+    silenceDurationMs: 2000,
+    speechThreshold: 0.045,
     onSilenceDetected: () => {
       if (stageRef.current === "listening" && mediaRecorderRef.current?.state === "recording") {
         mediaRecorderRef.current.stop();
@@ -176,10 +176,22 @@ export function useVoiceConversation({ api, userId, language, onMessage, onParam
                 startListening();
               }
             } else if (activeRef.current) {
-              setStage("error");
+              // Check if it's a "no speech" response — silently restart
+              const errMsg = ((res as any).error || "").toLowerCase();
+              if (errMsg.includes("no speech") || errMsg.includes("could not transcribe")) {
+                startListening();
+              } else {
+                setStage("error");
+              }
             }
-          } catch (err) {
+          } catch (err: any) {
             console.error("Voice conversation error:", err);
+            // If "no speech detected" 400, silently restart listening
+            const msg = err?.message || "";
+            if (msg.toLowerCase().includes("no speech") || msg.toLowerCase().includes("could not transcribe")) {
+              if (activeRef.current) startListening();
+              return;
+            }
             if (activeRef.current) {
               setStage("error");
             }
