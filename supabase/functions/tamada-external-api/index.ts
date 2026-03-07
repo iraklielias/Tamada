@@ -745,6 +745,7 @@ async function transcribeAudio(audioBase64: string, audioFormat: string, languag
   formData.append("file", blob, `recording.${audioFormat}`);
   formData.append("model_id", "scribe_v2");
   formData.append("language_code", language === "en" ? "eng" : "kat");
+  formData.append("tag_audio_events", "false");
 
   const response = await fetch("https://api.elevenlabs.io/v1/speech-to-text", {
     method: "POST",
