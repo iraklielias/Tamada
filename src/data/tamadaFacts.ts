@@ -6,64 +6,197 @@ export interface TamadaFact {
 
 export const tamadaFacts: TamadaFact[] = [
   // History
-  { ka: "სუფრის ტრადიცია 3000 წელზე მეტს ითვლის — ძველი კოლხეთის დროიდან", en: "The tradition of supra dates back over 3,000 years to ancient Colchis.", category: "history" },
-  { ka: "საქართველო ღვინის სამშობლოა — 8000 წლიანი მეღვინეობის ისტორიით", en: "Georgia is the birthplace of wine, with 8,000 years of winemaking history.", category: "history" },
-  { ka: "უძველესი ღვინის ნაშთები აღმოჩენილია საქართველოში, ძვ.წ. 6000 წელს", en: "The oldest wine residue ever found was discovered in Georgia, dating to 6000 BC.", category: "history" },
-  { ka: "ქართული ანბანი მსოფლიოს 14 უნიკალურ ანბანს შორისაა", en: "The Georgian alphabet is among only 14 unique writing systems in the world.", category: "history" },
-  { ka: "თბილისი 1500 წელზე მეტია საქართველოს დედაქალაქი", en: "Tbilisi has been Georgia's capital for over 1,500 years.", category: "history" },
-
+  {
+    ka: "\u10E1\u10E3\u10E4\u10E0\u10D8\u10E1 \u10E2\u10E0\u10D0\u10D3\u10D8\u10EA\u10D8\u10D0 3000 \u10EC\u10D4\u10DA\u10D6\u10D4 \u10DB\u10D4\u10E2\u10E1 \u10D8\u10D7\u10D5\u10DA\u10D8\u10E1 \u2014 \u10EB\u10D5\u10D4\u10DA\u10D8 \u10D9\u10DD\u10DA\u10EE\u10D4\u10D7\u10D8\u10E1 \u10D3\u10E0\u10DD\u10D8\u10D3\u10D0\u10DC",
+    en: "The tradition of supra dates back over 3,000 years to ancient Colchis.",
+    category: "history",
+  },
+  {
+    ka: "\u10E1\u10D0\u10E5\u10D0\u10E0\u10D7\u10D5\u10D4\u10DA\u10DD \u10E6\u10D5\u10D8\u10DC\u10D8\u10E1 \u10E1\u10D0\u10DB\u10E8\u10DD\u10D1\u10DA\u10DD\u10D0 \u2014 8000 \u10EC\u10DA\u10D8\u10D0\u10DC\u10D8 \u10DB\u10D4\u10E6\u10D5\u10D8\u10DC\u10D4\u10DD\u10D1\u10D8\u10E1 \u10D8\u10E1\u10E2\u10DD\u10E0\u10D8\u10D8\u10D7",
+    en: "Georgia is the birthplace of wine, with 8,000 years of winemaking history.",
+    category: "history",
+  },
+  {
+    ka: "\u10E3\u10EB\u10D5\u10D4\u10DA\u10D4\u10E1\u10D8 \u10E6\u10D5\u10D8\u10DC\u10D8\u10E1 \u10DC\u10D0\u10E8\u10D7\u10D4\u10D1\u10D8 \u10D0\u10E6\u10DB\u10DD\u10E9\u10D4\u10DC\u10D8\u10DA\u10D8\u10D0 \u10E1\u10D0\u10E5\u10D0\u10E0\u10D7\u10D5\u10D4\u10DA\u10DD\u10E8\u10D8, \u10EB\u10D5.\u10EC. 6000 \u10EC\u10D4\u10DA\u10E1",
+    en: "The oldest wine residue ever found was discovered in Georgia, dating to 6000 BC.",
+    category: "history",
+  },
+  {
+    ka: "\u10E5\u10D0\u10E0\u10D7\u10E3\u10DA\u10D8 \u10D0\u10DC\u10D1\u10D0\u10DC\u10D8 \u10DB\u10E1\u10DD\u10E4\u10DA\u10D8\u10DD\u10E1 14 \u10E3\u10DC\u10D8\u10D9\u10D0\u10DA\u10E3\u10E0 \u10D0\u10DC\u10D1\u10D0\u10DC\u10E1 \u10E8\u10DD\u10E0\u10D8\u10E1\u10D0\u10D0",
+    en: "The Georgian alphabet is among only 14 unique writing systems in the world.",
+    category: "history",
+  },
+  {
+    ka: "\u10D7\u10D1\u10D8\u10DA\u10D8\u10E1\u10D8 1500 \u10EC\u10D4\u10DA\u10D6\u10D4 \u10DB\u10D4\u10E2\u10D8\u10D0 \u10E1\u10D0\u10E5\u10D0\u10E0\u10D7\u10D5\u10D4\u10DA\u10DD\u10E1 \u10D3\u10D4\u10D3\u10D0\u10E5\u10D0\u10DA\u10D0\u10E5\u10D8",
+    en: "Tbilisi has been Georgia's capital for over 1,500 years.",
+    category: "history",
+  },
   // Tamada role
-  { ka: "თამადას არ ირჩევენ — მას სუფრა თავად აღიარებს", en: "A tamada is never elected — they are recognized by the table.", category: "tamada" },
-  { ka: "თამადა უნდა იყოს მჭერმეტყველი, თავმდაბალი და გულუხვი", en: "A tamada must be eloquent, humble, and generous of spirit.", category: "tamada" },
-  { ka: "თამადა სუფრის სულია — ის განსაზღვრავს საღამოს რიტმს და განწყობას", en: "The tamada is the soul of the supra — they set the rhythm and mood of the evening.", category: "tamada" },
-  { ka: "კარგი თამადა ყოველთვის იცის, როდის უნდა იყოს სერიოზული და როდის — მხიარული", en: "A great tamada always knows when to be serious and when to be joyful.", category: "tamada" },
-  { ka: "თამადობა მამაკაცის საქმედ ითვლებოდა, თუმცა დღეს ქალებიც ბრწყინვალედ ასრულებენ", en: "Tamada was traditionally a man's role, but today women excel at it too.", category: "tamada" },
-  { ka: "თამადას არ აქვს უფლება, სადღეგრძელო გამოტოვოს — ეს უპატივცემულობაა", en: "A tamada must never skip a toast — it would be considered disrespectful.", category: "tamada" },
-
+  {
+    ka: "\u10D7\u10D0\u10DB\u10D0\u10D3\u10D0\u10E1 \u10D0\u10E0 \u10D8\u10E0\u10E9\u10D4\u10D5\u10D4\u10DC \u2014 \u10DB\u10D0\u10E1 \u10E1\u10E3\u10E4\u10E0\u10D0 \u10D7\u10D0\u10D5\u10D0\u10D3 \u10D0\u10E6\u10D8\u10D0\u10E0\u10D4\u10D1\u10E1",
+    en: "A tamada is never elected \u2014 they are recognized by the table.",
+    category: "tamada",
+  },
+  {
+    ka: "\u10D7\u10D0\u10DB\u10D0\u10D3\u10D0 \u10E3\u10DC\u10D3\u10D0 \u10D8\u10E7\u10DD\u10E1 \u10DB\u10ED\u10D4\u10E0\u10DB\u10D4\u10E2\u10E7\u10D5\u10D4\u10DA\u10D8, \u10D7\u10D0\u10D5\u10DB\u10D3\u10D0\u10D1\u10D0\u10DA\u10D8 \u10D3\u10D0 \u10D2\u10E3\u10DA\u10E3\u10EE\u10D5\u10D8",
+    en: "A tamada must be eloquent, humble, and generous of spirit.",
+    category: "tamada",
+  },
+  {
+    ka: "\u10D7\u10D0\u10DB\u10D0\u10D3\u10D0 \u10E1\u10E3\u10E4\u10E0\u10D8\u10E1 \u10E1\u10E3\u10DA\u10D8\u10D0 \u2014 \u10D8\u10E1 \u10D2\u10D0\u10DC\u10E1\u10D0\u10D6\u10E6\u10D5\u10E0\u10D0\u10D5\u10E1 \u10E1\u10D0\u10E6\u10D0\u10DB\u10DD\u10E1 \u10E0\u10D8\u10D7\u10DB\u10E1 \u10D3\u10D0 \u10D2\u10D0\u10DC\u10EC\u10E7\u10DD\u10D1\u10D0\u10E1",
+    en: "The tamada is the soul of the supra \u2014 they set the rhythm and mood of the evening.",
+    category: "tamada",
+  },
+  {
+    ka: "\u10D9\u10D0\u10E0\u10D2\u10D8 \u10D7\u10D0\u10DB\u10D0\u10D3\u10D0 \u10E7\u10DD\u10D5\u10D4\u10DA\u10D7\u10D5\u10D8\u10E1 \u10D8\u10EA\u10D8\u10E1, \u10E0\u10DD\u10D3\u10D8\u10E1 \u10E3\u10DC\u10D3\u10D0 \u10D8\u10E7\u10DD\u10E1 \u10E1\u10D4\u10E0\u10D8\u10DD\u10D6\u10E3\u10DA\u10D8 \u10D3\u10D0 \u10E0\u10DD\u10D3\u10D8\u10E1 \u2014 \u10DB\u10EE\u10D8\u10D0\u10E0\u10E3\u10DA\u10D8",
+    en: "A great tamada always knows when to be serious and when to be joyful.",
+    category: "tamada",
+  },
+  {
+    ka: "\u10D7\u10D0\u10DB\u10D0\u10D3\u10DD\u10D1\u10D0 \u10DB\u10D0\u10DB\u10D0\u10D9\u10D0\u10EA\u10D8\u10E1 \u10E1\u10D0\u10E5\u10DB\u10D4\u10D3 \u10D8\u10D7\u10D5\u10DA\u10D4\u10D1\u10DD\u10D3\u10D0, \u10D7\u10E3\u10DB\u10EA\u10D0 \u10D3\u10E6\u10D4\u10E1 \u10E5\u10D0\u10DA\u10D4\u10D1\u10D8\u10EA \u10D1\u10E0\u10EC\u10E7\u10D8\u10DC\u10D5\u10D0\u10DA\u10D4\u10D3 \u10D0\u10E1\u10E0\u10E3\u10DA\u10D4\u10D1\u10D4\u10DC",
+    en: "Tamada was traditionally a man's role, but today women excel at it too.",
+    category: "tamada",
+  },
+  {
+    ka: "\u10D7\u10D0\u10DB\u10D0\u10D3\u10D0\u10E1 \u10D0\u10E0 \u10D0\u10E5\u10D5\u10E1 \u10E3\u10E4\u10DA\u10D4\u10D1\u10D0, \u10E1\u10D0\u10D3\u10E6\u10D4\u10D2\u10E0\u10EB\u10D4\u10DA\u10DD \u10D2\u10D0\u10DB\u10DD\u10E2\u10DD\u10D5\u10DD\u10E1 \u2014 \u10D4\u10E1 \u10E3\u10DE\u10D0\u10E2\u10D8\u10D5\u10EA\u10D4\u10DB\u10E3\u10DA\u10DD\u10D1\u10D0\u10D0",
+    en: "A tamada must never skip a toast \u2014 it would be considered disrespectful.",
+    category: "tamada",
+  },
   // Wine
-  { ka: "საქართველოში 500-ზე მეტი ადგილობრივი ვაზის ჯიშია", en: "Georgia has over 500 indigenous grape varieties.", category: "wine" },
-  { ka: "საფერავი საქართველოს ყველაზე ცნობილი წითელი ვაზის ჯიშია", en: "Saperavi is Georgia's most famous red grape variety.", category: "wine" },
-  { ka: "რქაწითელი მსოფლიოს ერთ-ერთი უძველესი თეთრი ვაზის ჯიშია", en: "Rkatsiteli is one of the world's oldest white grape varieties.", category: "wine" },
-  { ka: "ქართული ღვინო ტრადიციულად ქვევრში მზადდება, მიწაში ჩაფლულ თიხის ჭურჭელში", en: "Georgian wine is traditionally made in qvevri — clay vessels buried in the ground.", category: "wine" },
-  { ka: "ქართული სუფრა ღვინის გარეშე წარმოუდგენელია — ღვინო სტუმართმოყვარეობის სიმბოლოა", en: "A Georgian supra without wine is unthinkable — wine symbolizes hospitality.", category: "wine" },
-
+  {
+    ka: "\u10E1\u10D0\u10E5\u10D0\u10E0\u10D7\u10D5\u10D4\u10DA\u10DD\u10E8\u10D8 500-\u10D6\u10D4 \u10DB\u10D4\u10E2\u10D8 \u10D0\u10D3\u10D2\u10D8\u10DA\u10DD\u10D1\u10E0\u10D8\u10D5\u10D8 \u10D5\u10D0\u10D6\u10D8\u10E1 \u10EF\u10D8\u10E8\u10D8\u10D0",
+    en: "Georgia has over 500 indigenous grape varieties.",
+    category: "wine",
+  },
+  {
+    ka: "\u10E1\u10D0\u10E4\u10D4\u10E0\u10D0\u10D5\u10D8 \u10E1\u10D0\u10E5\u10D0\u10E0\u10D7\u10D5\u10D4\u10DA\u10DD\u10E1 \u10E7\u10D5\u10D4\u10DA\u10D0\u10D6\u10D4 \u10EA\u10DC\u10DD\u10D1\u10D8\u10DA\u10D8 \u10EC\u10D8\u10D7\u10D4\u10DA\u10D8 \u10D5\u10D0\u10D6\u10D8\u10E1 \u10EF\u10D8\u10E8\u10D8\u10D0",
+    en: "Saperavi is Georgia's most famous red grape variety.",
+    category: "wine",
+  },
+  {
+    ka: "\u10E0\u10E5\u10D0\u10EC\u10D8\u10D7\u10D4\u10DA\u10D8 \u10DB\u10E1\u10DD\u10E4\u10DA\u10D8\u10DD\u10E1 \u10D4\u10E0\u10D7-\u10D4\u10E0\u10D7\u10D8 \u10E3\u10EB\u10D5\u10D4\u10DA\u10D4\u10E1\u10D8 \u10D7\u10D4\u10D7\u10E0\u10D8 \u10D5\u10D0\u10D6\u10D8\u10E1 \u10EF\u10D8\u10E8\u10D8\u10D0",
+    en: "Rkatsiteli is one of the world's oldest white grape varieties.",
+    category: "wine",
+  },
+  {
+    ka: "\u10E5\u10D0\u10E0\u10D7\u10E3\u10DA\u10D8 \u10E6\u10D5\u10D8\u10DC\u10DD \u10E2\u10E0\u10D0\u10D3\u10D8\u10EA\u10D8\u10E3\u10DA\u10D0\u10D3 \u10E5\u10D5\u10D4\u10D5\u10E0\u10E8\u10D8 \u10DB\u10D6\u10D0\u10D3\u10D3\u10D4\u10D1\u10D0, \u10DB\u10D8\u10EC\u10D0\u10E8\u10D8 \u10E9\u10D0\u10E4\u10DA\u10E3\u10DA \u10D7\u10D8\u10EE\u10D8\u10E1 \u10ED\u10E3\u10E0\u10ED\u10D4\u10DA\u10E8\u10D8",
+    en: "Georgian wine is traditionally made in qvevri \u2014 clay vessels buried in the ground.",
+    category: "wine",
+  },
+  {
+    ka: "\u10E5\u10D0\u10E0\u10D7\u10E3\u10DA\u10D8 \u10E1\u10E3\u10E4\u10E0\u10D0 \u10E6\u10D5\u10D8\u10DC\u10D8\u10E1 \u10D2\u10D0\u10E0\u10D4\u10E8\u10D4 \u10EC\u10D0\u10E0\u10DB\u10DD\u10E3\u10D3\u10D2\u10D4\u10DC\u10D4\u10DA\u10D8\u10D0 \u2014 \u10E6\u10D5\u10D8\u10DC\u10DD \u10E1\u10E2\u10E3\u10DB\u10D0\u10E0\u10D7\u10DB\u10DD\u10E7\u10D5\u10D0\u10E0\u10D4\u10DD\u10D1\u10D8\u10E1 \u10E1\u10D8\u10DB\u10D1\u10DD\u10DA\u10DD\u10D0",
+    en: "A Georgian supra without wine is unthinkable \u2014 wine symbolizes hospitality.",
+    category: "wine",
+  },
   // Qvevri
-  { ka: "ქვევრში ღვინის დაყენება 2013 წლიდან UNESCO-ს არამატერიალური მემკვიდრეობის ძეგლია", en: "Qvevri winemaking has been UNESCO Intangible Cultural Heritage since 2013.", category: "qvevri" },
-  { ka: "ქვევრი შეიძლება 800 წელზე მეტ ხანს გამოიყენებოდეს", en: "A qvevri can be used for over 800 years.", category: "qvevri" },
-  { ka: "ქვევრის მოცულობა 10-დან 10,000 ლიტრამდე მერყეობს", en: "Qvevri range in size from 10 to 10,000 liters.", category: "qvevri" },
-
+  {
+    ka: "\u10E5\u10D5\u10D4\u10D5\u10E0\u10E8\u10D8 \u10E6\u10D5\u10D8\u10DC\u10D8\u10E1 \u10D3\u10D0\u10E7\u10D4\u10DC\u10D4\u10D1\u10D0 2013 \u10EC\u10DA\u10D8\u10D3\u10D0\u10DC UNESCO-\u10E1 \u10D0\u10E0\u10D0\u10DB\u10D0\u10E2\u10D4\u10E0\u10D8\u10D0\u10DA\u10E3\u10E0\u10D8 \u10DB\u10D4\u10DB\u10D9\u10D5\u10D8\u10D3\u10E0\u10D4\u10DD\u10D1\u10D8\u10E1 \u10EB\u10D4\u10D2\u10DA\u10D8\u10D0",
+    en: "Qvevri winemaking has been UNESCO Intangible Cultural Heritage since 2013.",
+    category: "qvevri",
+  },
+  {
+    ka: "\u10E5\u10D5\u10D4\u10D5\u10E0\u10D8 \u10E8\u10D4\u10D8\u10EB\u10DA\u10D4\u10D1\u10D0 800 \u10EC\u10D4\u10DA\u10D6\u10D4 \u10DB\u10D4\u10E2 \u10EE\u10D0\u10DC\u10E1 \u10D2\u10D0\u10DB\u10DD\u10D8\u10E7\u10D4\u10DC\u10D4\u10D1\u10DD\u10D3\u10D4\u10E1",
+    en: "A qvevri can be used for over 800 years.",
+    category: "qvevri",
+  },
+  {
+    ka: "\u10E5\u10D5\u10D4\u10D5\u10E0\u10D8\u10E1 \u10DB\u10DD\u10EA\u10E3\u10DA\u10DD\u10D1\u10D0 10-\u10D3\u10D0\u10DC 10,000 \u10DA\u10D8\u10E2\u10E0\u10D0\u10DB\u10D3\u10D4 \u10DB\u10D4\u10E0\u10E7\u10D4\u10DD\u10D1\u10E1",
+    en: "Qvevri range in size from 10 to 10,000 liters.",
+    category: "qvevri",
+  },
   // Proverbs
-  { ka: "ქართული ანდაზა: „სტუმარი ღვთის მოვლინებაა"", en: "Georgian proverb: 'A guest is a gift from God.'", category: "proverb" },
-  { ka: "ქართული ანდაზა: „კარგი სიტყვა კარს გააღებს"", en: "Georgian proverb: 'A kind word opens any door.'", category: "proverb" },
-  { ka: "ქართული ანდაზა: „მეგობარი გაჭირვებაში გამოიცნობა"", en: "Georgian proverb: 'A friend is known in times of hardship.'", category: "proverb" },
-  { ka: "ქართული ანდაზა: „ერთი ფუტკარი ბევრ თაფლს არ მოიტანს"", en: "Georgian proverb: 'One bee doesn't bring much honey.'", category: "proverb" },
-  { ka: "ქართული ანდაზა: „ვინც არ მუშაობს, არ ჭამს"", en: "Georgian proverb: 'He who doesn't work, doesn't eat.'", category: "proverb" },
-
+  {
+    ka: "\u10E5\u10D0\u10E0\u10D7\u10E3\u10DA\u10D8 \u10D0\u10DC\u10D3\u10D0\u10D6\u10D0: \u10E1\u10E2\u10E3\u10DB\u10D0\u10E0\u10D8 \u10E6\u10D5\u10D7\u10D8\u10E1 \u10DB\u10DD\u10D5\u10DA\u10D8\u10DC\u10D4\u10D1\u10D0\u10D0",
+    en: "Georgian proverb: 'A guest is a gift from God.'",
+    category: "proverb",
+  },
+  {
+    ka: "\u10E5\u10D0\u10E0\u10D7\u10E3\u10DA\u10D8 \u10D0\u10DC\u10D3\u10D0\u10D6\u10D0: \u10D9\u10D0\u10E0\u10D2\u10D8 \u10E1\u10D8\u10E2\u10E7\u10D5\u10D0 \u10D9\u10D0\u10E0\u10E1 \u10D2\u10D0\u10D0\u10E6\u10D4\u10D1\u10E1",
+    en: "Georgian proverb: 'A kind word opens any door.'",
+    category: "proverb",
+  },
+  {
+    ka: "\u10E5\u10D0\u10E0\u10D7\u10E3\u10DA\u10D8 \u10D0\u10DC\u10D3\u10D0\u10D6\u10D0: \u10DB\u10D4\u10D2\u10DD\u10D1\u10D0\u10E0\u10D8 \u10D2\u10D0\u10ED\u10D8\u10E0\u10D5\u10D4\u10D1\u10D0\u10E8\u10D8 \u10D2\u10D0\u10DB\u10DD\u10D8\u10EA\u10DC\u10DD\u10D1\u10D0",
+    en: "Georgian proverb: 'A friend is known in times of hardship.'",
+    category: "proverb",
+  },
+  {
+    ka: "\u10E5\u10D0\u10E0\u10D7\u10E3\u10DA\u10D8 \u10D0\u10DC\u10D3\u10D0\u10D6\u10D0: \u10D4\u10E0\u10D7\u10D8 \u10E4\u10E3\u10E2\u10D9\u10D0\u10E0\u10D8 \u10D1\u10D4\u10D5\u10E0 \u10D7\u10D0\u10E4\u10DA\u10E1 \u10D0\u10E0 \u10DB\u10DD\u10D8\u10E2\u10D0\u10DC\u10E1",
+    en: "Georgian proverb: 'One bee doesn't bring much honey.'",
+    category: "proverb",
+  },
+  {
+    ka: "\u10E5\u10D0\u10E0\u10D7\u10E3\u10DA\u10D8 \u10D0\u10DC\u10D3\u10D0\u10D6\u10D0: \u10D5\u10D8\u10DC\u10EA \u10D0\u10E0 \u10DB\u10E3\u10E8\u10D0\u10DD\u10D1\u10E1, \u10D0\u10E0 \u10ED\u10D0\u10DB\u10E1",
+    en: "Georgian proverb: 'He who doesn't work, doesn't eat.'",
+    category: "proverb",
+  },
   // Regions
-  { ka: "კახეთში სადღეგრძელოები ვრცელი და პოეტურია — რეგიონის ღრმა ღვინის კულტურის ასახვა", en: "In Kakheti, toasts are elaborate and poetic, reflecting the region's deep wine culture.", category: "region" },
-  { ka: "იმერეთის სუფრა გამოირჩევა მსუბუქი, ხალისიანი ატმოსფეროთი", en: "Imeretian supras are known for their lighter, more playful atmosphere.", category: "region" },
-  { ka: "სვანეთში სუფრა ხშირად რელიგიურ რიტუალებთან არის დაკავშირებული", en: "In Svaneti, supras are often tied to religious rituals and ceremonies.", category: "region" },
-
+  {
+    ka: "\u10D9\u10D0\u10EE\u10D4\u10D7\u10E8\u10D8 \u10E1\u10D0\u10D3\u10E6\u10D4\u10D2\u10E0\u10EB\u10D4\u10DA\u10DD\u10D4\u10D1\u10D8 \u10D5\u10E0\u10EA\u10D4\u10DA\u10D8 \u10D3\u10D0 \u10DE\u10DD\u10D4\u10E2\u10E3\u10E0\u10D8\u10D0",
+    en: "In Kakheti, toasts are elaborate and poetic, reflecting the region's deep wine culture.",
+    category: "region",
+  },
+  {
+    ka: "\u10D8\u10DB\u10D4\u10E0\u10D4\u10D7\u10D8\u10E1 \u10E1\u10E3\u10E4\u10E0\u10D0 \u10D2\u10D0\u10DB\u10DD\u10D8\u10E0\u10E9\u10D4\u10D5\u10D0 \u10DB\u10E1\u10E3\u10D1\u10E3\u10E5\u10D8, \u10EE\u10D0\u10DA\u10D8\u10E1\u10D8\u10D0\u10DC\u10D8 \u10D0\u10E2\u10DB\u10DD\u10E1\u10E4\u10D4\u10E0\u10DD\u10D7\u10D8",
+    en: "Imeretian supras are known for their lighter, more playful atmosphere.",
+    category: "region",
+  },
+  {
+    ka: "\u10E1\u10D5\u10D0\u10DC\u10D4\u10D7\u10E8\u10D8 \u10E1\u10E3\u10E4\u10E0\u10D0 \u10EE\u10E8\u10D8\u10E0\u10D0\u10D3 \u10E0\u10D4\u10DA\u10D8\u10D2\u10D8\u10E3\u10E0 \u10E0\u10D8\u10E2\u10E3\u10D0\u10DA\u10D4\u10D1\u10D7\u10D0\u10DC \u10D0\u10E0\u10D8\u10E1 \u10D3\u10D0\u10D9\u10D0\u10D5\u10E8\u10D8\u10E0\u10D4\u10D1\u10E3\u10DA\u10D8",
+    en: "In Svaneti, supras are often tied to religious rituals and ceremonies.",
+    category: "region",
+  },
   // Culture
-  { ka: "შოთა რუსთაველის „ვეფხისტყაოსანი" თითქმის ყველა ფორმალურ სუფრაზე ციტირდება", en: "Shota Rustaveli's 'The Knight in the Panther's Skin' is quoted at nearly every formal supra.", category: "culture" },
-  { ka: "ქართული პოლიფონიური სიმღერა UNESCO-ს მემკვიდრეობის ძეგლია", en: "Georgian polyphonic singing is a UNESCO Intangible Cultural Heritage.", category: "culture" },
-  { ka: "სადღეგრძელო „ალავერდი" ნიშნავს, რომ სუფრის წევრს შეუძლია გააგრძელოს თამადას სიტყვა", en: "An 'alaverdi' toast means a guest may continue the tamada's theme in their own words.", category: "culture" },
-  { ka: "პირველი სადღეგრძელო ყოველთვის ღვთის ან უფლის სადიდებლად ითქმის", en: "The first toast is always raised to God or the Creator.", category: "culture" },
-  { ka: "ქართულ სუფრაზე არავინ სვამს სადღეგრძელოს გარეშე — ეს უხეშობად ითვლება", en: "At a Georgian supra, no one drinks without a toast — it's considered rude.", category: "culture" },
-
+  {
+    ka: "\u10E8\u10DD\u10D7\u10D0 \u10E0\u10E3\u10E1\u10D7\u10D0\u10D5\u10D4\u10DA\u10D8\u10E1 \u10D5\u10D4\u10E4\u10EE\u10D8\u10E1\u10E2\u10E7\u10D0\u10DD\u10E1\u10D0\u10DC\u10D8 \u10D7\u10D8\u10D7\u10E5\u10DB\u10D8\u10E1 \u10E7\u10D5\u10D4\u10DA\u10D0 \u10E4\u10DD\u10E0\u10DB\u10D0\u10DA\u10E3\u10E0 \u10E1\u10E3\u10E4\u10E0\u10D0\u10D6\u10D4 \u10EA\u10D8\u10E2\u10D8\u10E0\u10D3\u10D4\u10D1\u10D0",
+    en: "Shota Rustaveli's 'The Knight in the Panther's Skin' is quoted at nearly every formal supra.",
+    category: "culture",
+  },
+  {
+    ka: "\u10E5\u10D0\u10E0\u10D7\u10E3\u10DA\u10D8 \u10DE\u10DD\u10DA\u10D8\u10E4\u10DD\u10DC\u10D8\u10E3\u10E0\u10D8 \u10E1\u10D8\u10DB\u10E6\u10D4\u10E0\u10D0 UNESCO-\u10E1 \u10DB\u10D4\u10DB\u10D9\u10D5\u10D8\u10D3\u10E0\u10D4\u10DD\u10D1\u10D8\u10E1 \u10EB\u10D4\u10D2\u10DA\u10D8\u10D0",
+    en: "Georgian polyphonic singing is a UNESCO Intangible Cultural Heritage.",
+    category: "culture",
+  },
+  {
+    ka: "\u10E1\u10D0\u10D3\u10E6\u10D4\u10D2\u10E0\u10EB\u10D4\u10DA\u10DD \u10D0\u10DA\u10D0\u10D5\u10D4\u10E0\u10D3\u10D8 \u10DC\u10D8\u10E8\u10DC\u10D0\u10D5\u10E1, \u10E0\u10DD\u10DB \u10E1\u10E3\u10E4\u10E0\u10D8\u10E1 \u10EC\u10D4\u10D5\u10E0\u10E1 \u10E8\u10D4\u10E3\u10EB\u10DA\u10D8\u10D0 \u10D2\u10D0\u10D0\u10D2\u10E0\u10EB\u10D4\u10DA\u10DD\u10E1 \u10D7\u10D0\u10DB\u10D0\u10D3\u10D0\u10E1 \u10E1\u10D8\u10E2\u10E7\u10D5\u10D0",
+    en: "An 'alaverdi' toast means a guest may continue the tamada's theme in their own words.",
+    category: "culture",
+  },
+  {
+    ka: "\u10DE\u10D8\u10E0\u10D5\u10D4\u10DA\u10D8 \u10E1\u10D0\u10D3\u10E6\u10D4\u10D2\u10E0\u10EB\u10D4\u10DA\u10DD \u10E7\u10DD\u10D5\u10D4\u10DA\u10D7\u10D5\u10D8\u10E1 \u10E6\u10D5\u10D7\u10D8\u10E1 \u10D0\u10DC \u10E3\u10E4\u10DA\u10D8\u10E1 \u10E1\u10D0\u10D3\u10D8\u10D3\u10D4\u10D1\u10DA\u10D0\u10D3 \u10D8\u10D7\u10E5\u10DB\u10D8\u10E1",
+    en: "The first toast is always raised to God or the Creator.",
+    category: "culture",
+  },
+  {
+    ka: "\u10E5\u10D0\u10E0\u10D7\u10E3\u10DA \u10E1\u10E3\u10E4\u10E0\u10D0\u10D6\u10D4 \u10D0\u10E0\u10D0\u10D5\u10D8\u10DC \u10E1\u10D5\u10D0\u10DB\u10E1 \u10E1\u10D0\u10D3\u10E6\u10D4\u10D2\u10E0\u10EB\u10D4\u10DA\u10DD\u10E1 \u10D2\u10D0\u10E0\u10D4\u10E8\u10D4 \u2014 \u10D4\u10E1 \u10E3\u10EE\u10D4\u10E8\u10DD\u10D1\u10D0\u10D3 \u10D8\u10D7\u10D5\u10DA\u10D4\u10D1\u10D0",
+    en: "At a Georgian supra, no one drinks without a toast \u2014 it's considered rude.",
+    category: "culture",
+  },
   // Food
-  { ka: "ხინკალი — ქართული სუფრის ერთ-ერთი ყველაზე საყვარელი კერძია", en: "Khinkali — Georgian dumplings — are one of the most beloved supra dishes.", category: "food" },
-  { ka: "ჩურჩხელას „ქართულ სნიკერსს" ეძახიან — ეს ძველი ქართული ტკბილეულია", en: "Churchkhela is called 'Georgian Snickers' — it's an ancient Georgian candy.", category: "food" },
-  { ka: "საქართველოში პურის გამოცხობა საკრალური პროცესია — შოთი ტრადიციული თონის პურია", en: "Bread-baking is sacred in Georgia — shotis puri is the traditional tandoor bread.", category: "food" },
+  {
+    ka: "\u10EE\u10D8\u10DC\u10D9\u10D0\u10DA\u10D8 \u2014 \u10E5\u10D0\u10E0\u10D7\u10E3\u10DA\u10D8 \u10E1\u10E3\u10E4\u10E0\u10D8\u10E1 \u10D4\u10E0\u10D7-\u10D4\u10E0\u10D7\u10D8 \u10E7\u10D5\u10D4\u10DA\u10D0\u10D6\u10D4 \u10E1\u10D0\u10E7\u10D5\u10D0\u10E0\u10D4\u10DA\u10D8 \u10D9\u10D4\u10E0\u10EB\u10D8\u10D0",
+    en: "Khinkali \u2014 Georgian dumplings \u2014 are one of the most beloved supra dishes.",
+    category: "food",
+  },
+  {
+    ka: "\u10E9\u10E3\u10E0\u10E9\u10EE\u10D4\u10DA\u10D0\u10E1 \u10E5\u10D0\u10E0\u10D7\u10E3\u10DA \u10E1\u10DC\u10D8\u10D9\u10D4\u10E0\u10E1\u10E1 \u10D4\u10EB\u10D0\u10EE\u10D8\u10D0\u10DC \u2014 \u10D4\u10E1 \u10EB\u10D5\u10D4\u10DA\u10D8 \u10E5\u10D0\u10E0\u10D7\u10E3\u10DA\u10D8 \u10E2\u10D9\u10D1\u10D8\u10DA\u10D4\u10E3\u10DA\u10D8\u10D0",
+    en: "Churchkhela is called 'Georgian Snickers' \u2014 it's an ancient Georgian candy.",
+    category: "food",
+  },
+  {
+    ka: "\u10E1\u10D0\u10E5\u10D0\u10E0\u10D7\u10D5\u10D4\u10DA\u10DD\u10E8\u10D8 \u10DE\u10E3\u10E0\u10D8\u10E1 \u10D2\u10D0\u10DB\u10DD\u10EA\u10EE\u10DD\u10D1\u10D0 \u10E1\u10D0\u10D9\u10E0\u10D0\u10DA\u10E3\u10E0\u10D8 \u10DE\u10E0\u10DD\u10EA\u10D4\u10E1\u10D8\u10D0 \u2014 \u10E8\u10DD\u10D7\u10D8 \u10E2\u10E0\u10D0\u10D3\u10D8\u10EA\u10D8\u10E3\u10DA\u10D8 \u10D7\u10DD\u10DC\u10D8\u10E1 \u10DE\u10E3\u10E0\u10D8\u10D0",
+    en: "Bread-baking is sacred in Georgia \u2014 shotis puri is the traditional tandoor bread.",
+    category: "food",
+  },
 ];
 
 export const CATEGORY_ICONS: Record<TamadaFact["category"], string> = {
-  history: "📜",
-  tamada: "🎩",
-  wine: "🍷",
-  qvevri: "🏺",
-  proverb: "💬",
-  region: "🗺️",
-  culture: "🎶",
-  food: "🍽️",
+  history: "\uD83D\uDCDC",
+  tamada: "\uD83C\uDFA9",
+  wine: "\uD83C\uDF77",
+  qvevri: "\uD83C\uDFFA",
+  proverb: "\uD83D\uDCAC",
+  region: "\uD83D\uDDFA\uFE0F",
+  culture: "\uD83C\uDFB6",
+  food: "\uD83C\uDF7D\uFE0F",
 };
