@@ -140,7 +140,7 @@ export function ChatSimulator({ api, onOpenVoiceMode, language, onLanguageChange
 
   return (
     <>
-      <Card className="flex flex-col h-[calc(100vh-8rem)] md:h-[700px] overflow-hidden">
+      <Card className="flex flex-col h-[100dvh] md:h-[700px] overflow-hidden rounded-none md:rounded-xl border-x-0 md:border-x">
         <ChatHeader
           language={language}
           onToggleLanguage={() => onLanguageChange(language === "ka" ? "en" : "ka")}
