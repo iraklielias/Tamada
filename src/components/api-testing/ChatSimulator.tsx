@@ -199,7 +199,7 @@ export function ChatSimulator({ api, onOpenVoiceMode, language, onLanguageChange
                     language={language}
                   />
                 ) : (
-                  <ChatBubble key={msg.id} message={msg} />
+                  <ChatBubble key={msg.id} message={msg} language={language} />
                 )
               )}
               {isLoading && <TypingIndicator />}
