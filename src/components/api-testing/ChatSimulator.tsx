@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Send, Mic } from "lucide-react";
+import { Send, Mic, Key } from "lucide-react";
 import { toast } from "sonner";
 import { ChatBubble } from "./ChatBubble";
 import { ToastCard } from "./ToastCard";
@@ -19,9 +19,10 @@ interface ChatSimulatorProps {
   onOpenVoiceMode: () => void;
   language: "ka" | "en";
   onLanguageChange: (lang: "ka" | "en") => void;
+  addVoiceMessagesRef?: React.RefObject<((userMsg: ExternalChatMessage | null, assistantMsg: ExternalChatMessage) => void) | null>;
 }
 
-export function ChatSimulator({ api, onOpenVoiceMode, language, onLanguageChange }: ChatSimulatorProps) {
+export function ChatSimulator({ api, onOpenVoiceMode, language, onLanguageChange, addVoiceMessagesRef }: ChatSimulatorProps) {
   const { t } = useTranslation();
   const [userId, setUserId] = useState("test_user_001");
   const [messages, setMessages] = useState<ExternalChatMessage[]>([]);
@@ -36,6 +37,18 @@ export function ChatSimulator({ api, onOpenVoiceMode, language, onLanguageChange
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  // Wire up voice message callback
+  useEffect(() => {
+    if (addVoiceMessagesRef) {
+      (addVoiceMessagesRef as React.MutableRefObject<any>).current = (
+        userMsg: ExternalChatMessage | null,
+        assistantMsg: ExternalChatMessage
+      ) => {
+        setMessages((prev) => [...prev, ...(userMsg ? [userMsg] : []), assistantMsg]);
+      };
+    }
+  }, [addVoiceMessagesRef]);
 
   const loadHistory = useCallback(async () => {
     if (!api.apiKey) {
@@ -82,6 +95,7 @@ export function ChatSimulator({ api, onOpenVoiceMode, language, onLanguageChange
       }
     } catch (err) {
       console.error(err);
+      toast.error(language === "ka" ? "შეცდომა მოხდა. სცადეთ თავიდან." : "Something went wrong. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -121,15 +135,8 @@ export function ChatSimulator({ api, onOpenVoiceMode, language, onLanguageChange
     handleSendText(message);
   }, [handleSendText]);
 
-  // Handle voice mode messages (called from parent)
-  const addVoiceMessages = useCallback(
-    (userMsg: ExternalChatMessage | null, assistantMsg: ExternalChatMessage) => {
-      setMessages((prev) => [...prev, ...(userMsg ? [userMsg] : []), assistantMsg]);
-    },
-    []
-  );
-
   const showWelcome = messages.length === 0;
+  const needsApiKey = !api.apiKey;
 
   return (
     <>
@@ -146,7 +153,39 @@ export function ChatSimulator({ api, onOpenVoiceMode, language, onLanguageChange
 
         {/* Messages area */}
         <CardContent className="flex-1 overflow-y-auto p-4 space-y-3">
-          {showWelcome ? (
+          {needsApiKey ? (
+            /* API Key first-run prompt */
+            <div className="flex flex-col items-center justify-center h-full px-4 py-8">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center mb-4 shadow-lg">
+                <Key className="w-7 h-7 text-primary-foreground" />
+              </div>
+              <h2 className="text-lg font-display font-bold text-foreground mb-1">
+                {language === "ka" ? "API Key საჭიროა" : "API Key Required"}
+              </h2>
+              <p className="text-sm text-muted-foreground text-center max-w-xs mb-5">
+                {language === "ka"
+                  ? "შეიყვანეთ თქვენი API Key რომ დაიწყოთ თამადა AI-სთან საუბარი"
+                  : "Enter your API Key to start chatting with Tamada AI"}
+              </p>
+              <div className="flex items-center gap-2 w-full max-w-sm">
+                <Input
+                  type="password"
+                  placeholder="tam_xxxxxxxxxxxx"
+                  className="flex-1 h-10"
+                  autoFocus
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      api.setApiKey((e.target as HTMLInputElement).value);
+                    }
+                  }}
+                  onChange={(e) => api.setApiKey(e.target.value)}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground/60 mt-3">
+                {language === "ka" ? "ან გახსენით ⚙ პარამეტრები" : "Or open ⚙ Settings"}
+              </p>
+            </div>
+          ) : showWelcome ? (
             <WelcomeScreen language={language} onSuggestion={handleSuggestion} />
           ) : (
             <>
@@ -157,6 +196,7 @@ export function ChatSimulator({ api, onOpenVoiceMode, language, onLanguageChange
                     message={msg}
                     onPlay={() => handlePlayAudio(msg)}
                     isPlaying={player.isPlaying && !!msg.audio_url}
+                    language={language}
                   />
                 ) : (
                   <ChatBubble key={msg.id} message={msg} />
@@ -172,13 +212,14 @@ export function ChatSimulator({ api, onOpenVoiceMode, language, onLanguageChange
         <div className="p-3 border-t border-border bg-card/50 backdrop-blur-sm">
           <div className="flex items-center gap-2">
             <Button
-              size="icon"
+              size="sm"
               variant="ghost"
-              className="h-9 w-9 flex-shrink-0 text-primary hover:bg-primary/10"
+              className="flex-shrink-0 text-primary hover:bg-primary/10 gap-1.5 px-2.5"
               onClick={onOpenVoiceMode}
-              title={language === "ka" ? "ხმოვანი რეჟიმი" : "Voice Mode"}
+              title={language === "ka" ? "ხმოვანი რეჟიმი — ხელისუფლებად საუბარი" : "Voice Mode — hands-free conversation"}
             >
               <Mic className="h-4 w-4" />
+              <span className="text-xs hidden sm:inline">{language === "ka" ? "ხმოვანი" : "Voice"}</span>
             </Button>
             <Input
               value={inputText}
@@ -186,12 +227,13 @@ export function ChatSimulator({ api, onOpenVoiceMode, language, onLanguageChange
               placeholder={language === "ka" ? "დაწერეთ შეტყობინება..." : "Type a message..."}
               className="h-9 rounded-full bg-muted/50 border-none focus-visible:ring-1 focus-visible:ring-primary/30"
               onKeyDown={(e) => e.key === "Enter" && handleSendText()}
+              disabled={needsApiKey}
             />
             <Button
               size="icon"
               className="h-9 w-9 rounded-full flex-shrink-0"
               onClick={() => handleSendText()}
-              disabled={isLoading || !inputText.trim()}
+              disabled={isLoading || !inputText.trim() || needsApiKey}
             >
               <Send className="h-4 w-4" />
             </Button>

@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { Wine, Sparkles } from "lucide-react";
+import { Wine, Sparkles, Mic } from "lucide-react";
 
 interface WelcomeScreenProps {
   language: "ka" | "en";
@@ -78,11 +78,26 @@ export function WelcomeScreen({ language, onSuggestion }: WelcomeScreenProps) {
         ))}
       </div>
 
+      {/* Voice mode hint */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.7 }}
+        className="flex items-center gap-2 mt-6 px-4 py-2.5 rounded-lg bg-primary/5 border border-primary/10"
+      >
+        <Mic className="w-4 h-4 text-primary" />
+        <p className="text-xs text-muted-foreground">
+          {language === "ka"
+            ? "💡 სცადეთ ხმოვანი რეჟიმი — დააჭირეთ 🎤 ღილაკს"
+            : "💡 Try Voice Mode — tap the 🎤 button for hands-free conversation"}
+        </p>
+      </motion.div>
+
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.8 }}
-        className="flex items-center gap-1.5 mt-6 text-xs text-muted-foreground/60"
+        className="flex items-center gap-1.5 mt-4 text-xs text-muted-foreground/60"
       >
         <Sparkles className="w-3 h-3" />
         <span>{language === "ka" ? "AI-ით გაძლიერებული" : "Powered by AI"}</span>

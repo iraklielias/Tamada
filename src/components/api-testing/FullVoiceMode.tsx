@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Keyboard, Mic } from "lucide-react";
+import { X, Keyboard, Mic, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useVoiceConversation, VoiceStage } from "@/hooks/useVoiceConversation";
 import type { ExternalChatMessage } from "@/types/external-api";
@@ -25,10 +25,24 @@ interface FullVoiceModeProps {
 
 const STAGE_LABELS: Record<VoiceStage, { ka: string; en: string }> = {
   idle: { ka: "დააჭირეთ დასაწყებად", en: "Tap to start" },
-  listening: { ka: "გისმენთ...", en: "Listening..." },
+  listening: { ka: "გისმენთ — დააჭირეთ გასაგზავნად", en: "Listening — tap to send" },
   transcribing: { ka: "ვამუშავებ...", en: "Processing..." },
   thinking: { ka: "თამადა ფიქრობს...", en: "Tamada is thinking..." },
-  speaking: { ka: "თამადა საუბრობს...", en: "Tamada is speaking..." },
+  speaking: { ka: "თამადა საუბრობს — დააჭირეთ შესაწყვეტად", en: "Speaking — tap to interrupt" },
+  error: { ka: "შეცდომა — დააჭირეთ თავიდან", en: "Error — tap to retry" },
+};
+
+const INSTRUCTIONS = {
+  ka: [
+    "🎤 დააჭირეთ ორბს საუბრის დასაწყებად",
+    "✋ დააჭირეთ ისევ შეტყობინების გასაგზავნად",
+    "🔇 დააჭირეთ საუბრისას შესაწყვეტად",
+  ],
+  en: [
+    "🎤 Tap the orb to start speaking",
+    "✋ Tap again to send your message",
+    "🔇 Tap while speaking to interrupt",
+  ],
 };
 
 function VoiceOrb({ stage, getVolume }: { stage: VoiceStage; getVolume: () => number }) {
@@ -53,6 +67,7 @@ function VoiceOrb({ stage, getVolume }: { stage: VoiceStage; getVolume: () => nu
 
   const scale = 1 + Math.min(volume * 8, 0.3);
   const isActive = stage !== "idle";
+  const isError = stage === "error";
 
   return (
     <div className="relative flex items-center justify-center">
@@ -60,7 +75,9 @@ function VoiceOrb({ stage, getVolume }: { stage: VoiceStage; getVolume: () => nu
       <motion.div
         className="absolute w-48 h-48 rounded-full"
         style={{
-          background: `radial-gradient(circle, hsl(var(--primary) / 0.15) 0%, transparent 70%)`,
+          background: isError
+            ? `radial-gradient(circle, hsl(var(--destructive) / 0.15) 0%, transparent 70%)`
+            : `radial-gradient(circle, hsl(var(--primary) / 0.15) 0%, transparent 70%)`,
         }}
         animate={{
           scale: stage === "listening" ? [1, 1.15, 1] : stage === "thinking" ? [1, 1.1, 1] : 1,
@@ -77,8 +94,14 @@ function VoiceOrb({ stage, getVolume }: { stage: VoiceStage; getVolume: () => nu
       <motion.div
         className="relative w-32 h-32 rounded-full border-2 flex items-center justify-center cursor-pointer"
         style={{
-          borderColor: isActive ? "hsl(var(--primary))" : "hsl(var(--border))",
-          background: isActive
+          borderColor: isError
+            ? "hsl(var(--destructive))"
+            : isActive
+            ? "hsl(var(--primary))"
+            : "hsl(var(--border))",
+          background: isError
+            ? `radial-gradient(circle at 40% 40%, hsl(var(--destructive) / 0.2), hsl(var(--destructive) / 0.05))`
+            : isActive
             ? `radial-gradient(circle at 40% 40%, hsl(var(--primary) / 0.2), hsl(var(--primary) / 0.05))`
             : "hsl(var(--muted))",
         }}
@@ -98,9 +121,15 @@ function VoiceOrb({ stage, getVolume }: { stage: VoiceStage; getVolume: () => nu
           </div>
         )}
 
-        <Mic
-          className={`w-8 h-8 ${isActive ? "text-primary" : "text-muted-foreground"}`}
-        />
+        {isError ? (
+          <AlertCircle className="w-8 h-8 text-destructive" />
+        ) : (
+          <Mic
+            className={`w-8 h-8 ${isActive ? "text-primary" : "text-muted-foreground"} ${
+              (stage === "thinking" || stage === "transcribing") ? "opacity-0" : ""
+            }`}
+          />
+        )}
       </motion.div>
     </div>
   );
@@ -109,6 +138,9 @@ function VoiceOrb({ stage, getVolume }: { stage: VoiceStage; getVolume: () => nu
 export function FullVoiceMode({ api, userId, language, onClose, onMessage, onParamsExtracted }: FullVoiceModeProps) {
   const [transcript, setTranscript] = useState("");
   const [lastResponse, setLastResponse] = useState("");
+  const [showInstructions, setShowInstructions] = useState(() => {
+    return !localStorage.getItem("tamada-voice-instructions-seen");
+  });
 
   const handleMessage = useCallback(
     (userMsg: ExternalChatMessage | null, assistantMsg: ExternalChatMessage) => {
@@ -133,14 +165,22 @@ export function FullVoiceMode({ api, userId, language, onClose, onMessage, onPar
   }, [voice, onClose]);
 
   const handleOrbClick = useCallback(() => {
+    // Dismiss instructions on first interaction
+    if (showInstructions) {
+      setShowInstructions(false);
+      localStorage.setItem("tamada-voice-instructions-seen", "1");
+    }
+
     if (voice.stage === "idle") {
       voice.startSession();
     } else if (voice.stage === "listening") {
       voice.stopListening();
     } else if (voice.stage === "speaking") {
       voice.interrupt();
+    } else if (voice.stage === "error") {
+      voice.retryFromError();
     }
-  }, [voice]);
+  }, [voice, showInstructions]);
 
   return (
     <motion.div
@@ -164,6 +204,27 @@ export function FullVoiceMode({ api, userId, language, onClose, onMessage, onPar
         </Button>
       </div>
 
+      {/* Instructions overlay (shown once) */}
+      <AnimatePresence>
+        {showInstructions && voice.stage === "idle" && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="absolute top-20 w-full max-w-xs px-6"
+          >
+            <div className="bg-card border border-border rounded-xl p-4 shadow-lg space-y-2">
+              <p className="text-sm font-medium text-foreground mb-2">
+                {language === "ka" ? "როგორ მუშაობს:" : "How it works:"}
+              </p>
+              {INSTRUCTIONS[language].map((line, i) => (
+                <p key={i} className="text-xs text-muted-foreground">{line}</p>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Orb */}
       <div className="flex-1 flex items-center justify-center" onClick={handleOrbClick}>
         <VoiceOrb stage={voice.stage} getVolume={voice.getVolume} />
@@ -174,7 +235,7 @@ export function FullVoiceMode({ api, userId, language, onClose, onMessage, onPar
         key={voice.stage}
         initial={{ opacity: 0, y: 5 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-sm text-muted-foreground mb-4"
+        className={`text-sm mb-4 ${voice.stage === "error" ? "text-destructive" : "text-muted-foreground"}`}
       >
         {STAGE_LABELS[voice.stage][language]}
       </motion.p>
