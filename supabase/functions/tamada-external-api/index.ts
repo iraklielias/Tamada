@@ -640,6 +640,19 @@ function buildQuickParamsContext(quickParams: Record<string, string> | null, lan
   return `\n[Context: ${parts.join(", ")}]`;
 }
 
+function extractParams(content: string): { cleanContent: string; params: Record<string, unknown> | null } {
+  const paramsMatch = content.match(/===PARAMS===\s*([\s\S]*?)\s*===END_PARAMS===/);
+  if (!paramsMatch) return { cleanContent: content, params: null };
+
+  const cleanContent = content.replace(/===PARAMS===[\s\S]*?===END_PARAMS===/, "").trim();
+  try {
+    const params = JSON.parse(paramsMatch[1].trim());
+    return { cleanContent, params };
+  } catch {
+    return { cleanContent, params: null };
+  }
+}
+
 function detectToast(content: string, hasQuickParams: boolean): boolean {
   const hasNewDelimiters = content.includes("===TOAST_START===") || content.includes("===TOAST_END===");
   const hasOldDelimiters = content.includes("---");
