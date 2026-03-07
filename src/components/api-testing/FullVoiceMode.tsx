@@ -256,7 +256,7 @@ export function FullVoiceMode({ api, userId, language, onClose, onMessage, onPar
       </motion.p>
 
       {/* Transcript & Response */}
-      <div className="w-full max-w-md px-4 md:px-6 pb-4 space-y-2 text-center min-h-[100px]">
+      <div className={`w-full max-w-md px-4 md:px-6 pb-4 space-y-2 text-center ${expanded ? "max-h-[40vh] overflow-y-auto" : "min-h-[100px]"}`}>
         <AnimatePresence mode="wait">
           {transcript && (
             <motion.p
