@@ -1,4 +1,5 @@
 import React from "react";
+import { motion } from "framer-motion";
 import type { ExternalChatMessage } from "@/types/external-api";
 
 interface ChatBubbleProps {
@@ -10,21 +11,30 @@ export function ChatBubble({ message }: ChatBubbleProps) {
   const isSystem = message.message_type === "system";
 
   return (
-    <div className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
+    <motion.div
+      initial={{ opacity: 0, y: 8, scale: 0.97 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.25 }}
+      className={`flex ${isUser ? "justify-end" : "justify-start"}`}
+    >
       <div
-        className={`max-w-[80%] rounded-xl px-3.5 py-2.5 text-sm ${
+        className={`max-w-[85%] md:max-w-[75%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
           isUser
-            ? "bg-[hsl(var(--primary))] text-primary-foreground rounded-br-sm"
+            ? "bg-gradient-to-br from-primary to-primary/85 text-primary-foreground rounded-br-md shadow-sm"
             : isSystem
-            ? "bg-muted text-muted-foreground italic rounded-bl-sm"
-            : "bg-muted text-foreground rounded-bl-sm"
+            ? "bg-muted/50 text-muted-foreground italic rounded-bl-md border border-border/50"
+            : "bg-card text-foreground rounded-bl-md border border-border/50 shadow-sm"
         }`}
       >
         <p className="whitespace-pre-wrap">{message.content}</p>
-        <span className="text-[10px] opacity-60 mt-1 block">
-          {new Date(message.created_at).toLocaleTimeString()}
+        <span
+          className={`text-[10px] mt-1.5 block ${
+            isUser ? "text-primary-foreground/50" : "text-muted-foreground/50"
+          }`}
+        >
+          {new Date(message.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
         </span>
       </div>
-    </div>
+    </motion.div>
   );
 }
