@@ -47,7 +47,7 @@ export function ThinkingFacts({ stage, language }: ThinkingFactsProps) {
           className="flex flex-col items-center gap-1.5"
         >
           <span className="text-lg leading-none" aria-hidden>{icon}</span>
-          <p className="text-[11px] sm:text-xs text-muted-foreground/80 leading-relaxed line-clamp-2 font-medium">
+          <p className="text-[11px] sm:text-xs text-muted-foreground/80 leading-relaxed font-medium">
             {fact[language]}
           </p>
         </motion.div>
