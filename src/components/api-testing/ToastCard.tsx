@@ -26,7 +26,7 @@ export function ToastCard({ message, onPlay, isPlaying, language = "ka" }: Toast
       transition={{ duration: 0.35, ease: "easeOut" }}
       className="flex justify-start"
     >
-      <div className="max-w-[90%] md:max-w-[80%] rounded-2xl overflow-hidden shadow-md border border-primary/20">
+      <div className="max-w-[90%] md:max-w-[80%] rounded-2xl overflow-hidden shadow-md border border-primary/20 border-l-[3px] border-l-primary/50">
         {/* Wine-colored accent bar */}
         <div className="h-1 bg-gradient-to-r from-primary via-primary/80 to-primary/40" />
 
@@ -45,11 +45,11 @@ export function ToastCard({ message, onPlay, isPlaying, language = "ka" }: Toast
           </p>
 
           {/* Actions */}
-          <div className="flex items-center gap-1 pt-1 border-t border-border/50">
+          <div className="flex items-center gap-2 pt-2 border-t border-border/50">
             <Button
               size="sm"
               variant="ghost"
-              className="h-7 text-xs gap-1.5 text-muted-foreground hover:text-foreground"
+              className="h-8 text-xs gap-1.5 text-muted-foreground hover:text-foreground hover:bg-muted/80 rounded-full px-3"
               onClick={() => {
                 navigator.clipboard.writeText(cleanContent);
                 sonnerToast.success(language === "ka" ? "დაკოპირდა!" : "Copied!");
@@ -60,8 +60,12 @@ export function ToastCard({ message, onPlay, isPlaying, language = "ka" }: Toast
             </Button>
             <Button
               size="sm"
-              variant="ghost"
-              className="h-7 text-xs gap-1.5 text-muted-foreground hover:text-foreground"
+              variant={isPlaying ? "default" : "ghost"}
+              className={`h-8 text-xs gap-1.5 rounded-full px-3 ${
+                isPlaying
+                  ? "bg-primary/10 text-primary hover:bg-primary/20"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/80"
+              }`}
               onClick={onPlay}
             >
               {isPlaying ? <Pause className="h-3 w-3" /> : <Volume2 className="h-3 w-3" />}
@@ -79,7 +83,7 @@ export function ToastCard({ message, onPlay, isPlaying, language = "ka" }: Toast
           </div>
 
           {/* Attribution */}
-          <div className="flex items-center justify-end gap-1 pt-1">
+          <div className="flex items-center justify-end gap-1 pt-2">
             <WineGlassIcon className="w-3 h-3 text-primary/50" />
             <p className="text-[11px] font-medium text-primary/50 tracking-wide">
               Powered by TAMADA AI

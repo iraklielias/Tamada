@@ -209,35 +209,40 @@ export function ChatSimulator({ api, onOpenVoiceMode, language, onLanguageChange
         </CardContent>
 
         {/* Input bar — safe area padding on mobile */}
-        <div className="p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] border-t border-border bg-card/50 backdrop-blur-sm">
-          <div className="flex items-center gap-1.5">
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.1 }}
+          className="p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] border-t border-border bg-card/60 backdrop-blur-md"
+        >
+          <div className="flex items-center gap-2">
             <Button
               size="icon"
               variant="ghost"
-              className="h-9 w-9 flex-shrink-0 text-primary hover:bg-primary/10"
+              className="h-10 w-10 flex-shrink-0 text-primary hover:bg-primary/10 hover:scale-105 transition-transform rounded-full"
               onClick={onOpenVoiceMode}
               title={language === "ka" ? "ხმოვანი რეჟიმი" : "Voice Mode"}
             >
-              <Mic className="h-4 w-4" />
+              <Mic className="h-4.5 w-4.5" />
             </Button>
             <Input
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               placeholder={language === "ka" ? "შეტყობინება..." : "Message..."}
-              className="h-9 rounded-full bg-muted/50 border-none focus-visible:ring-1 focus-visible:ring-primary/30 text-sm"
+              className="h-10 rounded-full bg-muted/50 border-none focus-visible:ring-1 focus-visible:ring-primary/30 text-sm"
               onKeyDown={(e) => e.key === "Enter" && handleSendText()}
               disabled={needsApiKey}
             />
             <Button
               size="icon"
-              className="h-9 w-9 rounded-full flex-shrink-0"
+              className="h-10 w-10 rounded-full flex-shrink-0 bg-gradient-to-br from-primary to-primary/80 shadow-md hover:shadow-lg transition-shadow disabled:opacity-40 disabled:shadow-none"
               onClick={() => handleSendText()}
               disabled={isLoading || !inputText.trim() || needsApiKey}
             >
               <Send className="h-4 w-4" />
             </Button>
           </div>
-        </div>
+        </motion.div>
       </Card>
 
       <SettingsDrawer
