@@ -971,7 +971,8 @@ async function handleChatMessageVoice(body: Record<string, unknown>, apiKeyData:
   }
 
   // Store user message with transcription
-  const userContent = transcribedText + buildQuickParamsContext(quickParams, language);
+  const langPrefix = `[Language: ${language}. Respond ONLY in ${language === "ka" ? "Georgian" : "English"}. No bilingual output.]\n`;
+  const userContent = langPrefix + transcribedText + buildQuickParamsContext(quickParams, language);
   await db.from("external_chat_messages").insert({
     session_id: session.id,
     role: "user",
