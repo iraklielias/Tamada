@@ -85,12 +85,17 @@ function VoiceOrb({ stage, getVolume }: { stage: VoiceStage; getVolume: () => nu
         animate={{ scale }}
         transition={{ duration: 0.1, ease: "linear" }}
       >
-        {stage === "thinking" && (
-          <motion.div
-            className="absolute inset-2 rounded-full border-2 border-primary/30 border-t-primary"
-            animate={{ rotate: 360 }}
-            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-          />
+        {(stage === "thinking" || stage === "transcribing") && (
+          <div className="absolute inset-0 flex items-center justify-center gap-2">
+            {[0, 1, 2].map((i) => (
+              <motion.div
+                key={i}
+                className="w-2.5 h-2.5 rounded-full bg-primary"
+                animate={{ scale: [0.6, 1.2, 0.6], opacity: [0.4, 1, 0.4] }}
+                transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.2, ease: "easeInOut" }}
+              />
+            ))}
+          </div>
         )}
 
         <Mic
