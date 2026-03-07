@@ -865,7 +865,8 @@ async function handleChatMessage(body: Record<string, unknown>, apiKeyData: Reco
   const { session } = await getOrCreateSession(apiKeyData.id as string, externalUserId, language);
 
   // Store user message
-  const userContent = message + buildQuickParamsContext(quickParams, language);
+  const langPrefix = `[Language: ${language}. Respond ONLY in ${language === "ka" ? "Georgian" : "English"}. No bilingual output.]\n`;
+  const userContent = langPrefix + message + buildQuickParamsContext(quickParams, language);
   await db.from("external_chat_messages").insert({
     session_id: session.id,
     role: "user",
