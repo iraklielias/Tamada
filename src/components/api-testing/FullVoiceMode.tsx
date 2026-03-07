@@ -164,6 +164,16 @@ export function FullVoiceMode({ api, userId, language, onClose, onMessage, onPar
   });
 
   const handleClose = useCallback(() => {
+
+  // Detect text overflow to show/hide "View more" button
+  useLayoutEffect(() => {
+    const el = responseRef.current;
+    if (!el) { setIsOverflowing(false); return; }
+    // Compare scroll height vs visible height
+    setIsOverflowing(el.scrollHeight > el.clientHeight + 2);
+  }, [lastResponse, expanded]);
+
+
     voice.endSession();
     onClose();
   }, [voice, onClose]);
