@@ -138,6 +138,9 @@ function VoiceOrb({ stage, getVolume }: { stage: VoiceStage; getVolume: () => nu
 export function FullVoiceMode({ api, userId, language, onClose, onMessage, onParamsExtracted }: FullVoiceModeProps) {
   const [transcript, setTranscript] = useState("");
   const [lastResponse, setLastResponse] = useState("");
+  const [expanded, setExpanded] = useState(false);
+  const [isOverflowing, setIsOverflowing] = useState(false);
+  const responseRef = useRef<HTMLParagraphElement>(null);
   const [showInstructions, setShowInstructions] = useState(() => {
     return !localStorage.getItem("tamada-voice-instructions-seen");
   });
