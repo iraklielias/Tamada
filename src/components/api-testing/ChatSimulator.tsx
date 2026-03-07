@@ -17,12 +17,13 @@ import type { ExternalChatMessage, UsageInfo } from "@/types/external-api";
 interface ChatSimulatorProps {
   api: ReturnType<typeof import("@/hooks/useTamadaExternalApi").useTamadaExternalApi>;
   onOpenVoiceMode: () => void;
+  language: "ka" | "en";
+  onLanguageChange: (lang: "ka" | "en") => void;
 }
 
-export function ChatSimulator({ api, onOpenVoiceMode }: ChatSimulatorProps) {
+export function ChatSimulator({ api, onOpenVoiceMode, language, onLanguageChange }: ChatSimulatorProps) {
   const { t } = useTranslation();
   const [userId, setUserId] = useState("test_user_001");
-  const [language, setLanguage] = useState<"ka" | "en">("ka");
   const [messages, setMessages] = useState<ExternalChatMessage[]>([]);
   const [inputText, setInputText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -135,7 +136,7 @@ export function ChatSimulator({ api, onOpenVoiceMode }: ChatSimulatorProps) {
       <Card className="flex flex-col h-[calc(100vh-8rem)] md:h-[700px] overflow-hidden">
         <ChatHeader
           language={language}
-          onToggleLanguage={() => setLanguage((l) => (l === "ka" ? "en" : "ka"))}
+          onToggleLanguage={() => onLanguageChange(language === "ka" ? "en" : "ka")}
           onOpenSettings={() => setSettingsOpen(true)}
           usage={usage}
           extractedParams={extractedParams}

@@ -23,17 +23,23 @@ interface UseVoiceConversationOptions {
 
 export function useVoiceConversation({ api, userId, language, onMessage, onParamsExtracted }: UseVoiceConversationOptions) {
   const [stage, setStage] = useState<VoiceStage>("idle");
+  const stageRef = useRef<VoiceStage>("idle");
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const activeRef = useRef(false);
 
+  // Keep stageRef in sync
+  useEffect(() => {
+    stageRef.current = stage;
+  }, [stage]);
+
   const vad = useVAD({
     silenceThreshold: 0.008,
     silenceDurationMs: 1800,
     onSilenceDetected: () => {
-      if (stage === "listening" && mediaRecorderRef.current?.state === "recording") {
+      if (stageRef.current === "listening" && mediaRecorderRef.current?.state === "recording") {
         mediaRecorderRef.current.stop();
       }
     },
@@ -143,7 +149,7 @@ export function useVoiceConversation({ api, userId, language, onMessage, onParam
       setStage("idle");
       activeRef.current = false;
     }
-  }, [api, userId, language, onMessage, onParamsExtracted, vad, stage]);
+  }, [api, userId, language, onMessage, onParamsExtracted, vad]);
 
   const startSession = useCallback(async () => {
     activeRef.current = true;
