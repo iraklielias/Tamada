@@ -31,21 +31,21 @@ export default function ApiTestingPage() {
   );
 
   return (
-    <div className="h-screen flex flex-col bg-background">
-      {/* Developer inspector toggle */}
-      <div className="fixed bottom-4 right-4 z-40">
+    <div className="h-[100dvh] flex flex-col bg-background overflow-hidden">
+      {/* Developer inspector toggle — above input bar on mobile */}
+      <div className="fixed bottom-20 right-3 z-40 md:bottom-4 md:right-4">
         <Sheet open={inspectorOpen} onOpenChange={setInspectorOpen}>
           <SheetTrigger asChild>
             <Button
               size="icon"
               variant="outline"
-              className="h-10 w-10 rounded-full shadow-lg bg-card"
+              className="h-9 w-9 md:h-10 md:w-10 rounded-full shadow-lg bg-card"
               title="Developer Tools"
             >
               <Code2 className="h-4 w-4" />
             </Button>
           </SheetTrigger>
-          <SheetContent side="right" className="w-[450px] sm:w-[540px] p-0">
+          <SheetContent side="right" className="w-[min(90vw,540px)] p-0">
             <div className="h-full overflow-y-auto">
               <Tabs defaultValue="inspector" className="w-full">
                 <div className="sticky top-0 z-10 bg-background border-b border-border px-4 pt-4 pb-0">
@@ -77,8 +77,8 @@ export default function ApiTestingPage() {
         </Sheet>
       </div>
 
-      {/* Main chat */}
-      <div className="flex-1 max-w-2xl mx-auto w-full p-2 md:p-4">
+      {/* Main chat — full height on mobile */}
+      <div className="flex-1 max-w-2xl mx-auto w-full p-0 md:p-4 min-h-0">
         <ChatSimulator
           api={api}
           onOpenVoiceMode={() => setVoiceModeOpen(true)}

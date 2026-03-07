@@ -188,16 +188,17 @@ export function FullVoiceMode({ api, userId, language, onClose, onMessage, onPar
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background"
+      style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
       {/* Close button */}
-      <div className="absolute top-4 right-4 flex gap-2">
+      <div className="absolute top-[max(1rem,env(safe-area-inset-top))] right-4 flex gap-2">
         <Button size="icon" variant="ghost" onClick={handleClose} className="h-10 w-10">
           <X className="h-5 w-5" />
         </Button>
       </div>
 
       {/* Switch to text */}
-      <div className="absolute top-4 left-4">
+      <div className="absolute top-[max(1rem,env(safe-area-inset-top))] left-4">
         <Button size="sm" variant="ghost" className="gap-1.5 text-xs" onClick={handleClose}>
           <Keyboard className="h-3.5 w-3.5" />
           {language === "ka" ? "ტექსტი" : "Text"}
@@ -226,7 +227,7 @@ export function FullVoiceMode({ api, userId, language, onClose, onMessage, onPar
       </AnimatePresence>
 
       {/* Orb */}
-      <div className="flex-1 flex items-center justify-center" onClick={handleOrbClick}>
+      <div className="flex-1 flex items-center justify-center w-full" onClick={handleOrbClick}>
         <VoiceOrb stage={voice.stage} getVolume={voice.getVolume} />
       </div>
 
@@ -235,13 +236,13 @@ export function FullVoiceMode({ api, userId, language, onClose, onMessage, onPar
         key={voice.stage}
         initial={{ opacity: 0, y: 5 }}
         animate={{ opacity: 1, y: 0 }}
-        className={`text-sm mb-4 ${voice.stage === "error" ? "text-destructive" : "text-muted-foreground"}`}
+        className={`text-sm mb-4 px-4 text-center ${voice.stage === "error" ? "text-destructive" : "text-muted-foreground"}`}
       >
         {STAGE_LABELS[voice.stage][language]}
       </motion.p>
 
       {/* Transcript & Response */}
-      <div className="w-full max-w-md px-6 pb-8 space-y-2 text-center min-h-[120px]">
+      <div className="w-full max-w-md px-4 md:px-6 pb-4 space-y-2 text-center min-h-[100px]">
         <AnimatePresence mode="wait">
           {transcript && (
             <motion.p
@@ -272,7 +273,7 @@ export function FullVoiceMode({ api, userId, language, onClose, onMessage, onPar
 
       {/* End session */}
       {voice.stage !== "idle" && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="pb-8">
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="pb-4">
           <Button
             variant="destructive"
             size="sm"
