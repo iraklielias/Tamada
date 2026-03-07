@@ -1,5 +1,5 @@
 import React from "react";
-import { Wine, Settings, Globe } from "lucide-react";
+import { Wine, Settings, Globe, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { UsageInfo } from "@/types/external-api";
@@ -8,8 +8,10 @@ interface ChatHeaderProps {
   language: "ka" | "en";
   onToggleLanguage: () => void;
   onOpenSettings: () => void;
+  onReset?: () => void;
   usage: UsageInfo | null;
   extractedParams: Record<string, unknown> | null;
+  hasMessages?: boolean;
 }
 
 const PARAM_LABELS: Record<string, Record<string, string>> = {
