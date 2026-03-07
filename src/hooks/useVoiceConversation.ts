@@ -30,6 +30,7 @@ export function useVoiceConversation({ api, userId, language, onMessage, onParam
   const chunksRef = useRef<Blob[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const preloadedAudioRef = useRef<HTMLAudioElement | null>(null);
   const activeRef = useRef(false);
   const maxRecordingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -102,10 +103,10 @@ export function useVoiceConversation({ api, userId, language, onMessage, onParam
           return;
         }
 
-        // Pre-create and unlock Audio element while still in user-gesture context
-        // This prevents autoplay policy from blocking playback after the async API call
-        const preloadedAudio = new Audio();
-        preloadedAudio.play().catch(() => {});
+        // Use the pre-unlocked Audio element (created in stopListening gesture handler)
+        // Fall back to creating one here (e.g. VAD auto-stop or max timer)
+        const preloadedAudio = preloadedAudioRef.current || new Audio();
+        preloadedAudioRef.current = null;
         audioRef.current = preloadedAudio;
 
         setStage("transcribing");
@@ -222,6 +223,12 @@ export function useVoiceConversation({ api, userId, language, onMessage, onParam
   }, []);
 
   const stopListening = useCallback(() => {
+    // Pre-create and unlock Audio element NOW, inside the user gesture (tap),
+    // so it can autoplay later after the async API call completes
+    const audio = new Audio();
+    audio.play().catch(() => {});
+    preloadedAudioRef.current = audio;
+
     if (mediaRecorderRef.current?.state === "recording") {
       mediaRecorderRef.current.stop();
     }
