@@ -262,15 +262,30 @@ export function FullVoiceMode({ api, userId, language, onClose, onMessage, onPar
         </AnimatePresence>
         <AnimatePresence mode="wait">
           {lastResponse && voice.stage !== "listening" && (
-            <motion.p
+            <motion.div
               key={`r-${lastResponse.slice(0, 30)}`}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
-              className="text-sm text-foreground font-serif leading-relaxed line-clamp-4"
+              className="flex flex-col items-center gap-1"
             >
-              {lastResponse}
-            </motion.p>
+              <p
+                ref={responseRef}
+                className={`text-sm text-foreground font-serif leading-relaxed ${expanded ? "" : "line-clamp-4"}`}
+              >
+                {lastResponse}
+              </p>
+              {isOverflowing && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); setExpanded((v) => !v); }}
+                  className="text-xs text-primary font-medium mt-1 hover:underline"
+                >
+                  {expanded
+                    ? language === "ka" ? "შემოკლება" : "View less"
+                    : language === "ka" ? "სრულად" : "View more"}
+                </button>
+              )}
+            </motion.div>
           )}
         </AnimatePresence>
       </div>
