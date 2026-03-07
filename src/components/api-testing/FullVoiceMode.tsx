@@ -258,8 +258,9 @@ export function FullVoiceMode({ api, userId, language, onClose, onMessage, onPar
       </AnimatePresence>
 
       {/* Orb */}
-      <div className="flex-1 flex items-center justify-center w-full" onClick={handleOrbClick}>
+      <div className="flex-1 flex flex-col items-center justify-center w-full gap-4" onClick={handleOrbClick}>
         <VoiceOrb stage={voice.stage} getVolume={voice.getVolume} />
+        <ThinkingFacts stage={voice.stage} language={language} />
       </div>
 
       {/* Stage label */}
