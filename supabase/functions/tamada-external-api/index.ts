@@ -954,14 +954,30 @@ async function handleChatMessageVoice(body: Record<string, unknown>, apiKeyData:
   const recentMessages = await loadRecentMessages(session.id);
 
   // AI Generation
-  const { content: aiContent, tokensUsed, durationMs } = await generateAIResponse(recentMessages);
+  const isVoiceMode = body.mode === "voice";
+  const { content: aiContent, tokensUsed, durationMs } = await generateAIResponse(
+    isVoiceMode
+      ? [...recentMessages, { role: "system", content: "VOICE_CONVERSATION_MODE is active. Keep responses very short." }]
+      : recentMessages
+  );
+
+  // Extract params from AI response
+  const { cleanContent, params: extractedParams } = extractParams(aiContent);
+
+  // Store gathered params on session
+  if (extractedParams) {
+    const mergedParams = { ...(session.gathered_params || {}), ...extractedParams };
+    await db.from("external_chat_sessions").update({
+      gathered_params: mergedParams,
+    }).eq("id", session.id);
+  }
 
   // Detect toast
-  const isToast = detectToast(aiContent, !!quickParams);
+  const isToast = detectToast(cleanContent, !!quickParams);
   const messageType = isToast ? "toast" : "text";
 
   // TTS Stage (gracefully degrades if ElevenLabs is unavailable)
-  const audioBytes = await synthesizeSpeech(aiContent.replace(/---/g, "").trim(), language);
+  const audioBytes = await synthesizeSpeech(cleanContent.replace(/---/g, "").replace(/===TOAST_START===|===TOAST_END===/g, "").trim(), language);
 
   // Generate message ID first
   const msgId = crypto.randomUUID();
@@ -970,16 +986,20 @@ async function handleChatMessageVoice(body: Record<string, unknown>, apiKeyData:
   const audioUrl = audioBytes ? await uploadAudioToStorage(session.id, msgId, audioBytes) : null;
 
   // Estimate duration (~150 chars per 10 seconds is rough)
-  const audioDuration = audioBytes ? Math.max(1, (aiContent.length / 15)) : null;
+  const audioDuration = audioBytes ? Math.max(1, (cleanContent.length / 15)) : null;
 
   // Store assistant message
   const { data: savedMsg } = await db.from("external_chat_messages").insert({
     id: msgId,
     session_id: session.id,
     role: "assistant",
-    content: aiContent,
+    content: cleanContent,
     message_type: messageType,
-    metadata: { occasion_type: quickParams?.occasion_type, is_toast: isToast },
+    metadata: {
+      occasion_type: extractedParams?.occasion_type || quickParams?.occasion_type,
+      is_toast: isToast,
+      extracted_params: extractedParams,
+    },
     audio_url: audioUrl,
     audio_duration_seconds: audioDuration,
     tokens_used: tokensUsed,
@@ -998,13 +1018,14 @@ async function handleChatMessageVoice(body: Record<string, unknown>, apiKeyData:
     message: {
       id: savedMsg?.id,
       role: "assistant",
-      content: aiContent,
+      content: cleanContent,
       message_type: messageType,
       metadata: savedMsg?.metadata,
       audio_url: audioUrl,
       audio_duration_seconds: audioDuration,
       created_at: savedMsg?.created_at,
     },
+    extracted_params: extractedParams,
     transcription: {
       original_audio_text: transcribedText,
       language_detected: language,
