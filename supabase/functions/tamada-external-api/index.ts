@@ -958,10 +958,13 @@ async function handleChatMessageVoice(body: Record<string, unknown>, apiKeyData:
   const { session } = await getOrCreateSession(apiKeyData.id as string, externalUserId, language);
 
   // STT Stage
-  const transcribedText = await transcribeAudio(audioBase64, audioFormat, language);
+  const rawTranscribedText = await transcribeAudio(audioBase64, audioFormat, language);
 
-  if (!transcribedText.trim()) {
-    return new Response(JSON.stringify({ error: "Could not transcribe audio. Please try again." }), {
+  // Strip any remaining bracketed audio event tags (e.g. [clicking], [background noise])
+  const transcribedText = rawTranscribedText.replace(/\[.*?\]/g, "").trim();
+
+  if (!transcribedText) {
+    return new Response(JSON.stringify({ error: "No speech detected. Please try again." }), {
       status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }

@@ -178,8 +178,14 @@ export function useVoiceConversation({ api, userId, language, onMessage, onParam
             } else if (activeRef.current) {
               setStage("error");
             }
-          } catch (err) {
+          } catch (err: any) {
             console.error("Voice conversation error:", err);
+            // If "no speech detected" 400, silently restart listening
+            const msg = err?.message || "";
+            if (msg.toLowerCase().includes("no speech") || msg.toLowerCase().includes("could not transcribe")) {
+              if (activeRef.current) startListening();
+              return;
+            }
             if (activeRef.current) {
               setStage("error");
             }
