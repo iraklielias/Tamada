@@ -36,18 +36,18 @@ export function ThinkingFacts({ stage, language }: ThinkingFactsProps) {
   const icon = CATEGORY_ICONS[fact.category];
 
   return (
-    <div className="w-full max-w-xs px-4 text-center mb-2">
+    <div className="w-full max-w-[280px] mx-auto px-5 text-center py-2">
       <AnimatePresence mode="wait">
         <motion.div
           key={index}
-          initial={{ opacity: 0, y: 8 }}
+          initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -8 }}
-          transition={{ duration: 0.4, ease: "easeInOut" }}
-          className="flex flex-col items-center gap-1"
+          exit={{ opacity: 0, y: -6 }}
+          transition={{ duration: 0.35, ease: "easeInOut" }}
+          className="flex flex-col items-center gap-1.5"
         >
-          <span className="text-base" aria-hidden>{icon}</span>
-          <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">
+          <span className="text-lg leading-none" aria-hidden>{icon}</span>
+          <p className="text-[11px] sm:text-xs text-muted-foreground/80 leading-relaxed line-clamp-2 font-medium">
             {fact[language]}
           </p>
         </motion.div>

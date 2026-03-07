@@ -257,10 +257,14 @@ export function FullVoiceMode({ api, userId, language, onClose, onMessage, onPar
         )}
       </AnimatePresence>
 
-      {/* Orb */}
-      <div className="flex-1 flex flex-col items-center justify-center w-full gap-4" onClick={handleOrbClick}>
-        <VoiceOrb stage={voice.stage} getVolume={voice.getVolume} />
-        <ThinkingFacts stage={voice.stage} language={language} />
+      {/* Orb + thinking facts */}
+      <div className="flex-1 flex flex-col items-center justify-center w-full min-h-0">
+        <div className="flex flex-col items-center justify-center" onClick={handleOrbClick}>
+          <VoiceOrb stage={voice.stage} getVolume={voice.getVolume} />
+        </div>
+        <div className="mt-5">
+          <ThinkingFacts stage={voice.stage} language={language} />
+        </div>
       </div>
 
       {/* Stage label */}
@@ -268,7 +272,7 @@ export function FullVoiceMode({ api, userId, language, onClose, onMessage, onPar
         key={voice.stage}
         initial={{ opacity: 0, y: 5 }}
         animate={{ opacity: 1, y: 0 }}
-        className={`text-base font-medium tracking-wide mb-4 px-4 text-center ${voice.stage === "error" ? "text-destructive" : "text-muted-foreground"}`}
+        className={`text-sm sm:text-base font-medium tracking-wide mb-3 px-6 text-center ${voice.stage === "error" ? "text-destructive" : "text-muted-foreground"}`}
       >
         {STAGE_LABELS[voice.stage][language]}
       </motion.p>
