@@ -102,6 +102,12 @@ export function useVoiceConversation({ api, userId, language, onMessage, onParam
           return;
         }
 
+        // Pre-create and unlock Audio element while still in user-gesture context
+        // This prevents autoplay policy from blocking playback after the async API call
+        const preloadedAudio = new Audio();
+        preloadedAudio.play().catch(() => {});
+        audioRef.current = preloadedAudio;
+
         setStage("transcribing");
 
         const reader = new FileReader();
@@ -137,15 +143,16 @@ export function useVoiceConversation({ api, userId, language, onMessage, onParam
 
               if (res.message.audio_url && activeRef.current) {
                 setStage("speaking");
-                const audio = new Audio(res.message.audio_url);
-                audioRef.current = audio;
-                audio.onended = () => {
+                preloadedAudio.src = res.message.audio_url;
+                preloadedAudio.onended = () => {
                   if (activeRef.current) startListening();
                 };
-                audio.onerror = () => {
+                preloadedAudio.onerror = () => {
+                  console.warn("Voice playback error for URL:", res.message.audio_url);
                   if (activeRef.current) startListening();
                 };
-                await audio.play().catch(() => {
+                await preloadedAudio.play().catch((err) => {
+                  console.warn("Voice autoplay blocked or failed:", err);
                   if (activeRef.current) startListening();
                 });
               } else if (activeRef.current) {
