@@ -41,9 +41,9 @@ export function useVoiceConversation({ api, userId, language, onMessage, onParam
   }, [stage]);
 
   const vad = useVAD({
-    silenceThreshold: 0.02,
-    silenceDurationMs: 1800,
-    speechThreshold: 0.03,
+    silenceThreshold: 0.025,
+    silenceDurationMs: 2000,
+    speechThreshold: 0.045,
     onSilenceDetected: () => {
       if (stageRef.current === "listening" && mediaRecorderRef.current?.state === "recording") {
         mediaRecorderRef.current.stop();
