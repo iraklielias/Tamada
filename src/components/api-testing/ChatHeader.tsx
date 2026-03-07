@@ -18,7 +18,7 @@ const PARAM_LABELS: Record<string, Record<string, string>> = {
   occasion_type: { wedding: "💒 ქორწილი", birthday: "🎂 დაბადების დღე", memorial: "🕯️ ქელეხი", christening: "⛪ ნათლობა", guest: "🏠 სტუმარი", friendly: "🤝 მეგობრული", holiday: "🎉 სადღესასწაულო", corporate: "💼 კორპორატიული", supra: "🍷 სუფრა" },
 };
 
-export function ChatHeader({ language, onToggleLanguage, onOpenSettings, usage, extractedParams }: ChatHeaderProps) {
+export function ChatHeader({ language, onToggleLanguage, onOpenSettings, onReset, usage, extractedParams, hasMessages }: ChatHeaderProps) {
   const paramBadges: string[] = [];
   if (extractedParams) {
     const occ = extractedParams.occasion_type as string;
