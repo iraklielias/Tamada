@@ -871,11 +871,16 @@ async function handleChatMessage(body: Record<string, unknown>, apiKeyData: Reco
     metadata: quickParams ? { quick_params: quickParams } : null,
   });
 
-  // Load recent messages for context
-  const recentMessages = await loadRecentMessages(session.id);
+  // Load recent messages for context (increased limit for better memory)
+  const recentMessages = await loadRecentMessages(session.id, 20);
+
+  // Inject gathered params so AI remembers what it already collected
+  const gatheredContext = session.gathered_params && Object.keys(session.gathered_params).length > 0
+    ? [{ role: "system", content: `[ALREADY_GATHERED_PARAMS: ${JSON.stringify(session.gathered_params)}]\nDo NOT re-ask for information that is already gathered above. Use these values directly when generating toasts.` }]
+    : [];
 
   // Generate AI response
-  const { content: aiContent, tokensUsed, durationMs } = await generateAIResponse(recentMessages);
+  const { content: aiContent, tokensUsed, durationMs } = await generateAIResponse([...gatheredContext, ...recentMessages]);
 
   // Extract params from AI response
   const { cleanContent, params: extractedParams } = extractParams(aiContent);
@@ -980,15 +985,20 @@ async function handleChatMessageVoice(body: Record<string, unknown>, apiKeyData:
     metadata: { transcribed: true, quick_params: quickParams },
   });
 
-  // Load recent messages
-  const recentMessages = await loadRecentMessages(session.id);
+  // Load recent messages (increased limit for better memory)
+  const recentMessages = await loadRecentMessages(session.id, 20);
+
+  // Inject gathered params so AI remembers what it already collected
+  const gatheredContext = session.gathered_params && Object.keys(session.gathered_params).length > 0
+    ? [{ role: "system", content: `[ALREADY_GATHERED_PARAMS: ${JSON.stringify(session.gathered_params)}]\nDo NOT re-ask for information that is already gathered above. Use these values directly when generating toasts.` }]
+    : [];
 
   // AI Generation
   const isVoiceMode = body.mode === "voice";
   const { content: aiContent, tokensUsed, durationMs } = await generateAIResponse(
     isVoiceMode
-      ? [...recentMessages, { role: "system", content: "VOICE_CONVERSATION_MODE is active. Keep responses concise (1-2 sentences) but ALWAYS follow PARAMETER_GATHERING rules — you MUST ask for occasion and recipient before generating any toast. Never skip this." }]
-      : recentMessages
+      ? [...gatheredContext, ...recentMessages, { role: "system", content: "VOICE_CONVERSATION_MODE is active. Keep responses concise (1-2 sentences) but ALWAYS follow PARAMETER_GATHERING rules — you MUST ask for occasion and recipient before generating any toast. Never skip this." }]
+      : [...gatheredContext, ...recentMessages]
   );
 
   // Extract params from AI response
