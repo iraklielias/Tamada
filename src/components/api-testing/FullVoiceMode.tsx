@@ -278,7 +278,7 @@ export function FullVoiceMode({ api, userId, language, onClose, onMessage, onPar
       </motion.p>
 
       {/* Transcript & Response */}
-      <div className={`w-full max-w-md px-4 md:px-6 pb-4 space-y-2 text-center ${expanded ? "max-h-[40vh] overflow-y-auto" : "min-h-[80px]"}`}>
+      <div className={`w-full max-w-md px-4 md:px-6 pb-4 space-y-2 text-center ${expanded ? "" : "min-h-[80px]"}`}>
         {(transcript || (lastResponse && voice.stage !== "listening")) && (
           <div className="bg-card/60 backdrop-blur-sm border border-border/30 rounded-2xl p-4 space-y-2">
             <AnimatePresence mode="wait">
@@ -303,16 +303,18 @@ export function FullVoiceMode({ api, userId, language, onClose, onMessage, onPar
                   exit={{ opacity: 0 }}
                   className="flex flex-col items-center gap-1"
                 >
-                  <p
-                    ref={responseRef}
-                    className={`text-sm text-foreground font-serif leading-relaxed ${expanded ? "" : "line-clamp-4"}`}
-                  >
-                    {lastResponse}
-                  </p>
+                  <div className={expanded ? "max-h-[35vh] overflow-y-auto overscroll-contain scroll-smooth pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border/40 [&::-webkit-scrollbar-thumb]:rounded-full" : ""}>
+                    <p
+                      ref={responseRef}
+                      className={`text-sm text-foreground font-serif leading-relaxed ${expanded ? "" : "line-clamp-4"}`}
+                    >
+                      {lastResponse}
+                    </p>
+                  </div>
                   {isOverflowing && (
                     <button
                       onClick={(e) => { e.stopPropagation(); setExpanded((v) => !v); }}
-                      className="text-xs text-primary font-medium mt-1 hover:underline"
+                      className="text-xs text-primary font-medium mt-1.5 hover:underline flex-shrink-0"
                     >
                       {expanded
                         ? language === "ka" ? "შემოკლება" : "View less"
