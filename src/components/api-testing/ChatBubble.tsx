@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { Bot, User } from "lucide-react";
+import { User } from "lucide-react";
 import WineGlassIcon from "@/components/icons/WineGlassIcon";
 import type { ExternalChatMessage } from "@/types/external-api";
 
@@ -19,12 +19,12 @@ export function ChatBubble({ message, language = "ka" }: ChatBubbleProps) {
       initial={{ opacity: 0, y: 10, scale: 0.96 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
-      className={`flex gap-2 ${isUser ? "justify-end" : "justify-start"}`}
+      className={`flex gap-2.5 ${isUser ? "justify-end" : "justify-start"}`}
     >
       {/* Assistant avatar */}
       {!isUser && (
-        <div className="flex-shrink-0 w-7 h-7 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center mt-1 shadow-sm">
-          <Bot className="w-3.5 h-3.5 text-primary-foreground" />
+        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-primary via-primary/80 to-accent flex items-center justify-center mt-1 shadow-md ring-1 ring-primary/10">
+          <WineGlassIcon className="w-4 h-4 text-primary-foreground" />
         </div>
       )}
 
@@ -38,12 +38,12 @@ export function ChatBubble({ message, language = "ka" }: ChatBubbleProps) {
               : "bg-card text-foreground rounded-bl-md border border-border/40 shadow-sm"
           }`}
         >
-          <p className="whitespace-pre-wrap">{message.content}</p>
+          <p className={`whitespace-pre-wrap ${isAssistant ? "font-serif" : ""}`}>{message.content}</p>
         </div>
 
         {/* Footer row: timestamp + attribution */}
         <div className={`flex items-center gap-2 px-1 ${isUser ? "justify-end" : "justify-start"}`}>
-          <span className="text-[10px] text-muted-foreground/40">
+          <span className="text-[10px] text-muted-foreground/60">
             {new Date(message.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
           </span>
           {isAssistant && (
@@ -59,8 +59,8 @@ export function ChatBubble({ message, language = "ka" }: ChatBubbleProps) {
 
       {/* User avatar */}
       {isUser && (
-        <div className="flex-shrink-0 w-7 h-7 rounded-full bg-muted flex items-center justify-center mt-1">
-          <User className="w-3.5 h-3.5 text-muted-foreground" />
+        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-muted-foreground/20 to-muted flex items-center justify-center mt-1 ring-1 ring-border/50">
+          <User className="w-4 h-4 text-muted-foreground" />
         </div>
       )}
     </motion.div>

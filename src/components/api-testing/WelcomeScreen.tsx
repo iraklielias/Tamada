@@ -67,8 +67,10 @@ export function WelcomeScreen({ language, onSuggestion }: WelcomeScreenProps) {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 + i * 0.08 }}
+            whileHover={{ scale: 1.03, y: -1 }}
+            whileTap={{ scale: 0.98 }}
             onClick={() => onSuggestion(s.message)}
-            className="flex items-center gap-2.5 px-4 py-3 rounded-xl border border-border bg-card hover:bg-accent/50 hover:border-primary/30 transition-all text-left group"
+            className="flex items-center gap-2.5 px-4 py-3 rounded-xl border border-border bg-card hover:bg-accent/50 hover:border-primary/30 hover:shadow-md transition-all text-left group"
           >
             <span className="text-lg">{s.emoji}</span>
             <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">

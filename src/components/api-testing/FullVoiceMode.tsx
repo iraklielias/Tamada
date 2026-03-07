@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Keyboard, Mic, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useVoiceConversation, VoiceStage } from "@/hooks/useVoiceConversation";
+import WineGlassIcon from "@/components/icons/WineGlassIcon";
 import type { ExternalChatMessage } from "@/types/external-api";
 
 interface FullVoiceModeProps {
@@ -71,6 +72,15 @@ function VoiceOrb({ stage, getVolume }: { stage: VoiceStage; getVolume: () => nu
 
   return (
     <div className="relative flex items-center justify-center">
+      {/* Secondary outer ring — idle pulse */}
+      {!isActive && !isError && (
+        <motion.div
+          className="absolute w-44 h-44 rounded-full border border-primary/10"
+          animate={{ scale: [1, 1.08, 1], opacity: [0.3, 0.6, 0.3] }}
+          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+        />
+      )}
+
       {/* Outer glow */}
       <motion.div
         className="absolute w-48 h-48 rounded-full"
@@ -92,18 +102,18 @@ function VoiceOrb({ stage, getVolume }: { stage: VoiceStage; getVolume: () => nu
 
       {/* Main orb */}
       <motion.div
-        className="relative w-32 h-32 rounded-full border-2 flex items-center justify-center cursor-pointer"
+        className="relative w-32 h-32 rounded-full border-2 flex items-center justify-center cursor-pointer shadow-lg"
         style={{
           borderColor: isError
             ? "hsl(var(--destructive))"
             : isActive
             ? "hsl(var(--primary))"
-            : "hsl(var(--border))",
+            : "hsl(var(--primary) / 0.25)",
           background: isError
             ? `radial-gradient(circle at 40% 40%, hsl(var(--destructive) / 0.2), hsl(var(--destructive) / 0.05))`
             : isActive
             ? `radial-gradient(circle at 40% 40%, hsl(var(--primary) / 0.2), hsl(var(--primary) / 0.05))`
-            : "hsl(var(--muted))",
+            : `radial-gradient(circle at 35% 35%, hsl(var(--primary) / 0.08), hsl(var(--muted) / 0.6))`,
         }}
         animate={{ scale }}
         transition={{ duration: 0.1, ease: "linear" }}
@@ -125,7 +135,7 @@ function VoiceOrb({ stage, getVolume }: { stage: VoiceStage; getVolume: () => nu
           <AlertCircle className="w-8 h-8 text-destructive" />
         ) : (
           <Mic
-            className={`w-8 h-8 ${isActive ? "text-primary" : "text-muted-foreground"} ${
+            className={`w-8 h-8 ${isActive ? "text-primary" : "text-primary/60"} ${
               (stage === "thinking" || stage === "transcribing") ? "opacity-0" : ""
             }`}
           />
@@ -202,18 +212,21 @@ export function FullVoiceMode({ api, userId, language, onClose, onMessage, onPar
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background"
-      style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      style={{
+        paddingBottom: "env(safe-area-inset-bottom)",
+        backgroundImage: `radial-gradient(circle at 50% 40%, hsl(var(--primary) / 0.04) 0%, transparent 60%)`,
+      }}
     >
       {/* Close button */}
       <div className="absolute top-[max(1rem,env(safe-area-inset-top))] right-4 flex gap-2">
-        <Button size="icon" variant="ghost" onClick={handleClose} className="h-10 w-10">
+        <Button size="icon" variant="ghost" onClick={handleClose} className="h-10 w-10 bg-muted/50 rounded-full hover:bg-muted">
           <X className="h-5 w-5" />
         </Button>
       </div>
 
       {/* Switch to text */}
       <div className="absolute top-[max(1rem,env(safe-area-inset-top))] left-4">
-        <Button size="sm" variant="ghost" className="gap-1.5 text-xs" onClick={handleClose}>
+        <Button size="sm" variant="ghost" className="gap-1.5 text-xs bg-muted/50 rounded-full hover:bg-muted px-3" onClick={handleClose}>
           <Keyboard className="h-3.5 w-3.5" />
           {language === "ka" ? "ტექსტი" : "Text"}
         </Button>
@@ -226,9 +239,9 @@ export function FullVoiceMode({ api, userId, language, onClose, onMessage, onPar
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="absolute top-20 w-full max-w-xs px-6"
+            className="absolute bottom-36 w-full max-w-xs px-6"
           >
-            <div className="bg-card border border-border rounded-xl p-4 shadow-lg space-y-2">
+            <div className="bg-card/80 backdrop-blur-sm border border-border/50 rounded-2xl p-4 shadow-lg space-y-2">
               <p className="text-sm font-medium text-foreground mb-2">
                 {language === "ka" ? "როგორ მუშაობს:" : "How it works:"}
               </p>
@@ -250,63 +263,67 @@ export function FullVoiceMode({ api, userId, language, onClose, onMessage, onPar
         key={voice.stage}
         initial={{ opacity: 0, y: 5 }}
         animate={{ opacity: 1, y: 0 }}
-        className={`text-sm mb-4 px-4 text-center ${voice.stage === "error" ? "text-destructive" : "text-muted-foreground"}`}
+        className={`text-base font-medium tracking-wide mb-4 px-4 text-center ${voice.stage === "error" ? "text-destructive" : "text-muted-foreground"}`}
       >
         {STAGE_LABELS[voice.stage][language]}
       </motion.p>
 
       {/* Transcript & Response */}
       <div className={`w-full max-w-md px-4 md:px-6 pb-4 space-y-2 text-center ${expanded ? "max-h-[40vh] overflow-y-auto" : "min-h-[100px]"}`}>
-        <AnimatePresence mode="wait">
-          {transcript && (
-            <motion.p
-              key={`t-${transcript}`}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 0.5 }}
-              exit={{ opacity: 0 }}
-              className="text-xs text-muted-foreground"
-            >
-              {transcript}
-            </motion.p>
-          )}
-        </AnimatePresence>
-        <AnimatePresence mode="wait">
-          {lastResponse && voice.stage !== "listening" && (
-            <motion.div
-              key={`r-${lastResponse.slice(0, 30)}`}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              className="flex flex-col items-center gap-1"
-            >
-              <p
-                ref={responseRef}
-                className={`text-sm text-foreground font-serif leading-relaxed ${expanded ? "" : "line-clamp-4"}`}
-              >
-                {lastResponse}
-              </p>
-              {isOverflowing && (
-                <button
-                  onClick={(e) => { e.stopPropagation(); setExpanded((v) => !v); }}
-                  className="text-xs text-primary font-medium mt-1 hover:underline"
+        {(transcript || (lastResponse && voice.stage !== "listening")) && (
+          <div className="bg-card/60 backdrop-blur-sm border border-border/30 rounded-2xl p-4 space-y-2">
+            <AnimatePresence mode="wait">
+              {transcript && (
+                <motion.p
+                  key={`t-${transcript}`}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 0.5 }}
+                  exit={{ opacity: 0 }}
+                  className="text-xs text-muted-foreground"
                 >
-                  {expanded
-                    ? language === "ka" ? "შემოკლება" : "View less"
-                    : language === "ka" ? "სრულად" : "View more"}
-                </button>
+                  {transcript}
+                </motion.p>
               )}
-            </motion.div>
-          )}
-        </AnimatePresence>
+            </AnimatePresence>
+            <AnimatePresence mode="wait">
+              {lastResponse && voice.stage !== "listening" && (
+                <motion.div
+                  key={`r-${lastResponse.slice(0, 30)}`}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  className="flex flex-col items-center gap-1"
+                >
+                  <p
+                    ref={responseRef}
+                    className={`text-sm text-foreground font-serif leading-relaxed ${expanded ? "" : "line-clamp-4"}`}
+                  >
+                    {lastResponse}
+                  </p>
+                  {isOverflowing && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setExpanded((v) => !v); }}
+                      className="text-xs text-primary font-medium mt-1 hover:underline"
+                    >
+                      {expanded
+                        ? language === "ka" ? "შემოკლება" : "View less"
+                        : language === "ka" ? "სრულად" : "View more"}
+                    </button>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        )}
       </div>
 
       {/* End session */}
       {voice.stage !== "idle" && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="pb-4">
           <Button
-            variant="destructive"
+            variant="outline"
             size="sm"
-            className="rounded-full px-6"
+            className="rounded-full px-6 text-muted-foreground hover:text-foreground border-border/50"
             onClick={voice.endSession}
           >
             {language === "ka" ? "დასრულება" : "End Session"}
