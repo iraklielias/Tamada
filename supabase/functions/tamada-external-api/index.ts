@@ -432,7 +432,53 @@ EXTERNAL API TOAST MARKING:
 - Keep conversational responses SHORT (1-3 sentences). Toasts can be longer.
 
 VOICE MODE NOTE:
-When the user's message comes from voice transcription, it may have minor transcription errors. Interpret intent generously and don't fixate on exact wording.`;
+When the user's message comes from voice transcription, it may have minor transcription errors. Interpret intent generously and don't fixate on exact wording.
+
+<PARAMETER_GATHERING>
+
+CRITICAL BEHAVIOR: You are a conversational toast-crafting assistant. You NEVER require users to fill in forms or input fields. Instead, you gather all necessary information through natural conversation.
+
+When a user starts a conversation or asks for a toast:
+1. If they haven't specified the occasion → ask warmly: "რა შემთხვევისთვის გჭირდება სადღეგრძელო?" (or in English if they write in English)
+2. If they haven't specified who it's for → ask: "ვის ეძღვნება ეს სადღეგრძელო? თუ რამე საინტერესო მეტყვი მათ შესახებ, ბევრად უკეთეს სადღეგრძელოს შევქმნი."
+3. If occasion is formal (wedding, christening) and tone not specified → ask about formality preference
+4. If region not specified but would add value → optionally ask: "რეგიონის სტილი გაინტერესებს? კახური, იმერული, თუ ზოგადი?"
+
+GATHERING RULES:
+- Ask ONE question at a time, never multiple
+- Be warm, not interrogative. You're a curious Tamada, not a form
+- If the user provides enough info (at minimum: occasion), you can generate without asking more
+- If the user seems impatient or says "just make one" → generate with what you have
+- After gathering info, ALWAYS confirm briefly what you'll create before generating: "კარგი, ქორწილის სადღეგრძელოს შეგიქმნი ნინოსა და გიორგისთვის, ოფიციალური ტონით. 🍷"
+
+EXTRACTED PARAMS FORMAT:
+After EVERY response (conversational or toast), append a structured JSON block on a new line, wrapped with delimiters:
+===PARAMS===
+{"occasion_type":"wedding","person_name":"ნინო","formality_level":"formal","tone":"warm","region":null,"person_details":"bride loves poetry"}
+===END_PARAMS===
+
+Rules for params JSON:
+- Include ALL fields: occasion_type, person_name, formality_level, tone, region, person_details
+- Use null for unknown/unspecified fields
+- Update cumulatively as conversation progresses (don't lose previously gathered info)
+- occasion_type values: wedding, birthday, memorial, christening, guest, holiday, corporate, friendly, supra
+- formality_level values: casual, semi-formal, formal, very-formal
+- tone values: warm, humorous, solemn, poetic, philosophical
+
+</PARAMETER_GATHERING>
+
+<VOICE_CONVERSATION_MODE>
+
+When the request includes mode="voice", you are in real-time voice conversation mode:
+- Keep ALL responses SHORT — 1-2 sentences for questions, concise toasts
+- Speak naturally as if in a real conversation at a table
+- Don't use complex sentence structures that are hard to follow when spoken
+- When gathering params, be brief: "რა შემთხვევაა?" not a full paragraph
+- When confirming: "კარგი, ვქმნი!" not a detailed confirmation
+- Omit delivery marks — TTS handles pacing
+- Still include ===PARAMS=== block (application strips it before TTS)
+
+</VOICE_CONVERSATION_MODE>`;
 
 const FULL_SYSTEM_PROMPT = CORE_SYSTEM_PROMPT + CONVERSATIONAL_ADDITIONS;
 
@@ -592,6 +638,19 @@ function buildQuickParamsContext(quickParams: Record<string, string> | null, lan
 
   if (parts.length === 0) return "";
   return `\n[Context: ${parts.join(", ")}]`;
+}
+
+function extractParams(content: string): { cleanContent: string; params: Record<string, unknown> | null } {
+  const paramsMatch = content.match(/===PARAMS===\s*([\s\S]*?)\s*===END_PARAMS===/);
+  if (!paramsMatch) return { cleanContent: content, params: null };
+
+  const cleanContent = content.replace(/===PARAMS===[\s\S]*?===END_PARAMS===/, "").trim();
+  try {
+    const params = JSON.parse(paramsMatch[1].trim());
+    return { cleanContent, params };
+  } catch {
+    return { cleanContent, params: null };
+  }
 }
 
 function detectToast(content: string, hasQuickParams: boolean): boolean {
@@ -792,20 +851,32 @@ async function handleChatMessage(body: Record<string, unknown>, apiKeyData: Reco
   // Generate AI response
   const { content: aiContent, tokensUsed, durationMs } = await generateAIResponse(recentMessages);
 
+  // Extract params from AI response
+  const { cleanContent, params: extractedParams } = extractParams(aiContent);
+
+  // Store gathered params on session
+  if (extractedParams) {
+    const mergedParams = { ...(session.gathered_params || {}), ...extractedParams };
+    await db.from("external_chat_sessions").update({
+      gathered_params: mergedParams,
+    }).eq("id", session.id);
+  }
+
   // Detect toast
-  const isToast = detectToast(aiContent, !!quickParams);
+  const isToast = detectToast(cleanContent, !!quickParams);
   const messageType = isToast ? "toast" : "text";
 
-  // Store assistant message
+  // Store assistant message (clean content without params block)
   const { data: savedMsg } = await db.from("external_chat_messages").insert({
     session_id: session.id,
     role: "assistant",
-    content: aiContent,
+    content: cleanContent,
     message_type: messageType,
     metadata: {
-      occasion_type: quickParams?.occasion_type,
-      tone: quickParams?.tone,
+      occasion_type: extractedParams?.occasion_type || quickParams?.occasion_type,
+      tone: extractedParams?.tone || quickParams?.tone,
       is_toast: isToast,
+      extracted_params: extractedParams,
     },
     tokens_used: tokensUsed,
     generation_duration_ms: durationMs,
@@ -823,12 +894,13 @@ async function handleChatMessage(body: Record<string, unknown>, apiKeyData: Reco
     message: {
       id: savedMsg?.id,
       role: "assistant",
-      content: aiContent,
+      content: cleanContent,
       message_type: messageType,
       metadata: savedMsg?.metadata,
       audio_url: null,
       created_at: savedMsg?.created_at,
     },
+    extracted_params: extractedParams,
     usage: {
       used_today: updatedRate.used,
       daily_limit: apiKeyData.daily_limit_per_user,
@@ -882,14 +954,30 @@ async function handleChatMessageVoice(body: Record<string, unknown>, apiKeyData:
   const recentMessages = await loadRecentMessages(session.id);
 
   // AI Generation
-  const { content: aiContent, tokensUsed, durationMs } = await generateAIResponse(recentMessages);
+  const isVoiceMode = body.mode === "voice";
+  const { content: aiContent, tokensUsed, durationMs } = await generateAIResponse(
+    isVoiceMode
+      ? [...recentMessages, { role: "system", content: "VOICE_CONVERSATION_MODE is active. Keep responses very short." }]
+      : recentMessages
+  );
+
+  // Extract params from AI response
+  const { cleanContent, params: extractedParams } = extractParams(aiContent);
+
+  // Store gathered params on session
+  if (extractedParams) {
+    const mergedParams = { ...(session.gathered_params || {}), ...extractedParams };
+    await db.from("external_chat_sessions").update({
+      gathered_params: mergedParams,
+    }).eq("id", session.id);
+  }
 
   // Detect toast
-  const isToast = detectToast(aiContent, !!quickParams);
+  const isToast = detectToast(cleanContent, !!quickParams);
   const messageType = isToast ? "toast" : "text";
 
   // TTS Stage (gracefully degrades if ElevenLabs is unavailable)
-  const audioBytes = await synthesizeSpeech(aiContent.replace(/---/g, "").trim(), language);
+  const audioBytes = await synthesizeSpeech(cleanContent.replace(/---/g, "").replace(/===TOAST_START===|===TOAST_END===/g, "").trim(), language);
 
   // Generate message ID first
   const msgId = crypto.randomUUID();
@@ -898,16 +986,20 @@ async function handleChatMessageVoice(body: Record<string, unknown>, apiKeyData:
   const audioUrl = audioBytes ? await uploadAudioToStorage(session.id, msgId, audioBytes) : null;
 
   // Estimate duration (~150 chars per 10 seconds is rough)
-  const audioDuration = audioBytes ? Math.max(1, (aiContent.length / 15)) : null;
+  const audioDuration = audioBytes ? Math.max(1, (cleanContent.length / 15)) : null;
 
   // Store assistant message
   const { data: savedMsg } = await db.from("external_chat_messages").insert({
     id: msgId,
     session_id: session.id,
     role: "assistant",
-    content: aiContent,
+    content: cleanContent,
     message_type: messageType,
-    metadata: { occasion_type: quickParams?.occasion_type, is_toast: isToast },
+    metadata: {
+      occasion_type: extractedParams?.occasion_type || quickParams?.occasion_type,
+      is_toast: isToast,
+      extracted_params: extractedParams,
+    },
     audio_url: audioUrl,
     audio_duration_seconds: audioDuration,
     tokens_used: tokensUsed,
@@ -926,13 +1018,14 @@ async function handleChatMessageVoice(body: Record<string, unknown>, apiKeyData:
     message: {
       id: savedMsg?.id,
       role: "assistant",
-      content: aiContent,
+      content: cleanContent,
       message_type: messageType,
       metadata: savedMsg?.metadata,
       audio_url: audioUrl,
       audio_duration_seconds: audioDuration,
       created_at: savedMsg?.created_at,
     },
+    extracted_params: extractedParams,
     transcription: {
       original_audio_text: transcribedText,
       language_detected: language,

@@ -1,50 +1,70 @@
-import React, { useState } from "react";
-import { useTranslation } from "react-i18next";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import React, { useState, useCallback, useRef } from "react";
+import { AnimatePresence } from "framer-motion";
 import { ChatSimulator } from "@/components/api-testing/ChatSimulator";
-import { EndpointTester } from "@/components/api-testing/EndpointTester";
-import { ApiKeyManager } from "@/components/api-testing/ApiKeyManager";
-import { UsageAnalytics } from "@/components/api-testing/UsageAnalytics";
-import { VoiceSettings } from "@/components/api-testing/VoiceSettings";
+import { FullVoiceMode } from "@/components/api-testing/FullVoiceMode";
+import { ApiInspector } from "@/components/api-testing/ApiInspector";
 import { useTamadaExternalApi } from "@/hooks/useTamadaExternalApi";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
+import { Code2 } from "lucide-react";
+import type { ExternalChatMessage } from "@/types/external-api";
 
 export default function ApiTestingPage() {
-  const { t } = useTranslation();
   const api = useTamadaExternalApi();
+  const [voiceModeOpen, setVoiceModeOpen] = useState(false);
+  const [inspectorOpen, setInspectorOpen] = useState(false);
+  const chatRef = useRef<{ addVoiceMessages: (u: ExternalChatMessage | null, a: ExternalChatMessage) => void } | null>(null);
+
+  const handleVoiceMessage = useCallback(
+    (userMsg: ExternalChatMessage | null, assistantMsg: ExternalChatMessage) => {
+      // Messages will be added when voice mode closes and chat remounts with history
+    },
+    []
+  );
 
   return (
-    <div className="p-4 md:p-6 max-w-[1600px] mx-auto space-y-4">
-      <div className="flex items-center gap-3 mb-2">
-        <h1 className="text-xl md:text-2xl font-display font-bold text-foreground">
-          {t("apiTesting.title")}
-        </h1>
+    <div className="h-screen flex flex-col bg-background">
+      {/* Developer inspector toggle */}
+      <div className="fixed bottom-4 right-4 z-40">
+        <Sheet open={inspectorOpen} onOpenChange={setInspectorOpen}>
+          <SheetTrigger asChild>
+            <Button
+              size="icon"
+              variant="outline"
+              className="h-10 w-10 rounded-full shadow-lg bg-card"
+              title="API Inspector"
+            >
+              <Code2 className="h-4 w-4" />
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="right" className="w-[450px] sm:w-[500px] p-0">
+            <div className="h-full overflow-y-auto">
+              <ApiInspector entries={api.inspectorLog} onClear={api.clearInspector} />
+            </div>
+          </SheetContent>
+        </Sheet>
       </div>
 
-      <Tabs defaultValue="chat" className="w-full">
-        <TabsList className="w-full justify-start overflow-x-auto">
-          <TabsTrigger value="chat">{t("apiTesting.tabs.chat")}</TabsTrigger>
-          <TabsTrigger value="endpoints">{t("apiTesting.tabs.endpoints")}</TabsTrigger>
-          <TabsTrigger value="keys">{t("apiTesting.tabs.keys")}</TabsTrigger>
-          <TabsTrigger value="usage">{t("apiTesting.tabs.usage")}</TabsTrigger>
-          <TabsTrigger value="voice">{t("apiTesting.tabs.voice")}</TabsTrigger>
-        </TabsList>
+      {/* Main chat */}
+      <div className="flex-1 max-w-2xl mx-auto w-full p-2 md:p-4">
+        <ChatSimulator
+          api={api}
+          onOpenVoiceMode={() => setVoiceModeOpen(true)}
+        />
+      </div>
 
-        <TabsContent value="chat">
-          <ChatSimulator api={api} />
-        </TabsContent>
-        <TabsContent value="endpoints">
-          <EndpointTester api={api} />
-        </TabsContent>
-        <TabsContent value="keys">
-          <ApiKeyManager />
-        </TabsContent>
-        <TabsContent value="usage">
-          <UsageAnalytics api={api} />
-        </TabsContent>
-        <TabsContent value="voice">
-          <VoiceSettings />
-        </TabsContent>
-      </Tabs>
+      {/* Full voice mode overlay */}
+      <AnimatePresence>
+        {voiceModeOpen && (
+          <FullVoiceMode
+            api={api}
+            userId="test_user_001"
+            language="ka"
+            onClose={() => setVoiceModeOpen(false)}
+            onMessage={handleVoiceMessage}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
