@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useRef } from "react";
 import { AnimatePresence } from "framer-motion";
 import { ChatSimulator } from "@/components/api-testing/ChatSimulator";
 import { FullVoiceMode } from "@/components/api-testing/FullVoiceMode";
@@ -20,8 +20,13 @@ export default function ApiTestingPage() {
   const [inspectorOpen, setInspectorOpen] = useState(false);
   const [language, setLanguage] = useState<"ka" | "en">("ka");
 
+  // Ref to push voice messages into chat
+  const addVoiceMessagesRef = useRef<(userMsg: ExternalChatMessage | null, assistantMsg: ExternalChatMessage) => void>(null);
+
   const handleVoiceMessage = useCallback(
-    (userMsg: ExternalChatMessage | null, assistantMsg: ExternalChatMessage) => {},
+    (userMsg: ExternalChatMessage | null, assistantMsg: ExternalChatMessage) => {
+      addVoiceMessagesRef.current?.(userMsg, assistantMsg);
+    },
     []
   );
 
@@ -79,6 +84,7 @@ export default function ApiTestingPage() {
           onOpenVoiceMode={() => setVoiceModeOpen(true)}
           language={language}
           onLanguageChange={setLanguage}
+          addVoiceMessagesRef={addVoiceMessagesRef}
         />
       </div>
 

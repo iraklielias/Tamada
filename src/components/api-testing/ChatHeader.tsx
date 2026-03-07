@@ -1,5 +1,5 @@
 import React from "react";
-import { Wine, Settings, Globe, RotateCcw } from "lucide-react";
+import { Wine, Settings, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { UsageInfo } from "@/types/external-api";
@@ -65,8 +65,15 @@ export function ChatHeader({ language, onToggleLanguage, onOpenSettings, onReset
         </Button>
       )}
 
-      <Button size="icon" variant="ghost" className="h-8 w-8 flex-shrink-0" onClick={onToggleLanguage}>
-        <Globe className="h-4 w-4" />
+      {/* Language badge toggle */}
+      <Button
+        size="sm"
+        variant="outline"
+        className="h-7 px-2 text-xs font-bold flex-shrink-0 border-primary/30 hover:bg-primary/10"
+        onClick={onToggleLanguage}
+        title={language === "ka" ? "Switch to English" : "ქართულზე გადართვა"}
+      >
+        {language === "ka" ? "KA" : "EN"}
       </Button>
 
       <Button size="icon" variant="ghost" className="h-8 w-8 flex-shrink-0" onClick={onOpenSettings}>

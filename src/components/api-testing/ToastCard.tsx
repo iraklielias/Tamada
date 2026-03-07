@@ -10,9 +10,10 @@ interface ToastCardProps {
   message: ExternalChatMessage;
   onPlay: () => void;
   isPlaying: boolean;
+  language?: "ka" | "en";
 }
 
-export function ToastCard({ message, onPlay, isPlaying }: ToastCardProps) {
+export function ToastCard({ message, onPlay, isPlaying, language = "ka" }: ToastCardProps) {
   const cleanContent = message.content
     .replace(/===TOAST_START===|===TOAST_END===/g, "")
     .replace(/---/g, "")
@@ -33,7 +34,9 @@ export function ToastCard({ message, onPlay, isPlaying }: ToastCardProps) {
           {/* Header */}
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <Wine className="w-3.5 h-3.5 text-primary" />
-            <span className="font-medium">სადღეგრძელო</span>
+            <span className="font-medium">
+              {language === "ka" ? "სადღეგრძელო" : "Toast"}
+            </span>
           </div>
 
           {/* Toast text */}
@@ -49,11 +52,11 @@ export function ToastCard({ message, onPlay, isPlaying }: ToastCardProps) {
               className="h-7 text-xs gap-1.5 text-muted-foreground hover:text-foreground"
               onClick={() => {
                 navigator.clipboard.writeText(cleanContent);
-                sonnerToast.success("დაკოპირდა!");
+                sonnerToast.success(language === "ka" ? "დაკოპირდა!" : "Copied!");
               }}
             >
               <Copy className="h-3 w-3" />
-              <span className="hidden sm:inline">Copy</span>
+              <span className="hidden sm:inline">{language === "ka" ? "კოპირება" : "Copy"}</span>
             </Button>
             <Button
               size="sm"
@@ -62,7 +65,11 @@ export function ToastCard({ message, onPlay, isPlaying }: ToastCardProps) {
               onClick={onPlay}
             >
               {isPlaying ? <Pause className="h-3 w-3" /> : <Volume2 className="h-3 w-3" />}
-              <span className="hidden sm:inline">{isPlaying ? "Pause" : "Play"}</span>
+              <span className="hidden sm:inline">
+                {isPlaying
+                  ? (language === "ka" ? "პაუზა" : "Pause")
+                  : (language === "ka" ? "მოსმენა" : "Play")}
+              </span>
             </Button>
             {message.audio_duration_seconds && (
               <span className="text-[10px] text-muted-foreground/50 ml-auto">
