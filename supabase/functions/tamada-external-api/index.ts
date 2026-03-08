@@ -632,7 +632,7 @@ async function getOrCreateSession(apiKeyId: string, externalUserId: string, lang
   return { session: newSession, isNew: true };
 }
 
-async function loadRecentMessages(sessionId: string, limit = 10) {
+async function loadRecentMessages(sessionId: string, limit = 20) {
   const db = getSupabaseAdmin();
   const { data } = await db
     .from("external_chat_messages")
