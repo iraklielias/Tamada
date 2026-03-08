@@ -201,9 +201,9 @@ function SceneResult({ active }: { active: boolean }) {
   const [phase, setPhase] = useState(0);
   const [showGlow, setShowGlow] = useState(false);
   const title = "ნეფე-პატარძლის სადღეგრძელო";
-  const body = "დიდება ღმერთს, რომელმაც მოგვცა ეს დღე — ორი გულის ერთ ცხოვრებად შეკვრის დღე...";
+  const body = "დიდება ღმერთს, რომელმაც მოგვცა ეს დღე — ორი გულის ერთ ცხოვრებად შეკვრის დღე. მათ სიყვარულს მზის სხივივით გაჰყვეს სითბო და ერთმანეთს არასდროს მოაკლონ ერთგულება და პატივისცემა!";
   const typedTitle = useSceneTyping(title, phase >= 1, 30);
-  const typedBody = useSceneTyping(body, phase >= 2, 18);
+  const typedBody = useSceneTyping(body, phase >= 2, 14);
 
   useEffect(() => {
     if (!active) { setPhase(0); setShowGlow(false); return; }
@@ -315,8 +315,8 @@ function SceneLiveFeast({ active }: { active: boolean }) {
   const [toastIdx, setToastIdx] = useState(0);
 
   const toasts = [
-    { title: "ღვთის სადღეგრძელო", type: "სავალდებულო", body: "უფალო, გმადლობთ ამ დღისთვის..." },
-    { title: "სამშობლოს სადღეგრძელო", type: "ტრადიციული", body: "საქართველოს გაუმარჯოს..." },
+    { title: "ღვთის სადღეგრძელო", type: "სავალდებულო", body: "უფალო, გმადლობთ ამ დღისთვის, ამ სუფრისთვის და ამ ერთობისთვის. შენი წყალობით ვიკრიბებით და შენი მადლით ვხარობთ!" },
+    { title: "სამშობლოს სადღეგრძელო", type: "ტრადიციული", body: "საქართველოს გაუმარჯოს, ჩვენს მშობელ მიწას და მამა-პაპათა კურთხევას. იყოს ჩვენი ქვეყანა მშვიდობიანი და აყვავებული!" },
   ];
 
   useEffect(() => {
@@ -358,7 +358,7 @@ function SceneLiveFeast({ active }: { active: boolean }) {
                 <span className="text-[11px] font-bold text-foreground">{current.title}</span>
                 <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-wine-light text-wine-deep font-semibold">{current.type}</span>
               </div>
-              <p className="text-[11px] text-foreground/70 leading-relaxed line-clamp-2">{current.body}</p>
+              <p className="text-[11px] text-foreground/70 leading-relaxed">{current.body}</p>
             </div>
           </motion.div>
         </AnimatePresence>
@@ -400,14 +400,14 @@ function SceneLiveFeast({ active }: { active: boolean }) {
    ═══════════════════════════════════════════ */
 function SceneChat({ active }: { active: boolean }) {
   const [step, setStep] = useState(0);
-  const aiResponse = "ბატონო, აი ქორწილის სადღეგრძელო: „მზე და მთვარე ერთად...\"";
-  const typedResponse = useSceneTyping(aiResponse, step >= 2, 20);
+  const aiResponse = "ბატონო, აი ქორწილის სადღეგრძელო: მზე და მთვარე ერთად რომ ანათებენ, ისე გაანათონ თქვენმა სიყვარულმა ეს ოჯახი. გილოცავთ!";
+  const typedResponse = useSceneTyping(aiResponse, step >= 2, 16);
 
   useEffect(() => {
     if (!active) { setStep(0); return; }
     const t1 = setTimeout(() => setStep(1), 800);
     const t2 = setTimeout(() => setStep(2), 1800);
-    const t3 = setTimeout(() => setStep(3), 4500);
+    const t3 = setTimeout(() => setStep(3), 5500);
     return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
   }, [active]);
 
@@ -556,7 +556,7 @@ const SCENE_META: { label: string; duration: number }[] = [
   { label: "გენერატორი", duration: 5500 },
   { label: "შედეგი",     duration: 7500 },
   { label: "ლაივ სუფრა", duration: 6000 },
-  { label: "AI ჩატი",    duration: 7000 },
+  { label: "AI ჩატი",    duration: 7500 },
   { label: "ალავერდი",   duration: 5000 },
 ];
 
