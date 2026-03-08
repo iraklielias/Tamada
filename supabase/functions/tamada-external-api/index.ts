@@ -1205,6 +1205,7 @@ async function handleClearHistory(body: Record<string, unknown>, apiKeyData: Rec
 
   if (session) {
     await db.from("external_chat_messages").delete().eq("session_id", session.id);
+    await db.from("external_chat_sessions").update({ gathered_params: {} }).eq("id", session.id);
   }
 
   return new Response(JSON.stringify({ success: true }), {
