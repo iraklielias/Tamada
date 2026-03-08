@@ -1305,14 +1305,14 @@ const Index = () => {
                   : "Plan your supra in 60 seconds. AI writes your toasts. Go live and let the tradition flow."}
               </motion.p>
 
-              <motion.div variants={heroCTAReveal} style={{ y: heroCTAY }} className="flex flex-col sm:flex-row items-start gap-4 mb-10">
+              <motion.div variants={heroCTAReveal} style={{ y: heroCTAY }} className="flex flex-col sm:flex-row items-start gap-4 mb-12">
                 <Button variant="hero" size="lg" asChild className="btn-shimmer cta-glow h-14 px-10 text-lg rounded-xl shadow-wine">
                   <Link to="/auth/signup">
                     {isKa ? "დაიწყე უფასოდ" : "Start free"}
                     <SystemIcon name="action.next" size="md" className="ml-1.5" />
                   </Link>
                 </Button>
-                <Button variant="ghost" size="lg" className="text-muted-foreground h-14 px-8 text-base" onClick={() => document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" })}>
+                <Button variant="outline" size="lg" className="text-foreground/70 border-border-strong h-14 px-8 text-base hover:bg-accent" onClick={() => document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" })}>
                   {isKa ? "როგორ მუშაობს?" : "See how it works"}
                 </Button>
               </motion.div>
