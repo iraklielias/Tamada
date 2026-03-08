@@ -429,6 +429,26 @@ const AIGeneratePage = () => {
         </Badge>
       </div>
 
+      {/* Chat with Tamada (PRO) */}
+      <button
+        onClick={handleOpenChatMode}
+        className="w-full flex items-center gap-3 rounded-xl bg-surface-1 hover:bg-surface-2 transition-colors px-4 py-3 border border-border/50 group"
+      >
+        <div className="h-10 w-10 rounded-full wine-gradient flex items-center justify-center shrink-0 shadow-wine">
+          <MessageCircle className="h-5 w-5 text-primary-foreground" />
+        </div>
+        <div className="flex-1 text-left min-w-0">
+          <p className="text-sm font-semibold text-foreground flex items-center gap-2">
+            {t("ai.chatWithTamada", "ესაუბრე თამადას")}
+            <ProBadge size="sm" />
+          </p>
+          <p className="text-[11px] text-muted-foreground">
+            {t("ai.chatWithTamadaHint", "საუბრით შექმენი სადღეგრძელო — ტექსტით ან ხმით")}
+          </p>
+        </div>
+        <Mic className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
+      </button>
+
       {/* Form */}
       <Card className="border-border/60 shadow-card overflow-hidden">
         <div className="h-1 wine-gradient" />
