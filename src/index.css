@@ -371,22 +371,22 @@
     50% { transform: translateY(-8px); }
   }
 
-  /* Floating cultural icon perpetual float -- starts after entrance */
+  /* Floating cultural icon perpetual float -- with subtle rotation */
   .icon-float-1 {
-    animation: icon-float-1 6s ease-in-out infinite;
+    animation: icon-float-1 5s ease-in-out infinite;
     animation-delay: 2s;
   }
   @keyframes icon-float-1 {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-12px); }
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-14px) rotate(4deg); }
   }
   .icon-float-2 {
-    animation: icon-float-2 7s ease-in-out infinite;
+    animation: icon-float-2 6s ease-in-out infinite;
     animation-delay: 2.3s;
   }
   @keyframes icon-float-2 {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(10px); }
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(12px) rotate(-3deg); }
   }
 
   /* Glow effect behind mockup components */
