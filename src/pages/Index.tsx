@@ -1133,7 +1133,7 @@ const Index = () => {
   const heroMockupY = useTransform(scrollYProgress, [0, 0.8], [0, 50]);
   // Multi-layer parallax within hero — each layer at a different speed for depth
   const heroBadgeY = useTransform(scrollYProgress, [0, 0.6], [0, -30]);
-  const heroHeadlineY = useTransform(scrollYProgress, [0, 0.6], [0, -12]);
+  
   const heroSubY = useTransform(scrollYProgress, [0, 0.6], [0, 18]);
   const heroCTAY = useTransform(scrollYProgress, [0, 0.6], [0, 28]);
 
