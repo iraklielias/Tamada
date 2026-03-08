@@ -1005,7 +1005,7 @@ function PricingSection({ isKa }: { isKa: boolean }) {
           initial="offscreen"
           whileInView="onscreen"
           viewport={{ once: true, margin: "-80px" }}
-          variants={scrollReveal}
+          variants={featureTextStagger}
           className="text-center mb-10"
         >
           <p className="text-sm font-bold uppercase tracking-[0.15em] text-wine-muted mb-3">
