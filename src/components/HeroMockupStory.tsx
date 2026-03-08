@@ -500,8 +500,8 @@ function SceneAlaverdi({ active }: { active: boolean }) {
           initial="initial" animate={active ? "animate" : "initial"}>
           <div className="w-7 h-7 rounded-full wine-gradient flex items-center justify-center text-white text-[10px] font-bold">გ</div>
           <div className="flex-1 min-w-0">
-            <div className="text-[10px] font-semibold text-foreground">გიორგი მამულაშვილი</div>
-            <div className="text-[9px] text-muted-foreground">მეჯვარე</div>
+            <div className="text-[11px] font-semibold text-foreground">გიორგი მამულაშვილი</div>
+            <div className="text-[10px] text-muted-foreground">მეჯვარე</div>
           </div>
           <div className="relative flex items-center gap-1">
             <motion.span className="text-xs font-bold text-wine-deep tabular-nums" key={count}
