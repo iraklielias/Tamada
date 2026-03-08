@@ -167,7 +167,7 @@ export default {
         "scale-in": "scale-in 0.3s ease-out forwards",
         "slide-up": "slide-up 0.4s ease-out forwards",
         "slide-down": "slide-down 0.4s ease-out forwards",
-        "gradient-shift": "gradient-shift 8s ease infinite",
+        "gradient-shift": "gradient-shift 20s ease infinite",
       },
     },
   },
