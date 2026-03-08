@@ -229,7 +229,7 @@ function SceneResult({ active }: { active: boolean }) {
         )}
       </motion.div>
 
-      <motion.div variants={staggerChild} className="relative flex-1">
+      <motion.div variants={staggerChild} className="relative">
         <AnimatePresence>
           {showGlow && (
             <motion.div
