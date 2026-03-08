@@ -1359,7 +1359,7 @@ const Index = () => {
                       key={i}
                       initial={{ opacity: 0, scale: 0 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      transition={{ type: "spring", stiffness: 300, damping: 15, delay: 1.8 + i * 0.08 }}
+                      transition={{ type: "spring", stiffness: 300, damping: 15, delay: 1.4 + i * 0.08 }}
                       className="w-7 h-7 rounded-full border-2 border-background flex items-center justify-center text-[9px] font-bold"
                       style={{
                         background: ["hsl(353,41%,32%)", "hsl(350,60%,45%)", "hsl(43,53%,55%)"][i],
