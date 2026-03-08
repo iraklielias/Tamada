@@ -400,14 +400,14 @@ function SceneLiveFeast({ active }: { active: boolean }) {
    ═══════════════════════════════════════════ */
 function SceneChat({ active }: { active: boolean }) {
   const [step, setStep] = useState(0);
-  const aiResponse = "ბატონო, აი ქორწილის სადღეგრძელო: „მზე და მთვარე ერთად...\"";
-  const typedResponse = useSceneTyping(aiResponse, step >= 2, 20);
+  const aiResponse = "ბატონო, აი ქორწილის სადღეგრძელო: „მზე და მთვარე ერთად რომ ანათებენ, ისე გაანათონ თქვენმა სიყვარულმა ეს ოჯახი. გილოცავთ!"";
+  const typedResponse = useSceneTyping(aiResponse, step >= 2, 16);
 
   useEffect(() => {
     if (!active) { setStep(0); return; }
     const t1 = setTimeout(() => setStep(1), 800);
     const t2 = setTimeout(() => setStep(2), 1800);
-    const t3 = setTimeout(() => setStep(3), 4500);
+    const t3 = setTimeout(() => setStep(3), 5500);
     return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
   }, [active]);
 
