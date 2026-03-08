@@ -301,3 +301,150 @@ export const timelineStep = (i: number): Variants => ({
     transition: { delay: i * 0.15, duration: 0.5, ease: easeOut },
   },
 });
+
+// ─── Phase 2+ animation infrastructure ──────
+
+export const deblurReveal: Variants = {
+  offscreen: { opacity: 0, filter: "blur(6px)" },
+  onscreen: {
+    opacity: 1,
+    filter: "blur(0px)",
+    transition: { duration: 0.7, ease: easeOut },
+  },
+};
+
+export const springScaleIn: Variants = {
+  offscreen: { opacity: 0, scale: 0.82 },
+  onscreen: {
+    opacity: 1,
+    scale: 1,
+    transition: {
+      type: "spring",
+      stiffness: 260,
+      damping: 20,
+    },
+  },
+};
+
+export const staggerBullets: Variants = {
+  offscreen: {},
+  onscreen: {
+    transition: {
+      staggerChildren: 0.08,
+      delayChildren: 0.15,
+    },
+  },
+};
+
+export const bulletItem: Variants = {
+  offscreen: { opacity: 0, x: -10, filter: "blur(2px)" },
+  onscreen: {
+    opacity: 1,
+    x: 0,
+    filter: "blur(0px)",
+    transition: { duration: 0.35, ease: easeOut },
+  },
+};
+
+export const hoverLift = {
+  rest: {
+    y: 0,
+    scale: 1,
+    transition: { type: "spring" as const, stiffness: 300, damping: 24 },
+  },
+  hover: {
+    y: -4,
+    scale: 1.02,
+    transition: { type: "spring" as const, stiffness: 300, damping: 24 },
+  },
+};
+
+export const featureTextStagger: Variants = {
+  offscreen: {},
+  onscreen: {
+    transition: {
+      staggerChildren: 0.12,
+      delayChildren: 0.05,
+    },
+  },
+};
+
+export const featureTextChild: Variants = {
+  offscreen: { opacity: 0, y: 14 },
+  onscreen: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.45, ease: easeOut },
+  },
+};
+
+export const quoteIconReveal: Variants = {
+  offscreen: { opacity: 0, rotate: -15, scale: 0.6 },
+  onscreen: {
+    opacity: 1,
+    rotate: 0,
+    scale: 1,
+    transition: {
+      type: "spring",
+      stiffness: 200,
+      damping: 14,
+    },
+  },
+};
+
+export const starFill = (i: number): Variants => ({
+  offscreen: { opacity: 0, scale: 0 },
+  onscreen: {
+    opacity: 1,
+    scale: 1,
+    transition: {
+      type: "spring",
+      stiffness: 400,
+      damping: 12,
+      delay: i * 0.05,
+    },
+  },
+});
+
+export const timelineIconReveal: Variants = {
+  offscreen: { opacity: 0, scale: 0.5, rotate: -90 },
+  onscreen: {
+    opacity: 1,
+    scale: 1,
+    rotate: 0,
+    transition: {
+      type: "spring",
+      stiffness: 200,
+      damping: 15,
+    },
+  },
+};
+
+export const timelineCardStagger: Variants = {
+  offscreen: {},
+  onscreen: {
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.1,
+    },
+  },
+};
+
+export const pricingCardStagger: Variants = {
+  offscreen: {},
+  onscreen: {
+    transition: {
+      staggerChildren: 0.2,
+    },
+  },
+};
+
+export const ctaDeblurWord = (i: number): Variants => ({
+  offscreen: { opacity: 0, filter: "blur(8px)", y: 6 },
+  onscreen: {
+    opacity: 1,
+    filter: "blur(0px)",
+    y: 0,
+    transition: { duration: 0.5, delay: i * 0.08, ease: easeOut },
+  },
+});
