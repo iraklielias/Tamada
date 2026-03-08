@@ -321,7 +321,31 @@
       radial-gradient(ellipse 45% 45% at 55% 75%, hsla(43,53%,55%,0.12) 0%, transparent 50%);
   }
 
-  /* Headline gradient shimmer sweep -- high-contrast highlight band */
+  /* Headline shimmer v2 — solid color with moving highlight overlay */
+  .hero-headline-shimmer-v2 {
+    position: relative;
+  }
+  .hero-headline-shimmer-v2::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent 0%, hsla(0,0%,100%,0.25) 50%, transparent 100%);
+    background-size: 200% 100%;
+    animation: headline-shimmer-v2-entrance 2s ease-out forwards, headline-shimmer-v2 6s ease-in-out 2.5s infinite;
+    pointer-events: none;
+    mix-blend-mode: overlay;
+    border-radius: 4px;
+  }
+  @keyframes headline-shimmer-v2-entrance {
+    0% { background-position: -100% 50%; }
+    100% { background-position: 100% 50%; }
+  }
+  @keyframes headline-shimmer-v2 {
+    0%, 100% { background-position: -100% 50%; }
+    50% { background-position: 200% 50%; }
+  }
+
+  /* Legacy shimmer kept for backward compat */
   .hero-headline-shimmer {
     background-size: 400% 100%;
     animation: headline-shimmer-entrance 2s ease-out forwards, headline-shimmer 8s ease-in-out 2.5s infinite;
@@ -333,6 +357,15 @@
   @keyframes headline-shimmer {
     0%, 100% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }
+  }
+
+  /* Badge glow pulse */
+  .badge-glow-pulse {
+    animation: badge-glow 3s ease-in-out infinite;
+  }
+  @keyframes badge-glow {
+    0%, 100% { box-shadow: 0 0 0 0 hsla(353,41%,32%,0.08); }
+    50% { box-shadow: 0 0 16px 4px hsla(353,41%,32%,0.18); }
   }
 
   /* CTA breathing glow -- strong initial pulse then steady breathing */
