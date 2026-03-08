@@ -180,7 +180,7 @@ export default function HeroInteractiveDemo({ active = false, language = "ka" }:
           <div className="flex gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-destructive/60" />
             <span className="w-2.5 h-2.5 rounded-full bg-gold/60" />
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/60" />
+            <span className="w-2.5 h-2.5 rounded-full bg-green-500/60" />
           </div>
           <div className="flex-1 mx-3">
             <div className="mx-auto max-w-[200px] h-5 rounded-md bg-background/80 border border-border/50 flex items-center justify-center">

@@ -12,7 +12,7 @@ import {
 import HornIcon from "@/components/icons/HornIcon";
 import WineGlassIcon from "@/components/icons/WineGlassIcon";
 import QvevriIcon from "@/components/icons/QvevriIcon";
-import HeroMockupStory from "@/components/HeroMockupStory";
+import HeroInteractiveDemo from "@/components/HeroInteractiveDemo";
 import {
   heroStagger,
   heroBadgeReveal,
