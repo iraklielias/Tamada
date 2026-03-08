@@ -880,6 +880,80 @@ const AIGeneratePage = () => {
                 </CardContent>
               </Card>
             )}
+
+            {/* ── Customize & Refine (collapsible) ── */}
+            <Collapsible open={refineOpen} onOpenChange={setRefineOpen}>
+              <CollapsibleTrigger asChild>
+                <button className="w-full flex items-center gap-2 rounded-xl bg-surface-1 hover:bg-surface-2 transition-colors px-3.5 py-2.5 text-left">
+                  <div className="h-7 w-7 rounded-lg bg-wine-light flex items-center justify-center shrink-0">
+                    <Sparkles className="h-3.5 w-3.5 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium text-foreground">{t("feastDetail.customizeRetry", "დახვეწა და ხელახლა ცდა")}</p>
+                    <p className="text-[10px] text-muted-foreground">{t("ai.refineHint", "დაამატე ინსტრუქცია, შეცვალე ტონი ან სტილი")}</p>
+                  </div>
+                  <ChevronDown className={`h-4 w-4 text-muted-foreground shrink-0 transition-transform duration-200 ${refineOpen ? "rotate-180" : ""}`} />
+                </button>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <div className="space-y-3 pt-3 pl-1">
+                  <Textarea
+                    placeholder={t("ai.refineCommentPlaceholder", "მაგ: გახადე უფრო იუმორისტული, დაამატე რუსთაველის ციტატა...")}
+                    value={refineComment}
+                    onChange={(e) => setRefineComment(e.target.value)}
+                    className="min-h-[60px] text-sm bg-surface-1 border-border"
+                    rows={2}
+                  />
+                  <div className="space-y-2.5">
+                    <div>
+                      <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1.5">{t("feastDetail.toneLabel", "ტონი")}</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {refineToneKeys.map((tk) => (
+                          <Badge key={tk} variant={refineTone === tk ? "default" : "outline"} className="cursor-pointer transition-all text-xs hover:border-primary/40" onClick={() => setRefineTone(refineTone === tk ? null : tk)}>
+                            {toneIcons[tk] || ""} {t(`ai.tones.${tk}`, tk)}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1.5">{t("feastDetail.lengthLabel", "სიგრძე")}</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {refineLengthKeys.map((lk) => (
+                          <Badge key={lk} variant={refineLength === lk ? "default" : "outline"} className="cursor-pointer transition-all text-xs hover:border-primary/40" onClick={() => setRefineLength(refineLength === lk ? null : lk)}>
+                            {t(`feastDetail.lengths.${lk}`, lk)}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1.5">{t("feastDetail.styleLabel", "სტილი")}</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {refineStyleKeys.map((sk) => (
+                          <Badge key={sk} variant={refineStyle === sk ? "default" : "outline"} className="cursor-pointer transition-all text-xs hover:border-primary/40" onClick={() => setRefineStyle(refineStyle === sk ? null : sk)}>
+                            {t(`feastDetail.styles.${sk}`, sk)}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  <Button
+                    variant="wine"
+                    size="sm"
+                    className="w-full shadow-wine"
+                    onClick={() => refineMutation.mutate()}
+                    disabled={isRefining || (!refineComment.trim() && !refineTone && !refineLength && !refineStyle)}
+                  >
+                    {isRefining ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5 mr-1.5" />}
+                    {t("ai.refineAction", "დახვეწა")}
+                  </Button>
+                  {isRefining && (
+                    <div className="min-h-[60px] flex items-center justify-center">
+                      <ThinkingFacts isVisible={true} language={(localStorage.getItem('tamada-lang') === 'en' ? 'en' : 'ka') as "ka" | "en"} />
+                    </div>
+                  )}
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
           </motion.div>
         )}
       </AnimatePresence>
