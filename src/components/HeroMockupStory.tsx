@@ -526,8 +526,8 @@ function SceneAlaverdi({ active }: { active: boolean }) {
               initial={{ opacity: 0, y: 6, filter: "blur(2px)" }} animate={{ opacity: 1, y: 0, filter: "blur(0px)" }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
               <div className="w-7 h-7 rounded-full bg-gold/20 flex items-center justify-center text-gold text-[10px] font-bold">ნ</div>
               <div className="flex-1">
-                <div className="text-[10px] font-semibold text-foreground">ნინო ჩხეიძე</div>
-                <div className="text-[9px] text-muted-foreground">მოწვეული</div>
+                <div className="text-[11px] font-semibold text-foreground">ნინო ჩხეიძე</div>
+                <div className="text-[10px] text-muted-foreground">მოწვეული</div>
               </div>
               <span className="text-xs font-bold text-foreground/50 tabular-nums">1</span>
             </motion.div>
