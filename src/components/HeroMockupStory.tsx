@@ -125,7 +125,7 @@ function SceneGenerator({ active }: { active: boolean }) {
         <span className="text-[11px] font-semibold text-foreground">AI სადღეგრძელო</span>
       </motion.div>
 
-      <div className="space-y-2 flex-1">
+      <div className="space-y-2.5 flex-1">
         {selects.map((s, i) => (
           <motion.div
             key={s.label}
@@ -134,7 +134,7 @@ function SceneGenerator({ active }: { active: boolean }) {
             animate={step > i ? "animate" : { opacity: 0.3, y: 0, filter: "blur(0px)" }}
             className="flex items-center gap-2"
           >
-            <span className="text-[9px] text-muted-foreground w-16 shrink-0">{s.label}</span>
+            <span className="text-[10px] text-muted-foreground w-20 shrink-0">{s.label}</span>
             <div className={`flex-1 flex items-center justify-between px-2.5 py-1.5 rounded-md border text-[11px] transition-colors ${
               step > i ? "border-wine-muted/40 bg-wine-light/20 text-foreground font-medium" : "border-border bg-surface-1 text-muted-foreground"
             }`}>
