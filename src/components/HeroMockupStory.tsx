@@ -269,7 +269,7 @@ function SceneResult({ active }: { active: boolean }) {
                   <TypingCursor active={phase >= 1 && phase < 2} height="h-3" />
                 </p>
                 {phase >= 2 && (
-                  <p className="text-[11px] text-foreground/80 leading-relaxed">
+                  <p className="text-[11px] text-foreground/80 leading-[1.8]">
                     {typedBody}
                     <TypingCursor active={phase >= 2 && phase < 3} height="h-2.5" />
                   </p>
