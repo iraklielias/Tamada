@@ -1389,7 +1389,7 @@ const Index = () => {
               transition={{ duration: 0.7, delay: 1.2, ease: [0, 0, 0.2, 1] }}
             >
               <div className="max-w-sm mx-auto">
-                <HeroMockupStory active={mockupActive} />
+                <HeroInteractiveDemo active={mockupActive} language={isKa ? "ka" : "en"} />
               </div>
             </motion.div>
           </div>
