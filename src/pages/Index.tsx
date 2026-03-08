@@ -1298,7 +1298,7 @@ const Index = () => {
               <motion.p
                 variants={heroSubReveal}
                 style={{ y: heroSubY }}
-                className="text-base md:text-lg text-muted-foreground max-w-md leading-relaxed mb-8"
+                className="text-lg md:text-xl text-foreground/65 max-w-md leading-relaxed mb-12"
               >
                 {isKa
                   ? "დაგეგმე სუფრა 60 წამში. AI დაწერს სადღეგრძელოებს. გააქტიურე ლაივ რეჟიმი და მიეცი ტრადიციას გზა."
