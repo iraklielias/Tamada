@@ -201,9 +201,9 @@ function SceneResult({ active }: { active: boolean }) {
   const [phase, setPhase] = useState(0);
   const [showGlow, setShowGlow] = useState(false);
   const title = "ნეფე-პატარძლის სადღეგრძელო";
-  const body = "დიდება ღმერთს, რომელმაც მოგვცა ეს დღე — ორი გულის ერთ ცხოვრებად შეკვრის დღე...";
+  const body = "დიდება ღმერთს, რომელმაც მოგვცა ეს დღე — ორი გულის ერთ ცხოვრებად შეკვრის დღე. მათ სიყვარულს მზის სხივივით გაჰყვეს სითბო და ერთმანეთს არასდროს მოაკლონ ერთგულება და პატივისცემა!";
   const typedTitle = useSceneTyping(title, phase >= 1, 30);
-  const typedBody = useSceneTyping(body, phase >= 2, 18);
+  const typedBody = useSceneTyping(body, phase >= 2, 14);
 
   useEffect(() => {
     if (!active) { setPhase(0); setShowGlow(false); return; }
