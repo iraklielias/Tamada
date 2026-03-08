@@ -1443,11 +1443,12 @@ const Index = () => {
       </motion.section>
 
       {/* ═══════════════ TRUST BAR ═══════════════ */}
+      {/* Item 26: Trust bar — overlap entrance with hero */}
       <motion.section
-        initial="offscreen"
-        whileInView="onscreen"
-        viewport={{ once: true, margin: "-20px" }}
-        variants={scrollReveal}
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "100px" }}
+        transition={{ duration: 0.5, ease: [0, 0, 0.2, 1] }}
         className="py-12 md:py-14 px-6 relative overflow-hidden"
         style={{
           background: "linear-gradient(135deg, hsla(350,30%,93%,0.5) 0%, hsla(38,25%,97%,1) 40%, hsla(43,80%,94%,0.3) 100%)",
