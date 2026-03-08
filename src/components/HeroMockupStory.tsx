@@ -437,10 +437,10 @@ function SceneChat({ active }: { active: boolean }) {
               transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.1 }}
               className="flex justify-start gap-2"
             >
-              <div className="w-6 h-6 rounded-full wine-gradient flex items-center justify-center shrink-0">
-                <HornIcon size={10} className="text-white" />
+              <div className="w-7 h-7 rounded-full wine-gradient flex items-center justify-center shrink-0">
+                <HornIcon size={12} className="text-white" />
               </div>
-              <div className="max-w-[78%] px-3 py-2 rounded-2xl rounded-bl-md bg-surface-1 border border-border text-[10px] text-foreground leading-relaxed">
+              <div className="max-w-[78%] px-3 py-2 rounded-2xl rounded-bl-md bg-surface-1 border border-border text-[11px] text-foreground leading-relaxed">
                 {typedResponse}
                 <TypingCursor active={step >= 2 && step < 3} height="h-2.5" />
               </div>
