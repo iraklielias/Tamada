@@ -189,6 +189,17 @@ export const cardHover = {
   },
 };
 
+// ─── Page stagger child (blur-enhanced) ─────────
+export const pageStaggerChild: Variants = {
+  initial: { opacity: 0, y: 8, filter: "blur(3px)" },
+  animate: {
+    opacity: 1,
+    y: 0,
+    filter: "blur(0px)",
+    transition: { duration: 0.4, ease: easeOut },
+  },
+};
+
 // ─── List item stagger ───────────────────────────
 export const listStagger: Variants = {
   initial: {},

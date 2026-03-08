@@ -618,7 +618,7 @@ export default function HeroMockupStory({ active = false }: { active?: boolean }
 
       {/* Content — Item 10: pause dimming */}
       <motion.div
-        className="p-4 sm:p-5 bg-background min-h-[280px] sm:min-h-[320px] flex flex-col relative"
+        className="p-5 sm:p-6 bg-background min-h-[300px] sm:min-h-[340px] flex flex-col relative"
         animate={{
           opacity: paused && active ? 0.85 : 1,
           filter: paused && active ? "saturate(0.85)" : "saturate(1)",
