@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { motion, useScroll, useTransform, useInView } from "framer-motion";
+import { motion, useScroll, useTransform, useInView, useSpring } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
@@ -1096,34 +1096,35 @@ const Index = () => {
   const timelineRef = useRef<HTMLDivElement>(null);
   const [mockupActive, setMockupActive] = useState(false);
   const mockupContainerRef = useRef<HTMLDivElement>(null);
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+
+  // Item 22: Spring physics for 3D tilt
+  const mouseX = useSpring(0, { stiffness: 100, damping: 30 });
+  const mouseY = useSpring(0, { stiffness: 100, damping: 30 });
+  const tiltRotateX = useTransform(mouseY, [-1, 1], [4, -4]);
+  const tiltRotateY = useTransform(mouseX, [-1, 1], [-6, 6]);
 
   useEffect(() => {
     const timer = setTimeout(() => setMockupActive(true), 1800);
     return () => clearTimeout(timer);
   }, []);
 
-  // Mouse tracking for 3D tilt on mockup
+  // Mouse tracking for 3D tilt — feeds springs
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!mockupContainerRef.current) return;
-      const rect = mockupContainerRef.current.getBoundingClientRect();
-      const x = ((e.clientX - rect.left) / rect.width - 0.5) * 2;
-      const y = ((e.clientY - rect.top) / rect.height - 0.5) * 2;
-      setMousePos({ x, y });
-    };
     const el = mockupContainerRef.current;
-    if (el) {
-      el.addEventListener("mousemove", handleMouseMove);
-      el.addEventListener("mouseleave", () => setMousePos({ x: 0, y: 0 }));
-    }
-    return () => {
-      if (el) {
-        el.removeEventListener("mousemove", handleMouseMove);
-        el.removeEventListener("mouseleave", () => setMousePos({ x: 0, y: 0 }));
-      }
+    if (!el) return;
+    const handleMouseMove = (e: MouseEvent) => {
+      const rect = el.getBoundingClientRect();
+      mouseX.set(((e.clientX - rect.left) / rect.width - 0.5) * 2);
+      mouseY.set(((e.clientY - rect.top) / rect.height - 0.5) * 2);
     };
-  }, []);
+    const handleMouseLeave = () => { mouseX.set(0); mouseY.set(0); };
+    el.addEventListener("mousemove", handleMouseMove);
+    el.addEventListener("mouseleave", handleMouseLeave);
+    return () => {
+      el.removeEventListener("mousemove", handleMouseMove);
+      el.removeEventListener("mouseleave", handleMouseLeave);
+    };
+  }, [mouseX, mouseY]);
 
   const { scrollYProgress } = useScroll({
     target: heroRef,
@@ -1132,11 +1133,16 @@ const Index = () => {
   const heroOpacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
   const heroY = useTransform(scrollYProgress, [0, 0.8], [0, 80]);
   const heroMockupY = useTransform(scrollYProgress, [0, 0.8], [0, 50]);
-  // Multi-layer parallax within hero — each layer at a different speed for depth
+  // Item 21: Shadow depth tied to scroll
+  const mockupShadowOpacity = useTransform(scrollYProgress, [0, 0.5], [1, 0.3]);
+  // Multi-layer parallax
   const heroBadgeY = useTransform(scrollYProgress, [0, 0.6], [0, -30]);
-  
   const heroSubY = useTransform(scrollYProgress, [0, 0.6], [0, 18]);
   const heroCTAY = useTransform(scrollYProgress, [0, 0.6], [0, 28]);
+  // Item 24: Mobile mockup parallax
+  const heroMobileMockupY = useTransform(scrollYProgress, [0, 0.8], [0, 30]);
+  // Item 25: Bottom fade intensifies on scroll
+  const bottomFadeOpacity = useTransform(scrollYProgress, [0, 0.4], [0.6, 1]);
 
   const { scrollYProgress: timelineProgress } = useScroll({
     target: timelineRef,
@@ -1157,8 +1163,8 @@ const Index = () => {
         style={{ opacity: heroOpacity }}
         className="relative min-h-screen flex flex-col items-center justify-center px-6 pt-28 pb-20 overflow-hidden noise-overlay"
       >
-        {/* Dramatic gradient mesh background */}
-        <div className="absolute inset-0 pointer-events-none gradient-mesh-hero" />
+        {/* Item 15: Gradient mesh with subtle animation */}
+        <div className="absolute inset-0 pointer-events-none gradient-mesh-hero animate-gradient-shift" />
 
         {/* Hero arrival flash — one-shot radial pulse at ~1s */}
         <div
@@ -1186,7 +1192,7 @@ const Index = () => {
                   height: size,
                   '--tx': `${tx}px`,
                   '--ty': `${ty}px`,
-                  animationDelay: `${1 + Math.random() * 0.15}s`,
+                  animationDelay: `${1 + Math.random() * 0.3}s`,
                   background: i % 3 === 0
                     ? 'hsl(var(--wine-deep))'
                     : i % 3 === 1
@@ -1198,34 +1204,37 @@ const Index = () => {
           })}
         </div>
 
-        {/* Animated breathing orbs -- boosted opacity */}
+        {/* Item 12: Breathing orbs — synchronized inhale/exhale pattern */}
         <motion.div
           className="absolute top-[8%] left-[10%] w-[500px] h-[500px] rounded-full pointer-events-none"
           style={{ background: "radial-gradient(circle, hsla(353,55%,38%,0.40) 0%, transparent 70%)", filter: "blur(50px)" }}
           animate={{ x: [0, 35, 0], y: [0, -25, 0], scale: [1, 1.15, 1] }}
-          transition={{ duration: 5, repeat: Infinity, ease: [0.45, 0.05, 0.55, 0.95] }}
+          transition={{ duration: 6, repeat: Infinity, ease: [0.45, 0.05, 0.55, 0.95] }}
         />
         <motion.div
           className="absolute bottom-[10%] right-[8%] w-[420px] h-[420px] rounded-full pointer-events-none"
           style={{ background: "radial-gradient(circle, hsla(43,60%,50%,0.32) 0%, transparent 70%)", filter: "blur(50px)" }}
           animate={{ x: [0, -25, 0], y: [0, 30, 0], scale: [1, 1.12, 1] }}
-          transition={{ duration: 7, repeat: Infinity, ease: [0.45, 0.05, 0.55, 0.95], delay: 1 }}
+          transition={{ duration: 6, repeat: Infinity, ease: [0.45, 0.05, 0.55, 0.95], delay: 0.5 }}
         />
-        {/* Third orb — smaller, faster, wine-gold blend */}
         <motion.div
           className="absolute top-[40%] right-[30%] w-[280px] h-[280px] rounded-full pointer-events-none"
           style={{ background: "radial-gradient(circle, hsla(350,50%,42%,0.24) 0%, hsla(43,50%,50%,0.12) 50%, transparent 70%)", filter: "blur(40px)" }}
           initial={{ opacity: 0, scale: 0.5 }}
           animate={{ opacity: 1, scale: [0.9, 1.1, 0.9], x: [0, 20, 0], y: [0, -15, 0] }}
-          transition={{ opacity: { delay: 1, duration: 0.8 }, scale: { duration: 4, repeat: Infinity, delay: 1.5 }, x: { duration: 4, repeat: Infinity, delay: 1.5 }, y: { duration: 4, repeat: Infinity, delay: 1.5 } }}
+          transition={{ opacity: { delay: 1, duration: 0.8 }, scale: { duration: 6, repeat: Infinity, delay: 1 }, x: { duration: 6, repeat: Infinity, delay: 1 }, y: { duration: 6, repeat: Infinity, delay: 1 } }}
         />
 
-        {/* Floating cultural icons -- boosted opacity + third icon */}
+        {/* Item 13: Floating icons with subtle rotation oscillation */}
         <motion.div
           className="absolute top-[18%] right-[7%] pointer-events-none hidden lg:block"
           initial={{ opacity: 0, scale: 0.5, rotate: -20 }}
-          animate={{ opacity: 0.35, scale: 1, rotate: 0 }}
-          transition={{ duration: 1.2, delay: 1.5, ease: "easeOut" }}
+          animate={{ opacity: 0.35, scale: 1, rotate: [0, 3, -3, 0] }}
+          transition={{
+            opacity: { duration: 1.2, delay: 1.5 },
+            scale: { duration: 1.2, delay: 1.5 },
+            rotate: { duration: 8, repeat: Infinity, ease: "easeInOut", delay: 2 },
+          }}
         >
           <div className="icon-float-1">
             <HornIcon size={56} className="text-wine-deep" />
@@ -1234,19 +1243,26 @@ const Index = () => {
         <motion.div
           className="absolute bottom-[22%] left-[4%] pointer-events-none hidden lg:block"
           initial={{ opacity: 0, scale: 0.5, rotate: 15 }}
-          animate={{ opacity: 0.28, scale: 1, rotate: 0 }}
-          transition={{ duration: 1.2, delay: 1.8, ease: "easeOut" }}
+          animate={{ opacity: 0.28, scale: 1, rotate: [0, -3, 3, 0] }}
+          transition={{
+            opacity: { duration: 1.2, delay: 1.8 },
+            scale: { duration: 1.2, delay: 1.8 },
+            rotate: { duration: 8, repeat: Infinity, ease: "easeInOut", delay: 2.5 },
+          }}
         >
           <div className="icon-float-2">
             <WineGlassIcon size={42} className="text-wine-muted" />
           </div>
         </motion.div>
-        {/* Third floating icon — QvevriIcon bottom-right */}
         <motion.div
           className="absolute bottom-[30%] right-[5%] pointer-events-none hidden lg:block"
           initial={{ opacity: 0, scale: 0.5, rotate: 10 }}
-          animate={{ opacity: 0.22, scale: 1, rotate: 0 }}
-          transition={{ duration: 1.2, delay: 2.1, ease: "easeOut" }}
+          animate={{ opacity: 0.22, scale: 1, rotate: [0, 2, -2, 0] }}
+          transition={{
+            opacity: { duration: 1.2, delay: 2.1 },
+            scale: { duration: 1.2, delay: 2.1 },
+            rotate: { duration: 8, repeat: Infinity, ease: "easeInOut", delay: 3 },
+          }}
         >
           <div className="icon-float-1" style={{ animationDelay: "3s" }}>
             <QvevriIcon size={48} className="text-wine-muted" />
@@ -1318,12 +1334,18 @@ const Index = () => {
               </motion.p>
 
               <motion.div variants={heroCTAReveal} style={{ y: heroCTAY }} className="flex flex-col sm:flex-row items-start gap-4 mb-12">
-                <Button variant="hero" size="lg" asChild className="btn-shimmer cta-glow h-14 px-10 text-lg rounded-xl shadow-wine">
-                  <Link to="/auth/signup">
-                    {isKa ? "დაიწყე უფასოდ" : "Start free"}
-                    <SystemIcon name="action.next" size="md" className="ml-1.5" />
-                  </Link>
-                </Button>
+                {/* Item 19: CTA idle breath */}
+                <motion.div
+                  animate={{ scale: [1, 1.015, 1] }}
+                  transition={{ duration: 4, repeat: Infinity, delay: 3, ease: "easeInOut" }}
+                >
+                  <Button variant="hero" size="lg" asChild className="btn-shimmer cta-glow h-14 px-10 text-lg rounded-xl shadow-wine">
+                    <Link to="/auth/signup">
+                      {isKa ? "დაიწყე უფასოდ" : "Start free"}
+                      <SystemIcon name="action.next" size="md" className="ml-1.5" />
+                    </Link>
+                  </Button>
+                </motion.div>
                 <Button variant="outline" size="lg" className="text-foreground/70 border-border-strong h-14 px-8 text-base hover:bg-accent" onClick={() => document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" })}>
                   {isKa ? "როგორ მუშაობს?" : "See how it works"}
                 </Button>
@@ -1337,7 +1359,7 @@ const Index = () => {
                       key={i}
                       initial={{ opacity: 0, scale: 0 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      transition={{ type: "spring", stiffness: 300, damping: 15, delay: 1.8 + i * 0.08 }}
+                      transition={{ type: "spring", stiffness: 300, damping: 15, delay: 1.4 + i * 0.08 }}
                       className="w-7 h-7 rounded-full border-2 border-background flex items-center justify-center text-[9px] font-bold"
                       style={{
                         background: ["hsl(353,41%,32%)", "hsl(350,60%,45%)", "hsl(43,53%,55%)"][i],
@@ -1361,32 +1383,33 @@ const Index = () => {
               </motion.div>
             </motion.div>
 
-            {/* Right: product mockup -- 3D tilt on hover, parallax, stronger glow */}
+            {/* Right: product mockup — Item 22: spring physics tilt, Item 23: landing bounce */}
             <motion.div
               ref={mockupContainerRef}
               className="relative glow-behind-strong hidden lg:block"
               style={{
                 perspective: "1200px",
                 y: heroMockupY,
-                rotateX: mousePos.y * -4,
-                rotateY: mousePos.x * 6,
-                transition: "transform 0.15s ease-out",
+                rotateX: tiltRotateX,
+                rotateY: tiltRotateY,
+                opacity: mockupShadowOpacity,
               }}
-              initial="initial"
-              animate="animate"
-              variants={heroMockupReveal}
+              initial={{ opacity: 0, y: 50, rotateX: 12, rotateY: -8, scale: 0.92 }}
+              animate={{ opacity: 1, y: [50, -4, 0], rotateX: 0, rotateY: 0, scale: 1 }}
+              transition={{ duration: 1.1, ease: [0, 0, 0.2, 1], delay: 0.6, y: { times: [0, 0.7, 1], duration: 1.2, delay: 0.6 } }}
             >
               <div className="mockup-float-delayed-v2">
                 <HeroMockupStory active={mockupActive} />
               </div>
             </motion.div>
 
-            {/* Mobile: simplified mockup preview */}
+            {/* Mobile — Item 24: lighter scroll parallax */}
             <motion.div
               className="lg:hidden relative"
               initial={{ opacity: 0, y: 30, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               transition={{ duration: 0.7, delay: 1.2, ease: [0, 0, 0.2, 1] }}
+              style={{ y: heroMobileMockupY }}
             >
               <div className="max-w-sm mx-auto">
                 <HeroMockupStory active={mockupActive} />
@@ -1395,8 +1418,8 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Hero bottom fade transition */}
-        <div className="absolute bottom-0 left-0 right-0 h-32 pointer-events-none" style={{ background: "linear-gradient(to bottom, transparent 0%, hsl(var(--background)) 100%)" }} />
+        {/* Item 25: Taller bottom fade, intensifies on scroll */}
+        <motion.div className="absolute bottom-0 left-0 right-0 h-40 pointer-events-none" style={{ background: "linear-gradient(to bottom, transparent 0%, hsl(var(--background)) 100%)", opacity: bottomFadeOpacity }} />
 
         {/* Scroll indicator */}
         <motion.div
@@ -1420,11 +1443,12 @@ const Index = () => {
       </motion.section>
 
       {/* ═══════════════ TRUST BAR ═══════════════ */}
+      {/* Item 26: Trust bar — overlap entrance with hero */}
       <motion.section
-        initial="offscreen"
-        whileInView="onscreen"
-        viewport={{ once: true, margin: "-20px" }}
-        variants={scrollReveal}
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "100px" }}
+        transition={{ duration: 0.5, ease: [0, 0, 0.2, 1] }}
         className="py-12 md:py-14 px-6 relative overflow-hidden"
         style={{
           background: "linear-gradient(135deg, hsla(350,30%,93%,0.5) 0%, hsla(38,25%,97%,1) 40%, hsla(43,80%,94%,0.3) 100%)",

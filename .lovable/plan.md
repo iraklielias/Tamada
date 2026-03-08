@@ -1,91 +1,109 @@
 
 
-## Hero Section — Full Animation Polish Plan
+## TAMADA — Status Audit & Master Execution Plan
 
-After reviewing the current hero implementation across `Index.tsx` (2061 lines) and `HeroMockupStory.tsx` (682 lines), here are all remaining polish opportunities organized by area.
+### What Is Built
 
----
+| Area | Status |
+|------|--------|
+| Landing page (`/`) | Done — hero, features, how-it-works, footer |
+| Auth (login, signup, callback) | Done — email/password, onAuthStateChange, protected routes |
+| Onboarding wizard (`/onboarding`) | Done — 4 steps: name, region, experience, occasions |
+| App shell (sidebar + bottom nav) | Done — collapsible sidebar, mobile bottom nav, profile footer |
+| Dashboard (`/dashboard`) | Done — greeting, quick actions, recent feasts, popular toasts |
+| Toasts browse (`/toasts`) | Done — search, occasion/formality filters, favorite toggle |
+| AI Generator (`/ai-generate`) | Done — occasion/formality/topic form, edge function, save to favorites |
+| Favorites (`/favorites`) | Done — list system + custom favorites, remove |
+| Library (`/library`) | Done — reads toast_templates (currently 0 rows) |
+| Profile (`/profile`) | Done — read-only display, logout |
+| Edge function: `generate-toast` | Done — Lovable AI gateway, JSON parse |
+| Database schema + RLS | Done — all 11 tables, policies in place |
+| Seed data: toasts | Done — 11 system toasts |
 
-### A. Mockup Story Internal Polish
+### What Is NOT Built
 
-**1. Staggered element entries** — Currently each scene uses independent `setTimeout` for element visibility. Wrap scene contents in a `motion.div` with `staggerChildren: 0.12` so elements cascade in a parent-child relationship instead of popping independently.
-
-**2. Exit blur dissolve** — `sceneVariants.exit` is just `opacity: 0, y: -4`. Add `filter: "blur(2px)"` so content dissolves organically rather than vanishing.
-
-**3. Entry blur** — Match with `initial: { filter: "blur(4px)" }` → `animate: { filter: "blur(0px)" }` for a deblur entrance that echoes the hero headline treatment.
-
-**4. Typing cursor refinement** — The blinking cursor (`w-0.5 h-3`) should use `rounded-full`, a smoother sine-wave opacity curve (`opacity: [1, 0.2, 1]` instead of `[1, 0, 1]`), and scale-to-zero exit when typing completes.
-
-**5. Chat bubble directionality (Scene 4)** — User bubble should enter from `x: 16` (right), AI bubble from `x: -16` (left), creating conversational lateral motion instead of generic `y: 6` for both.
-
-**6. Confetti particles too small (Scene 5)** — Increase from `w-1 h-1` to `w-1.5 h-1.5`, extend travel distance from 12-18px to 20-28px, add `rotate: [0, 180]` on each dot.
-
-**7. Progress bar fade-in** — Currently restarts with a hard cut via `key={progressKey}`. Add `initial={{ opacity: 0 }}` with 200ms fade-in so it materializes smoothly at scene start.
-
-**8. Nav pill width transitions** — Bottom indicator pills jump between 6px and 20px instantly. Wrap in `motion.div` with `animate={{ width }}` and `transition={{ duration: 0.3 }}` for smooth expansion.
-
-**9. Browser chrome life** — Add a subtle pulse `animate={{ opacity: [0.7, 1, 0.7] }}` on the green dot (3s cycle) to suggest "active tab."
-
-**10. Pause state visual feedback** — When paused, dim content area to `opacity: 0.85` and slightly desaturate, making the pause state unmistakable without hunting for the tiny icon.
-
-**11. Scene 3 progress bar physics** — Replace stepped `setProgress` jumps with a single `motion.div` using `animate={{ width: [28, 34, 42, 48, 57] }}` with spring physics for organic growth.
-
----
-
-### B. Hero Section Background & Atmosphere
-
-**12. Breathing orb synchronization** — The 3 background orbs animate independently with different durations (5s, 7s, 4s). Slightly offset them so they create a visible "inhale/exhale" pattern — e.g., all reach peak scale within a 1s window, then relax together.
-
-**13. Floating icon interaction** — The cultural icons (Horn, WineGlass, Qvevri) are static after entrance. Add a very subtle `rotate: [0, 3, -3, 0]` oscillation (8s cycle) so they feel alive, not frozen.
-
-**14. Particle burst timing** — The 16-particle burst fires at ~1s with `animationDelay`. Some particles share nearly identical angles. Add a `Math.random() * 0.3` jitter to each delay so they don't fire in a mechanical wave.
-
-**15. Gradient mesh subtle animation** — The `gradient-mesh-hero` class is static CSS. Add a slow `background-position` shift (CSS `animation: gradient-shift 20s ease infinite`) to make the mesh feel like flowing liquid rather than a painted backdrop.
-
----
-
-### C. Hero Text & Badge Choreography
-
-**16. Badge micro-bounce on arrival** — The badge pill uses `heroBadgeReveal` (spring). Add a secondary `boxShadow` animation that pulses the `badge-glow-pulse` once more strongly at arrival, then settles to the subtle loop.
-
-**17. Headline letter-level stagger** — Currently the headline deblurs as a single block. For the wine-colored second line ("რომელსაც დაიმახსოვრებენ"), wrap each word in a `motion.span` with 80ms stagger for a word-by-word reveal that builds anticipation.
-
-**18. Sub-headline opacity curve** — The subtitle fades in linearly. Use an ease-out-quint curve so it appears to "settle into place" — fast start, slow finish.
-
-**19. CTA button ripple on idle** — After the initial entrance, the primary CTA button (`btn-shimmer`) has a shimmer loop. Add a subtle `scale: [1, 1.015, 1]` breath (4s cycle, delayed 3s) so the button feels alive and clickable.
-
-**20. Testimonial avatars sequential pop** — Already staggered at 80ms, but the delay starts at 1.8s. Tighten to 1.4s so they appear sooner after the CTA, keeping momentum.
+| Area | Spec Section |
+|------|-------------|
+| **Feast CRUD** — `/feasts`, `/feasts/new`, `/feasts/:id` | Sections 3, 4, 5 |
+| **Live Feast Mode** — `/feasts/:id/live` with timer, toast progression, alerts, audio | Section 6 |
+| **Alaverdi tracking** — FAB, guest assignment, count increment | Section 6 |
+| **Co-Tamada / Realtime** — share code, join link, Supabase Realtime sync | Section 6 + Realtime spec |
+| **Toast template seeding** — 7 templates with JSONB sequences | Seed Data |
+| **More sample toasts** — spec calls for 50-100; we have 11 | Seed Data |
+| **Feast plan from template** — selecting a template populates feast_toasts | Section 4 |
+| **AI Feast Plan generator** — `generate-feast-plan` edge function | AI Integration |
+| **Pro gating / useProGate hook** — daily limits, feature locks, upsell modals | Free vs Pro |
+| **Upgrade page** (`/upgrade`) — comparison table, Stripe checkout | Section 11 |
+| **Stripe integration** — checkout session, webhook, subscription management | Edge Functions |
+| **Profile editing** — avatar upload, edit name/region/experience/language | Section 10 |
+| **PDF export** — jsPDF feast plan export (Pro) | Section 5 |
+| **i18n** — i18next setup, language toggle, all strings externalized | i18n spec |
+| **Dark mode** | Design System |
+| **Keyboard shortcuts** | Desktop spec |
+| **Additional occasion types** in filters (christening, guest_reception, friendly_gathering) | Throughout |
+| **config.toml** — `generate-toast` function entry with `verify_jwt = false` | Edge function config |
 
 ---
 
-### D. Mockup Container & 3D Effects
+### Master Execution Plan (8 Phases)
 
-**21. Mockup shadow depth on scroll** — The mockup has `glow-behind-strong` which is static. Tie the shadow intensity to scroll progress — stronger shadow at top, fading as user scrolls, creating a "lifting off the page" → "settling down" arc.
+#### Phase 8 — Seed Data & Config Fixes
+- Seed 7 toast templates into `toast_templates` table (wedding, birthday, memorial, guest reception, holiday, corporate, friendly gathering) with proper `toast_sequence` JSONB arrays
+- Add `[functions.generate-toast]` with `verify_jwt = false` to `supabase/config.toml`
+- Add missing occasion types to all filter dropdowns across pages (christening, guest_reception, friendly_gathering, other)
 
-**22. 3D tilt spring physics** — Currently `rotateX/Y` updates on every mousemove frame with CSS `transition: 0.15s`. Replace with Framer Motion's `useSpring` for physics-based following that feels weighty, not linear.
+#### Phase 9 — Feast CRUD (Core)
+- Create `/feasts` page — list user's feasts with status filter pills + search
+- Create `/feasts/new` page — multi-section form: basic info, details (guest count, formality, region, duration), template selection, optional guest list
+- Create `/feasts/:id` page — tabbed view (Plan, Guests, Details) with toast timeline, guest management, edit metadata, delete
+- Add routes to `App.tsx`, add "სუფრები" nav item to sidebar and bottom nav
+- Dashboard "ახალი სუფრა" quick action routes to `/feasts/new`; feast cards link to `/feasts/:id`
 
-**23. Mockup entrance overshoot** — `heroMockupReveal` uses `rotateX: 12, rotateY: -8`. The transition is `duration: 1.1`. Add a slight overshoot on Y-axis (`y: [50, -4, 0]`) so the mockup appears to "land" with a bounce.
+#### Phase 10 — Live Feast Mode
+- Create `/feasts/:id/live` — full-screen immersive view
+- Current toast display with complete text, toast number, type
+- Next-up preview (2 upcoming toasts)
+- Elapsed time tracker + progress bar
+- "Completed" and "Skip" buttons that update `feast_toasts` status
+- Pause/Resume/End feast controls updating `feasts.status`
+- Timer alert system: amber glow + audio chime at configurable intervals before next toast (Web Audio API)
+- Alaverdi FAB: bottom sheet with guest list, tap to assign, increment `alaverdi_count` via `increment_alaverdi` RPC
 
-**24. Mobile mockup parallax** — The mobile `<HeroMockupStory>` has no scroll parallax (desktop gets `heroMockupY`). Add a lighter `useTransform` so it scrolls at 0.9x speed, creating subtle depth even on mobile.
+#### Phase 11 — Co-Tamada & Realtime
+- Generate `share_code` on feast, build `/feasts/:id/join/:shareCode` route
+- Add user as `feast_collaborator` on join
+- Subscribe to Supabase Realtime channels for `feast_toasts`, `feast_guests`, `feasts` changes
+- Enable realtime publication on relevant tables (`ALTER PUBLICATION supabase_realtime ADD TABLE ...`)
+- Co-Tamada sees live view with read-only controls (can assign alaverdi, cannot pause/end)
+- Online indicator for connected collaborators
 
----
+#### Phase 12 — Profile Editing & Pro Gating
+- Make profile page editable: avatar upload (to `avatars` bucket), display name, region, experience, language
+- Build `useProGate` hook checking `is_pro` + `pro_expires_at`
+- Enforce free limits: 5 AI generations/day (server + client), 10 favorites, 1 active feast
+- Add server-side rate limit check in `generate-toast` edge function using `get_daily_ai_count`
+- Soft upsell modals when limits reached; gold lock icons on Pro features
+- Create `/upgrade` page with feature comparison table and pricing
 
-### E. Transition to Next Section
+#### Phase 13 — Stripe & Subscriptions
+- Enable Stripe integration
+- Create `create-checkout-session` edge function
+- Create `stripe-webhook` edge function handling subscription lifecycle events
+- Wire `/upgrade` page CTA to checkout session
+- Add `/profile/subscription` route for managing active subscription
 
-**25. Bottom fade gradient sync** — The 32px-tall bottom fade is static. Make it `h-40` and add a subtle `opacity` animation tied to scroll so it intensifies as the user scrolls, creating a more cinematic section handoff.
+#### Phase 14 — i18n & Polish
+- Set up i18next with `ka` (default) and `en` locales
+- Extract all hardcoded Georgian strings to locale JSON files
+- Add language toggle to sidebar footer and profile settings
+- Persist language choice to `profiles.preferred_language`
+- Toast content displays `_ka` or `_en` based on selected language
 
-**26. Trust bar entrance** — Whatever section follows the hero (features/trust bar) should have its first element appear with `initial={{ y: 20, opacity: 0 }}` triggered at `-100px` viewport margin, so it starts revealing while the hero is still partly visible — creating overlap depth.
-
----
-
-### Files to Edit
-
-| File | Changes |
-|------|---------|
-| `src/components/HeroMockupStory.tsx` | Items 1-11: stagger children, exit/entry blur, cursor polish, chat directionality, bigger confetti, progress bar fade-in, pill width transitions, chrome pulse, pause dimming, progress physics |
-| `src/pages/Index.tsx` | Items 12-26: orb sync, icon oscillation, particle jitter, gradient animation, badge bounce, headline word stagger, sub ease curve, CTA breath, avatar timing, mockup shadow/spring/overshoot, mobile parallax, bottom fade, trust bar overlap |
-| `src/index.css` | Gradient mesh animation keyframe if not already present |
-
-### Estimated Scope
-~80 lines of animation property changes across 2 main files. No new dependencies. Pure motion refinement.
+#### Phase 15 — Advanced Features & Hardening
+- `generate-feast-plan` edge function — AI-generated toast schedule based on occasion/duration/formality
+- PDF export of feast plan using jsPDF (Pro only)
+- Dark mode support
+- Keyboard shortcuts in live feast mode (Space = complete, Esc = pause)
+- Additional seed toasts (expand from 11 to 50+)
+- Error boundary components, offline queue for failed writes, optimistic updates throughout
 
