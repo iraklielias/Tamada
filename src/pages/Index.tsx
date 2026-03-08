@@ -27,6 +27,19 @@ import {
   revealFromRight,
   mockupReveal,
   timelineStep,
+  deblurReveal,
+  springScaleIn,
+  staggerBullets,
+  bulletItem,
+  hoverLift,
+  featureTextStagger,
+  featureTextChild,
+  quoteIconReveal,
+  starFill,
+  timelineIconReveal,
+  timelineCardStagger,
+  pricingCardStagger,
+  ctaDeblurWord,
 } from "@/lib/animations";
 import SystemIcon from "@/components/SystemIcon";
 import {
