@@ -1094,10 +1094,34 @@ const Index = () => {
   const heroRef = useRef<HTMLDivElement>(null);
   const timelineRef = useRef<HTMLDivElement>(null);
   const [mockupActive, setMockupActive] = useState(false);
+  const mockupContainerRef = useRef<HTMLDivElement>(null);
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     const timer = setTimeout(() => setMockupActive(true), 1800);
     return () => clearTimeout(timer);
+  }, []);
+
+  // Mouse tracking for 3D tilt on mockup
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!mockupContainerRef.current) return;
+      const rect = mockupContainerRef.current.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width - 0.5) * 2;
+      const y = ((e.clientY - rect.top) / rect.height - 0.5) * 2;
+      setMousePos({ x, y });
+    };
+    const el = mockupContainerRef.current;
+    if (el) {
+      el.addEventListener("mousemove", handleMouseMove);
+      el.addEventListener("mouseleave", () => setMousePos({ x: 0, y: 0 }));
+    }
+    return () => {
+      if (el) {
+        el.removeEventListener("mousemove", handleMouseMove);
+        el.removeEventListener("mouseleave", () => setMousePos({ x: 0, y: 0 }));
+      }
+    };
   }, []);
 
   const { scrollYProgress } = useScroll({
@@ -1107,6 +1131,9 @@ const Index = () => {
   const heroOpacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
   const heroY = useTransform(scrollYProgress, [0, 0.8], [0, 80]);
   const heroMockupY = useTransform(scrollYProgress, [0, 0.8], [0, 50]);
+  // Multi-layer parallax within hero
+  const heroBadgeY = useTransform(scrollYProgress, [0, 0.5], [0, -15]);
+  const heroSubY = useTransform(scrollYProgress, [0, 0.5], [0, 12]);
 
   const { scrollYProgress: timelineProgress } = useScroll({
     target: timelineRef,
@@ -1130,25 +1157,41 @@ const Index = () => {
         {/* Dramatic gradient mesh background */}
         <div className="absolute inset-0 pointer-events-none gradient-mesh-hero" />
 
-        {/* Animated breathing orbs -- 2 only, higher opacity, organic easing */}
+        {/* Hero arrival flash — one-shot radial pulse at ~1s */}
+        <div
+          className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full pointer-events-none hero-arrival-flash"
+          style={{
+            background: "radial-gradient(circle, hsla(353,55%,40%,0.35) 0%, hsla(353,55%,40%,0) 70%)",
+          }}
+        />
+
+        {/* Animated breathing orbs -- higher opacity, faster cycles */}
         <motion.div
           className="absolute top-[8%] left-[10%] w-[500px] h-[500px] rounded-full pointer-events-none"
-          style={{ background: "radial-gradient(circle, hsla(353,55%,38%,0.22) 0%, transparent 70%)", filter: "blur(50px)" }}
-          animate={{ x: [0, 35, 0], y: [0, -25, 0], scale: [1, 1.12, 1] }}
-          transition={{ duration: 8, repeat: Infinity, ease: [0.45, 0.05, 0.55, 0.95], x: { ease: "easeInOut" } }}
+          style={{ background: "radial-gradient(circle, hsla(353,55%,38%,0.30) 0%, transparent 70%)", filter: "blur(50px)" }}
+          animate={{ x: [0, 35, 0], y: [0, -25, 0], scale: [1, 1.15, 1] }}
+          transition={{ duration: 5, repeat: Infinity, ease: [0.45, 0.05, 0.55, 0.95] }}
         />
         <motion.div
           className="absolute bottom-[10%] right-[8%] w-[420px] h-[420px] rounded-full pointer-events-none"
-          style={{ background: "radial-gradient(circle, hsla(43,60%,50%,0.18) 0%, transparent 70%)", filter: "blur(50px)" }}
-          animate={{ x: [0, -25, 0], y: [0, 30, 0], scale: [1, 1.1, 1] }}
-          transition={{ duration: 10, repeat: Infinity, ease: [0.45, 0.05, 0.55, 0.95], y: { ease: "easeInOut" }, delay: 1.5 }}
+          style={{ background: "radial-gradient(circle, hsla(43,60%,50%,0.25) 0%, transparent 70%)", filter: "blur(50px)" }}
+          animate={{ x: [0, -25, 0], y: [0, 30, 0], scale: [1, 1.12, 1] }}
+          transition={{ duration: 7, repeat: Infinity, ease: [0.45, 0.05, 0.55, 0.95], delay: 1 }}
+        />
+        {/* Third orb — smaller, faster, wine-gold blend, delayed entrance */}
+        <motion.div
+          className="absolute top-[40%] right-[30%] w-[280px] h-[280px] rounded-full pointer-events-none"
+          style={{ background: "radial-gradient(circle, hsla(350,50%,42%,0.18) 0%, hsla(43,50%,50%,0.08) 50%, transparent 70%)", filter: "blur(40px)" }}
+          initial={{ opacity: 0, scale: 0.5 }}
+          animate={{ opacity: 1, scale: [0.9, 1.1, 0.9], x: [0, 20, 0], y: [0, -15, 0] }}
+          transition={{ opacity: { delay: 1, duration: 0.8 }, scale: { duration: 4, repeat: Infinity, delay: 1.5 }, x: { duration: 4, repeat: Infinity, delay: 1.5 }, y: { duration: 4, repeat: Infinity, delay: 1.5 } }}
         />
 
-        {/* Floating cultural icons -- 2 only, entrance then CSS float */}
+        {/* Floating cultural icons -- visible, with rotation */}
         <motion.div
           className="absolute top-[18%] right-[7%] pointer-events-none hidden lg:block"
           initial={{ opacity: 0, scale: 0.5, rotate: -20 }}
-          animate={{ opacity: 0.16, scale: 1, rotate: 0 }}
+          animate={{ opacity: 0.25, scale: 1, rotate: 0 }}
           transition={{ duration: 1.2, delay: 1.5, ease: "easeOut" }}
         >
           <div className="icon-float-1">
@@ -1158,7 +1201,7 @@ const Index = () => {
         <motion.div
           className="absolute bottom-[22%] left-[4%] pointer-events-none hidden lg:block"
           initial={{ opacity: 0, scale: 0.5, rotate: 15 }}
-          animate={{ opacity: 0.13, scale: 1, rotate: 0 }}
+          animate={{ opacity: 0.20, scale: 1, rotate: 0 }}
           transition={{ duration: 1.2, delay: 1.8, ease: "easeOut" }}
         >
           <div className="icon-float-2">
@@ -1175,8 +1218,8 @@ const Index = () => {
               variants={heroStagger}
               style={{ y: heroY }}
             >
-              {/* Badge pill */}
-              <motion.div variants={heroBadgeReveal} className="mb-5">
+              {/* Badge pill — with its own parallax */}
+              <motion.div variants={heroBadgeReveal} style={{ y: heroBadgeY }} className="mb-5">
                 <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-wine-light/60 border border-wine-muted/25 text-xs font-semibold text-wine-deep tracking-wide">
                   <SystemIcon name="nav.ai" size="xs" />
                   {isKa ? "AI-ით გაძლიერებული სუფრის დაგეგმვა" : "AI-Powered Feast Planning"}
@@ -1195,7 +1238,7 @@ const Index = () => {
                     <span
                       className="hero-headline-shimmer bg-clip-text text-transparent"
                       style={{
-                        backgroundImage: "linear-gradient(90deg, hsl(var(--wine-deep)) 0%, hsl(350,65%,50%) 30%, hsl(var(--wine-glow)) 50%, hsl(350,65%,50%) 70%, hsl(var(--wine-deep)) 100%)",
+                        backgroundImage: "linear-gradient(90deg, hsl(var(--wine-deep)) 0%, hsl(350,65%,50%) 25%, hsla(0,0%,100%,0.35) 50%, hsl(350,65%,50%) 75%, hsl(var(--wine-deep)) 100%)",
                         filter: "drop-shadow(0 2px 6px hsla(353,41%,32%,0.18))",
                       }}
                     >
@@ -1209,7 +1252,7 @@ const Index = () => {
                     <span
                       className="hero-headline-shimmer bg-clip-text text-transparent"
                       style={{
-                        backgroundImage: "linear-gradient(90deg, hsl(var(--wine-deep)) 0%, hsl(350,65%,50%) 30%, hsl(var(--wine-glow)) 50%, hsl(350,65%,50%) 70%, hsl(var(--wine-deep)) 100%)",
+                        backgroundImage: "linear-gradient(90deg, hsl(var(--wine-deep)) 0%, hsl(350,65%,50%) 25%, hsla(0,0%,100%,0.35) 50%, hsl(350,65%,50%) 75%, hsl(var(--wine-deep)) 100%)",
                         filter: "drop-shadow(0 2px 6px hsla(353,41%,32%,0.18))",
                       }}
                     >
@@ -1221,6 +1264,7 @@ const Index = () => {
 
               <motion.p
                 variants={heroSubReveal}
+                style={{ y: heroSubY }}
                 className="text-base md:text-lg text-muted-foreground max-w-md leading-relaxed mb-8"
               >
                 {isKa
@@ -1258,6 +1302,7 @@ const Index = () => {
                           ][i],
                           color: "white",
                         }}
+                        whileHover={{ scale: 1.2, y: -4, transition: { type: "spring", stiffness: 400, damping: 12 } }}
                       >
                         {initial}
                       </motion.div>
@@ -1282,15 +1327,34 @@ const Index = () => {
               </motion.div>
             </motion.div>
 
-            {/* Right: product mockup -- parallax at 50px, float delayed */}
+            {/* Right: product mockup -- 3D tilt on hover, parallax */}
             <motion.div
+              ref={mockupContainerRef}
               className="relative glow-behind hidden lg:block"
-              style={{ perspective: "1200px", y: heroMockupY }}
+              style={{
+                perspective: "1200px",
+                y: heroMockupY,
+                rotateX: mousePos.y * -4,
+                rotateY: mousePos.x * 6,
+                transition: "transform 0.15s ease-out",
+              }}
               initial="initial"
               animate="animate"
               variants={heroMockupReveal}
             >
               <div className="mockup-float-delayed">
+                <ProductMockup active={mockupActive} />
+              </div>
+            </motion.div>
+
+            {/* Mobile: simplified mockup preview */}
+            <motion.div
+              className="lg:hidden relative"
+              initial={{ opacity: 0, y: 30, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ duration: 0.7, delay: 1.2, ease: [0, 0, 0.2, 1] }}
+            >
+              <div className="max-w-sm mx-auto">
                 <ProductMockup active={mockupActive} />
               </div>
             </motion.div>
