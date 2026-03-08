@@ -4,14 +4,17 @@ import { tamadaFacts, CATEGORY_ICONS } from "@/data/tamadaFacts";
 import type { VoiceStage } from "@/hooks/useVoiceConversation";
 
 interface ThinkingFactsProps {
-  stage: VoiceStage;
+  /** Legacy: derive visibility from VoiceStage */
+  stage?: VoiceStage;
+  /** Direct visibility control (takes precedence over stage) */
+  isVisible?: boolean;
   language: "ka" | "en";
 }
 
 const ROTATE_MS = 5000;
 
-export function ThinkingFacts({ stage, language }: ThinkingFactsProps) {
-  const isVisible = stage === "thinking" || stage === "transcribing";
+export function ThinkingFacts({ stage, isVisible: isVisibleProp, language }: ThinkingFactsProps) {
+  const isVisible = isVisibleProp ?? (stage === "thinking" || stage === "transcribing");
   const [index, setIndex] = useState(() => Math.floor(Math.random() * tamadaFacts.length));
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
