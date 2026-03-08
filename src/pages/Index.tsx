@@ -1219,12 +1219,16 @@ const Index = () => {
           transition={{ opacity: { delay: 1, duration: 0.8 }, scale: { duration: 6, repeat: Infinity, delay: 1 }, x: { duration: 6, repeat: Infinity, delay: 1 }, y: { duration: 6, repeat: Infinity, delay: 1 } }}
         />
 
-        {/* Floating cultural icons -- boosted opacity + third icon */}
+        {/* Item 13: Floating icons with subtle rotation oscillation */}
         <motion.div
           className="absolute top-[18%] right-[7%] pointer-events-none hidden lg:block"
           initial={{ opacity: 0, scale: 0.5, rotate: -20 }}
-          animate={{ opacity: 0.35, scale: 1, rotate: 0 }}
-          transition={{ duration: 1.2, delay: 1.5, ease: "easeOut" }}
+          animate={{ opacity: 0.35, scale: 1, rotate: [0, 3, -3, 0] }}
+          transition={{
+            opacity: { duration: 1.2, delay: 1.5 },
+            scale: { duration: 1.2, delay: 1.5 },
+            rotate: { duration: 8, repeat: Infinity, ease: "easeInOut", delay: 2 },
+          }}
         >
           <div className="icon-float-1">
             <HornIcon size={56} className="text-wine-deep" />
@@ -1233,19 +1237,26 @@ const Index = () => {
         <motion.div
           className="absolute bottom-[22%] left-[4%] pointer-events-none hidden lg:block"
           initial={{ opacity: 0, scale: 0.5, rotate: 15 }}
-          animate={{ opacity: 0.28, scale: 1, rotate: 0 }}
-          transition={{ duration: 1.2, delay: 1.8, ease: "easeOut" }}
+          animate={{ opacity: 0.28, scale: 1, rotate: [0, -3, 3, 0] }}
+          transition={{
+            opacity: { duration: 1.2, delay: 1.8 },
+            scale: { duration: 1.2, delay: 1.8 },
+            rotate: { duration: 8, repeat: Infinity, ease: "easeInOut", delay: 2.5 },
+          }}
         >
           <div className="icon-float-2">
             <WineGlassIcon size={42} className="text-wine-muted" />
           </div>
         </motion.div>
-        {/* Third floating icon — QvevriIcon bottom-right */}
         <motion.div
           className="absolute bottom-[30%] right-[5%] pointer-events-none hidden lg:block"
           initial={{ opacity: 0, scale: 0.5, rotate: 10 }}
-          animate={{ opacity: 0.22, scale: 1, rotate: 0 }}
-          transition={{ duration: 1.2, delay: 2.1, ease: "easeOut" }}
+          animate={{ opacity: 0.22, scale: 1, rotate: [0, 2, -2, 0] }}
+          transition={{
+            opacity: { duration: 1.2, delay: 2.1 },
+            scale: { duration: 1.2, delay: 2.1 },
+            rotate: { duration: 8, repeat: Infinity, ease: "easeInOut", delay: 3 },
+          }}
         >
           <div className="icon-float-1" style={{ animationDelay: "3s" }}>
             <QvevriIcon size={48} className="text-wine-muted" />
