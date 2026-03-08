@@ -1161,9 +1161,9 @@ const Index = () => {
 
         {/* Hero arrival flash — one-shot radial pulse at ~1s */}
         <div
-          className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full pointer-events-none hero-arrival-flash"
+          className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full pointer-events-none hero-arrival-flash"
           style={{
-            background: "radial-gradient(circle, hsla(353,55%,40%,0.35) 0%, hsla(353,55%,40%,0) 70%)",
+            background: "radial-gradient(circle, hsla(353,55%,40%,0.50) 0%, hsla(353,55%,40%,0) 70%)",
           }}
         />
 
