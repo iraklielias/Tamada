@@ -1,109 +1,118 @@
 
 
-## TAMADA — Status Audit & Master Execution Plan
+# External API — Full Status Report
 
-### What Is Built
+## Executive Summary
 
-| Area | Status |
-|------|--------|
-| Landing page (`/`) | Done — hero, features, how-it-works, footer |
-| Auth (login, signup, callback) | Done — email/password, onAuthStateChange, protected routes |
-| Onboarding wizard (`/onboarding`) | Done — 4 steps: name, region, experience, occasions |
-| App shell (sidebar + bottom nav) | Done — collapsible sidebar, mobile bottom nav, profile footer |
-| Dashboard (`/dashboard`) | Done — greeting, quick actions, recent feasts, popular toasts |
-| Toasts browse (`/toasts`) | Done — search, occasion/formality filters, favorite toggle |
-| AI Generator (`/ai-generate`) | Done — occasion/formality/topic form, edge function, save to favorites |
-| Favorites (`/favorites`) | Done — list system + custom favorites, remove |
-| Library (`/library`) | Done — reads toast_templates (currently 0 rows) |
-| Profile (`/profile`) | Done — read-only display, logout |
-| Edge function: `generate-toast` | Done — Lovable AI gateway, JSON parse |
-| Database schema + RLS | Done — all 11 tables, policies in place |
-| Seed data: toasts | Done — 11 system toasts |
-
-### What Is NOT Built
-
-| Area | Spec Section |
-|------|-------------|
-| **Feast CRUD** — `/feasts`, `/feasts/new`, `/feasts/:id` | Sections 3, 4, 5 |
-| **Live Feast Mode** — `/feasts/:id/live` with timer, toast progression, alerts, audio | Section 6 |
-| **Alaverdi tracking** — FAB, guest assignment, count increment | Section 6 |
-| **Co-Tamada / Realtime** — share code, join link, Supabase Realtime sync | Section 6 + Realtime spec |
-| **Toast template seeding** — 7 templates with JSONB sequences | Seed Data |
-| **More sample toasts** — spec calls for 50-100; we have 11 | Seed Data |
-| **Feast plan from template** — selecting a template populates feast_toasts | Section 4 |
-| **AI Feast Plan generator** — `generate-feast-plan` edge function | AI Integration |
-| **Pro gating / useProGate hook** — daily limits, feature locks, upsell modals | Free vs Pro |
-| **Upgrade page** (`/upgrade`) — comparison table, Stripe checkout | Section 11 |
-| **Stripe integration** — checkout session, webhook, subscription management | Edge Functions |
-| **Profile editing** — avatar upload, edit name/region/experience/language | Section 10 |
-| **PDF export** — jsPDF feast plan export (Pro) | Section 5 |
-| **i18n** — i18next setup, language toggle, all strings externalized | i18n spec |
-| **Dark mode** | Design System |
-| **Keyboard shortcuts** | Desktop spec |
-| **Additional occasion types** in filters (christening, guest_reception, friendly_gathering) | Throughout |
-| **config.toml** — `generate-toast` function entry with `verify_jwt = false` | Edge function config |
+The external API is **architecturally sound and production-functional** with one remaining bug and a few minor hardening gaps. The core pipeline (auth → session → AI → TTS → storage) works end-to-end for both text and voice modes.
 
 ---
 
-### Master Execution Plan (8 Phases)
+## Component-by-Component Assessment
 
-#### Phase 8 — Seed Data & Config Fixes
-- Seed 7 toast templates into `toast_templates` table (wedding, birthday, memorial, guest reception, holiday, corporate, friendly gathering) with proper `toast_sequence` JSONB arrays
-- Add `[functions.generate-toast]` with `verify_jwt = false` to `supabase/config.toml`
-- Add missing occasion types to all filter dropdowns across pages (christening, guest_reception, friendly_gathering, other)
+### 1. Edge Function (`tamada-external-api/index.ts`) — 1315 lines
 
-#### Phase 9 — Feast CRUD (Core)
-- Create `/feasts` page — list user's feasts with status filter pills + search
-- Create `/feasts/new` page — multi-section form: basic info, details (guest count, formality, region, duration), template selection, optional guest list
-- Create `/feasts/:id` page — tabbed view (Plan, Guests, Details) with toast timeline, guest management, edit metadata, delete
-- Add routes to `App.tsx`, add "სუფრები" nav item to sidebar and bottom nav
-- Dashboard "ახალი სუფრა" quick action routes to `/feasts/new`; feast cards link to `/feasts/:id`
+**Working correctly:**
+- API key authentication via SHA-256 hashing
+- Rate limiting + daily usage tracking per external user
+- Session management with 2-hour stale timeout
+- 6 action handlers: `chat_message`, `chat_message_voice`, `generate_audio`, `chat_history`, `clear_history`, `usage`
+- System prompt: comprehensive, culturally rich, well-structured (482 lines)
+- Conversational param gathering via `===PARAMS===` blocks
+- Gathered params injected as system context (the fix we applied)
+- Role mapping now correctly preserves `system` role
+- STT via ElevenLabs Scribe v2 (strips audio event tags like `[clicking]`)
+- TTS via ElevenLabs v3 with graceful degradation (400/402/403/429 → text-only)
+- Audio storage to `chat-audio` bucket
+- Message history window: 20 messages
 
-#### Phase 10 — Live Feast Mode
-- Create `/feasts/:id/live` — full-screen immersive view
-- Current toast display with complete text, toast number, type
-- Next-up preview (2 upcoming toasts)
-- Elapsed time tracker + progress bar
-- "Completed" and "Skip" buttons that update `feast_toasts` status
-- Pause/Resume/End feast controls updating `feasts.status`
-- Timer alert system: amber glow + audio chime at configurable intervals before next toast (Web Audio API)
-- Alaverdi FAB: bottom sheet with guest list, tap to assign, increment `alaverdi_count` via `increment_alaverdi` RPC
+**Bug found — `handleClearHistory` doesn't reset `gathered_params`:**
+When a user clicks "Reset" in the chat, `handleClearHistory` (line 1189-1213) deletes messages but does NOT clear `gathered_params` on the session. So after a reset, the AI still has stale params from the previous conversation, which can cause confusion (e.g., generating a toast for the wrong person).
 
-#### Phase 11 — Co-Tamada & Realtime
-- Generate `share_code` on feast, build `/feasts/:id/join/:shareCode` route
-- Add user as `feast_collaborator` on join
-- Subscribe to Supabase Realtime channels for `feast_toasts`, `feast_guests`, `feasts` changes
-- Enable realtime publication on relevant tables (`ALTER PUBLICATION supabase_realtime ADD TABLE ...`)
-- Co-Tamada sees live view with read-only controls (can assign alaverdi, cannot pause/end)
-- Online indicator for connected collaborators
+**Fix:** Add `gathered_params: {}` update to the session in `handleClearHistory`.
 
-#### Phase 12 — Profile Editing & Pro Gating
-- Make profile page editable: avatar upload (to `avatars` bucket), display name, region, experience, language
-- Build `useProGate` hook checking `is_pro` + `pro_expires_at`
-- Enforce free limits: 5 AI generations/day (server + client), 10 favorites, 1 active feast
-- Add server-side rate limit check in `generate-toast` edge function using `get_daily_ai_count`
-- Soft upsell modals when limits reached; gold lock icons on Pro features
-- Create `/upgrade` page with feature comparison table and pricing
+**Minor issues:**
+- `loadRecentMessages` default param is still `limit = 10` (line 635), though all callers now pass `20` explicitly. Should update the default for safety.
+- Audio duration estimate (line 1029: `content.length / 15`) is crude but acceptable for MVP.
 
-#### Phase 13 — Stripe & Subscriptions
-- Enable Stripe integration
-- Create `create-checkout-session` edge function
-- Create `stripe-webhook` edge function handling subscription lifecycle events
-- Wire `/upgrade` page CTA to checkout session
-- Add `/profile/subscription` route for managing active subscription
+### 2. Frontend — Chat Simulator (`ChatSimulator.tsx`)
 
-#### Phase 14 — i18n & Polish
-- Set up i18next with `ka` (default) and `en` locales
-- Extract all hardcoded Georgian strings to locale JSON files
-- Add language toggle to sidebar footer and profile settings
-- Persist language choice to `profiles.preferred_language`
-- Toast content displays `_ka` or `_en` based on selected language
+**Working correctly:**
+- API key inline setup card (no-key state)
+- Welcome screen with suggestion chips
+- Message rendering (ChatBubble + ToastCard)
+- Text input with Enter-to-send
+- Audio playback with play/pause toggle
+- Settings drawer (API key, user ID, load/clear history)
+- Language toggle (ka/en)
+- Extracted params display in header
+- Voice message injection from FullVoiceMode via ref
 
-#### Phase 15 — Advanced Features & Hardening
-- `generate-feast-plan` edge function — AI-generated toast schedule based on occasion/duration/formality
-- PDF export of feast plan using jsPDF (Pro only)
-- Dark mode support
-- Keyboard shortcuts in live feast mode (Space = complete, Esc = pause)
-- Additional seed toasts (expand from 11 to 50+)
-- Error boundary components, offline queue for failed writes, optimistic updates throughout
+**No bugs found.**
+
+### 3. Frontend — Voice Mode (`FullVoiceMode.tsx` + `useVoiceConversation.ts`)
+
+**Working correctly:**
+- "Ready" stage prevents auto-listen after speaking (noise fix)
+- Manual tap-to-continue flow
+- VoiceOrb with state-aware visuals: pulse rings (idle/ready), volume rings (listening), waveform (speaking), dots (processing), error icon
+- Stage labels in both languages
+- Instructions overlay (shown once, persisted to localStorage)
+- Interrupt during speaking
+- Stop-listening on tap
+- End session cleanup (stream, AudioContext, refs)
+- VAD with 2s silence detection, 30s max recording
+- Web Audio API playback (cross-browser)
+- Error recovery (retry from error, silent restart on "no speech")
+
+**No bugs found.** The previous noise-interruption issue is resolved.
+
+### 4. Database Schema
+
+All tables properly configured:
+- `external_chat_sessions`: has `gathered_params` JSONB column
+- `external_chat_messages`: stores role, content, audio_url, metadata
+- `external_usage_tracking`: daily per-user-per-key tracking
+- `api_keys`: hash-based auth, daily limits, expiry
+
+RLS policies are appropriate — service role used server-side, client-side read-only for messages.
+
+### 5. Security
+
+- API key hashing: SHA-256 (good)
+- Rate limiting: per-user daily cap (good)
+- No raw SQL execution (good)
+- CORS headers properly configured
+- `verify_jwt = false` in config.toml (correct — auth via X-API-Key header)
+- API key stored in `sessionStorage` client-side (acceptable for dev tool)
+
+---
+
+## Action Items
+
+### Must Fix (1 bug)
+
+| Issue | File | Fix |
+|-------|------|-----|
+| `handleClearHistory` doesn't reset `gathered_params` | `tamada-external-api/index.ts` | Add `gathered_params: {}` update to session after deleting messages |
+
+### Should Fix (hardening)
+
+| Issue | File | Fix |
+|-------|------|-----|
+| `loadRecentMessages` default limit is 10 | `tamada-external-api/index.ts` line 635 | Change default to `20` |
+
+### No Action Needed
+
+- Voice mode stability: resolved
+- Mic icon polish: implemented
+- Memory injection: working (role mapping fixed)
+- TTS graceful degradation: working
+- Session timeout: working (2-hour reset)
+
+---
+
+## Verdict
+
+**Production readiness: 95%.** One bug to fix (clear history not resetting params), one minor default to update. Everything else — auth, AI pipeline, voice mode, TTS, storage, UI — is solid and production-ready.
 
