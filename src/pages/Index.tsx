@@ -514,9 +514,9 @@ function FeatureShowcase({
         {description}
       </p>
       {bullets && bullets.length > 0 && (
-        <ul className="space-y-2 mb-5">
+        <ul className="space-y-3 mb-5">
           {bullets.map((b, i) => (
-            <li key={i} className="flex items-center gap-2.5 text-sm text-foreground/80">
+            <li key={i} className="flex items-center gap-2.5 text-base text-foreground/80">
               <SystemIcon name="status.success" size="sm" className="text-wine-glow shrink-0" />
               {b}
             </li>
