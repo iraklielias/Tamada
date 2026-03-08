@@ -767,6 +767,72 @@ async function transcribeAudio(audioBase64: string, audioFormat: string, languag
 // ElevenLabs TTS (Text-to-Speech)
 // ============================================================
 
+function splitTextForTTS(text: string, maxChars = 4500): string[] {
+  if (text.length <= maxChars) return [text];
+  // Split on sentence boundaries (Georgian uses same punctuation + ።)
+  const sentences = text.match(/[^.!?។።]+[.!?។።]+\s*/g) || [text];
+  const chunks: string[] = [];
+  let current = "";
+  for (const s of sentences) {
+    if ((current + s).length > maxChars && current) {
+      chunks.push(current.trim());
+      current = s;
+    } else {
+      current += s;
+    }
+  }
+  if (current.trim()) chunks.push(current.trim());
+  return chunks.length > 0 ? chunks : [text];
+}
+
+async function synthesizeSingleChunk(
+  text: string,
+  language: string,
+  apiKey: string,
+  voiceId: string,
+  previousText?: string,
+  nextText?: string,
+): Promise<Uint8Array | null> {
+  const body: Record<string, unknown> = {
+    text,
+    model_id: "eleven_v3",
+    language_code: language === "en" ? "en" : "ka",
+    voice_settings: {
+      stability: 0.5,
+      similarity_boost: 0.75,
+      style: 0.4,
+    },
+  };
+  // Request stitching for multi-chunk synthesis
+  if (previousText) body.previous_text = previousText;
+  if (nextText) body.next_text = nextText;
+
+  const response = await fetch(
+    `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}?output_format=mp3_44100_128`,
+    {
+      method: "POST",
+      headers: {
+        "xi-api-key": apiKey,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    }
+  );
+
+  if (!response.ok) {
+    const errText = await response.text();
+    console.error("ElevenLabs TTS error:", response.status, errText);
+    if ([400, 402, 403, 429].includes(response.status)) {
+      console.warn(`TTS unavailable (${response.status}), returning text-only response`);
+      return null;
+    }
+    throw new Error(`TTS failed: ${response.status}`);
+  }
+
+  const audioBuffer = await response.arrayBuffer();
+  return new Uint8Array(audioBuffer);
+}
+
 async function synthesizeSpeech(text: string, language: string): Promise<Uint8Array | null> {
   // Strip non-speech characters to detect truly empty/punctuation-only text
   const speakable = text.replace(/[\s\-=_*#`~>|.,:;!?"""''()\[\]{}]/g, "").trim();
@@ -781,40 +847,35 @@ async function synthesizeSpeech(text: string, language: string): Promise<Uint8Ar
     return null;
   }
 
-  const response = await fetch(
-    `https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}?output_format=mp3_44100_128`,
-    {
-      method: "POST",
-      headers: {
-        "xi-api-key": ELEVENLABS_API_KEY,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        text,
-        model_id: "eleven_v3",
-        language_code: language === "en" ? "en" : "ka",
-        voice_settings: {
-          stability: 0.5,
-          similarity_boost: 0.75,
-          style: 0.4,
-        },
-      }),
-    }
-  );
+  console.log("TTS text length:", text.length, "chars");
 
-  if (!response.ok) {
-    const errText = await response.text();
-    console.error("ElevenLabs TTS error:", response.status, errText);
-    // Gracefully degrade on validation/payment/quota/rate-limit errors
-    if ([400, 402, 403, 429].includes(response.status)) {
-      console.warn(`TTS unavailable (${response.status}), returning text-only response`);
-      return null;
-    }
-    throw new Error(`TTS failed: ${response.status}`);
+  const chunks = splitTextForTTS(text);
+  console.log("TTS chunks:", chunks.length, "sizes:", chunks.map(c => c.length));
+
+  if (chunks.length === 1) {
+    // Single chunk — same behavior as before
+    return synthesizeSingleChunk(text, language, ELEVENLABS_API_KEY, VOICE_ID);
   }
 
-  const audioBuffer = await response.arrayBuffer();
-  return new Uint8Array(audioBuffer);
+  // Multi-chunk with request stitching
+  const audioParts: Uint8Array[] = [];
+  for (let i = 0; i < chunks.length; i++) {
+    const prevText = i > 0 ? chunks[i - 1].slice(-300) : undefined;
+    const nxtText = i < chunks.length - 1 ? chunks[i + 1].slice(0, 300) : undefined;
+    const part = await synthesizeSingleChunk(chunks[i], language, ELEVENLABS_API_KEY, VOICE_ID, prevText, nxtText);
+    if (!part) return null; // If any chunk fails, degrade gracefully
+    audioParts.push(part);
+  }
+
+  // Concatenate all MP3 chunks
+  const totalLen = audioParts.reduce((sum, p) => sum + p.length, 0);
+  const combined = new Uint8Array(totalLen);
+  let offset = 0;
+  for (const part of audioParts) {
+    combined.set(part, offset);
+    offset += part.length;
+  }
+  return combined;
 }
 
 async function uploadAudioToStorage(sessionId: string, messageId: string, audioBytes: Uint8Array): Promise<string> {
@@ -1031,7 +1092,16 @@ async function handleChatMessageVoice(body: Record<string, unknown>, apiKeyData:
   const messageType = isToast ? "toast" : "text";
 
   // TTS Stage (gracefully degrades if ElevenLabs is unavailable)
-  const audioBytes = await synthesizeSpeech(cleanContent.replace(/---/g, "").replace(/===TOAST_START===|===TOAST_END===/g, "").trim(), language);
+  // For toasts, extract only the toast body for TTS to reduce character count
+  let ttsText = cleanContent.replace(/---/g, "").replace(/===TOAST_START===|===TOAST_END===/g, "").trim();
+  if (isToast) {
+    const toastMatch = cleanContent.match(/===TOAST_START===([\s\S]*?)===TOAST_END===/);
+    if (toastMatch?.[1]?.trim()) {
+      ttsText = toastMatch[1].replace(/---/g, "").trim();
+      console.log("Extracted toast body for TTS, reduced from", cleanContent.length, "to", ttsText.length, "chars");
+    }
+  }
+  const audioBytes = await synthesizeSpeech(ttsText, language);
 
   // Generate message ID first
   const msgId = crypto.randomUUID();
