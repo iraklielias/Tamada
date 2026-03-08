@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useProGate } from "@/hooks/useProGate";
 import ProUpsellModal from "@/components/ProUpsellModal";
+import ProBadge from "@/components/ProBadge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -27,6 +28,8 @@ import {
   EyeOff,
   ChevronDown,
   Pencil,
+  MessageCircle,
+  Mic,
 } from "lucide-react";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
@@ -35,6 +38,9 @@ import { toast as sonnerToast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import SystemIcon from "@/components/SystemIcon";
 import { ThinkingFacts } from "@/components/api-testing/ThinkingFacts";
+import { AIChatPanel } from "@/components/ai-chat/AIChatPanel";
+import { AIVoiceMode } from "@/components/ai-chat/AIVoiceMode";
+import type { GeneratedToast } from "@/components/ai-chat/types";
 
 // Simple word-level diff
 function computeWordDiff(original: string, edited: string): { type: "same" | "added" | "removed"; text: string }[] {
@@ -103,15 +109,6 @@ interface ToastMetadata {
   generation_type?: string;
 }
 
-interface GeneratedToast {
-  title_ka: string;
-  body_ka: string;
-  title_en?: string;
-  body_en?: string;
-  metadata?: ToastMetadata;
-  delivery_guidance?: DeliveryGuidance;
-}
-
 const refineToneKeys = ["traditional", "humorous", "emotional", "philosophical"];
 const refineLengthKeys = ["shorter", "longer"];
 const refineStyleKeys = ["poetic", "storytelling", "proverbial", "direct"];
@@ -142,10 +139,13 @@ const AIGeneratePage = () => {
   const [refineTone, setRefineTone] = useState<string | null>(null);
   const [refineLength, setRefineLength] = useState<string | null>(null);
   const [refineStyle, setRefineStyle] = useState<string | null>(null);
+  // Chat/Voice mode state (PRO)
+  const [chatModeOpen, setChatModeOpen] = useState(false);
+  const [voiceModeOpen, setVoiceModeOpen] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { checkFeature, dailyAICount, limits, canGenerateAI } = useProGate();
+  const { checkFeature, dailyAICount, limits, canGenerateAI, isPro } = useProGate();
 
   const generate = useMutation({
     mutationFn: async () => {
@@ -385,7 +385,31 @@ const AIGeneratePage = () => {
   const dg = result?.delivery_guidance;
   const meta = result?.metadata;
 
+  const handleToastFromChat = useCallback((toast: GeneratedToast) => {
+    setResult(toast);
+    setOriginalResult(toast);
+    setEditedTitle(toast.title_ka);
+    setEditedBody(toast.body_ka);
+    setIsEditing(false);
+    setShowDiff(false);
+    setFeedbackGiven(null);
+    setChatModeOpen(false);
+    setVoiceModeOpen(false);
+    queryClient.invalidateQueries({ queryKey: ["daily-ai-count"] });
+    sonnerToast.success(t("ai.created"));
+  }, [queryClient, t]);
+
+  const handleOpenChatMode = useCallback(() => {
+    if (!isPro) {
+      setUpsellMessage(t("ai.proChatRequired", "ჩათი თამადასთან ხელმისაწვდომია მხოლოდ PRO მომხმარებლებისთვის"));
+      setShowUpsell(true);
+      return;
+    }
+    setChatModeOpen(true);
+  }, [isPro, t]);
+
   return (
+    <>
     <div className="p-4 md:p-6 max-w-3xl mx-auto space-y-6 pb-24">
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -404,6 +428,26 @@ const AIGeneratePage = () => {
           {dailyAICount}/{limits.maxAIPerDay} {t("ai.today")}
         </Badge>
       </div>
+
+      {/* Chat with Tamada (PRO) */}
+      <button
+        onClick={handleOpenChatMode}
+        className="w-full flex items-center gap-3 rounded-xl bg-surface-1 hover:bg-surface-2 transition-colors px-4 py-3 border border-border/50 group"
+      >
+        <div className="h-10 w-10 rounded-full wine-gradient flex items-center justify-center shrink-0 shadow-wine">
+          <MessageCircle className="h-5 w-5 text-primary-foreground" />
+        </div>
+        <div className="flex-1 text-left min-w-0">
+          <p className="text-sm font-semibold text-foreground flex items-center gap-2">
+            {t("ai.chatWithTamada", "ესაუბრე თამადას")}
+            <ProBadge size="sm" />
+          </p>
+          <p className="text-[11px] text-muted-foreground">
+            {t("ai.chatWithTamadaHint", "საუბრით შექმენი სადღეგრძელო — ტექსტით ან ხმით")}
+          </p>
+        </div>
+        <Mic className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
+      </button>
 
       {/* Form */}
       <Card className="border-border/60 shadow-card overflow-hidden">
@@ -960,6 +1004,29 @@ const AIGeneratePage = () => {
 
       <ProUpsellModal open={showUpsell} onOpenChange={setShowUpsell} message={upsellMessage} />
     </div>
+
+    {/* Chat/Voice overlays (PRO) */}
+    <AnimatePresence>
+      {chatModeOpen && (
+        <AIChatPanel
+          language={(localStorage.getItem('tamada-lang') === 'en' ? 'en' : 'ka') as "ka" | "en"}
+          onClose={() => setChatModeOpen(false)}
+          onVoiceMode={() => { setChatModeOpen(false); setVoiceModeOpen(true); }}
+          onToastGenerated={handleToastFromChat}
+        />
+      )}
+    </AnimatePresence>
+    <AnimatePresence>
+      {voiceModeOpen && (
+        <AIVoiceMode
+          language={(localStorage.getItem('tamada-lang') === 'en' ? 'en' : 'ka') as "ka" | "en"}
+          onClose={() => setVoiceModeOpen(false)}
+          onMessage={() => {}}
+          onToastGenerated={handleToastFromChat}
+        />
+      )}
+    </AnimatePresence>
+    </>
   );
 };
 
