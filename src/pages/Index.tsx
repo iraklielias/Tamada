@@ -1096,11 +1096,9 @@ function PricingSection({ isKa }: { isKa: boolean }) {
 
           {/* Pro plan — elevated */}
           <motion.div
-            initial="offscreen"
-            whileInView="onscreen"
-            viewport={{ once: true, margin: "-40px" }}
-            variants={timelineStep(1)}
-            className="p-6 md:p-8 rounded-2xl bg-wine-light/20 border-2 border-wine-muted/50 relative overflow-hidden transition-all duration-200 hover:border-wine-muted/70 shadow-wine md:scale-[1.03] md:origin-top"
+            variants={springScaleIn}
+            whileHover={{ y: -4, transition: { type: "spring", stiffness: 300, damping: 24 } }}
+            className="p-6 md:p-8 rounded-2xl bg-wine-light/20 border-2 border-wine-muted/50 relative overflow-hidden transition-colors duration-200 hover:border-wine-muted/70 shadow-wine md:scale-[1.03] md:origin-top animate-pulse-glow-wine"
           >
             <div className="flex items-center gap-2 mb-4">
               <span className="px-2.5 py-1 rounded-full bg-wine-deep/10 border border-wine-muted/30 text-[10px] font-bold text-wine-deep">
