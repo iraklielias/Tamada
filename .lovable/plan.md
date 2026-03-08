@@ -1,109 +1,99 @@
 
 
-## TAMADA — Status Audit & Master Execution Plan
+## Hero Section Design & UX Audit — Enhancement Plan
 
-### What Is Built
+### Current Issues Identified
 
-| Area | Status |
-|------|--------|
-| Landing page (`/`) | Done — hero, features, how-it-works, footer |
-| Auth (login, signup, callback) | Done — email/password, onAuthStateChange, protected routes |
-| Onboarding wizard (`/onboarding`) | Done — 4 steps: name, region, experience, occasions |
-| App shell (sidebar + bottom nav) | Done — collapsible sidebar, mobile bottom nav, profile footer |
-| Dashboard (`/dashboard`) | Done — greeting, quick actions, recent feasts, popular toasts |
-| Toasts browse (`/toasts`) | Done — search, occasion/formality filters, favorite toggle |
-| AI Generator (`/ai-generate`) | Done — occasion/formality/topic form, edge function, save to favorites |
-| Favorites (`/favorites`) | Done — list system + custom favorites, remove |
-| Library (`/library`) | Done — reads toast_templates (currently 0 rows) |
-| Profile (`/profile`) | Done — read-only display, logout |
-| Edge function: `generate-toast` | Done — Lovable AI gateway, JSON parse |
-| Database schema + RLS | Done — all 11 tables, policies in place |
-| Seed data: toasts | Done — 11 system toasts |
+**1. Headline readability is critically weak**
+The shimmer gradient text ("რომელსაც დაიმახსოვრებენ") is barely readable — it renders as washed-out pink/salmon against the light background. The `backgroundImage` uses `hsla(0,0%,100%,0.35)` at the 50% stop which whitewashes the text. The `bg-clip-text text-transparent` approach loses all contrast at certain shimmer positions.
 
-### What Is NOT Built
+**2. Headline is too large and wraps awkwardly**
+At `clamp(2.6rem, 5.5vw, 4.2rem)` the second line breaks across two visual lines, creating three total lines of headline text. This dilutes impact — a world-class hero headline should be 2 lines maximum.
 
-| Area | Spec Section |
-|------|-------------|
-| **Feast CRUD** — `/feasts`, `/feasts/new`, `/feasts/:id` | Sections 3, 4, 5 |
-| **Live Feast Mode** — `/feasts/:id/live` with timer, toast progression, alerts, audio | Section 6 |
-| **Alaverdi tracking** — FAB, guest assignment, count increment | Section 6 |
-| **Co-Tamada / Realtime** — share code, join link, Supabase Realtime sync | Section 6 + Realtime spec |
-| **Toast template seeding** — 7 templates with JSONB sequences | Seed Data |
-| **More sample toasts** — spec calls for 50-100; we have 11 | Seed Data |
-| **Feast plan from template** — selecting a template populates feast_toasts | Section 4 |
-| **AI Feast Plan generator** — `generate-feast-plan` edge function | AI Integration |
-| **Pro gating / useProGate hook** — daily limits, feature locks, upsell modals | Free vs Pro |
-| **Upgrade page** (`/upgrade`) — comparison table, Stripe checkout | Section 11 |
-| **Stripe integration** — checkout session, webhook, subscription management | Edge Functions |
-| **Profile editing** — avatar upload, edit name/region/experience/language | Section 10 |
-| **PDF export** — jsPDF feast plan export (Pro) | Section 5 |
-| **i18n** — i18next setup, language toggle, all strings externalized | i18n spec |
-| **Dark mode** | Design System |
-| **Keyboard shortcuts** | Desktop spec |
-| **Additional occasion types** in filters (christening, guest_reception, friendly_gathering) | Throughout |
-| **config.toml** — `generate-toast` function entry with `verify_jwt = false` | Edge function config |
+**3. Subtitle text is bland**
+Plain `text-muted-foreground` with no visual differentiation from generic body copy. Needs more breathing room and slight typographic refinement.
+
+**4. CTA group sits too close to subtitle**
+Only `mb-8` gap. The CTA needs more vertical separation and the secondary "როგორ მუშაობს?" button is visually weak.
+
+**5. Testimonial card is heavy and pushed low**
+It takes up significant vertical space, pushing content below the fold. On the screenshot, it's already at the very bottom. Should be lighter/more compact.
+
+**6. Badge pill is underwhelming**
+Small, flat, low contrast. Should feel more like a premium "NEW" announcement.
+
+**7. Background effects are invisible in practice**
+The breathing orbs, particle burst, and arrival flash are technically present but barely perceptible against the warm parchment background. The gradient mesh is too subtle to create atmosphere.
+
+**8. Floating icons are too faint**
+At 0.20-0.25 opacity they're ghost-like. They should either be visible enough to add character or removed entirely.
+
+**9. Mockup lacks a "wow" shadow/glow**
+The `glow-behind` pseudo-element is very subtle. The mockup needs a stronger ambient glow to pop off the page.
+
+**10. No vertical rhythm anchor**
+There's no visual separator or decorative element between the hero content and the trust bar — the transition feels abrupt.
 
 ---
 
-### Master Execution Plan (8 Phases)
+### Enhancement Plan
 
-#### Phase 8 — Seed Data & Config Fixes
-- Seed 7 toast templates into `toast_templates` table (wedding, birthday, memorial, guest reception, holiday, corporate, friendly gathering) with proper `toast_sequence` JSONB arrays
-- Add `[functions.generate-toast]` with `verify_jwt = false` to `supabase/config.toml`
-- Add missing occasion types to all filter dropdowns across pages (christening, guest_reception, friendly_gathering, other)
+#### A. Fix Headline Contrast & Size
 
-#### Phase 9 — Feast CRUD (Core)
-- Create `/feasts` page — list user's feasts with status filter pills + search
-- Create `/feasts/new` page — multi-section form: basic info, details (guest count, formality, region, duration), template selection, optional guest list
-- Create `/feasts/:id` page — tabbed view (Plan, Guests, Details) with toast timeline, guest management, edit metadata, delete
-- Add routes to `App.tsx`, add "სუფრები" nav item to sidebar and bottom nav
-- Dashboard "ახალი სუფრა" quick action routes to `/feasts/new`; feast cards link to `/feasts/:id`
+- Reduce font size to `clamp(2.2rem, 4.8vw, 3.6rem)` to ensure the headline fits in 2 lines max
+- Replace the washed-out shimmer gradient: use a solid wine-deep color for the shimmer line with a moving white highlight overlay instead of `bg-clip-text` transparency
+- Add a subtle `text-shadow` to the shimmer line for legibility at all shimmer positions
+- Make the first line ("იყავი თამადა,") use full `text-foreground` color (solid black) at a bolder weight
 
-#### Phase 10 — Live Feast Mode
-- Create `/feasts/:id/live` — full-screen immersive view
-- Current toast display with complete text, toast number, type
-- Next-up preview (2 upcoming toasts)
-- Elapsed time tracker + progress bar
-- "Completed" and "Skip" buttons that update `feast_toasts` status
-- Pause/Resume/End feast controls updating `feasts.status`
-- Timer alert system: amber glow + audio chime at configurable intervals before next toast (Web Audio API)
-- Alaverdi FAB: bottom sheet with guest list, tap to assign, increment `alaverdi_count` via `increment_alaverdi` RPC
+#### B. Strengthen Badge Pill
 
-#### Phase 11 — Co-Tamada & Realtime
-- Generate `share_code` on feast, build `/feasts/:id/join/:shareCode` route
-- Add user as `feast_collaborator` on join
-- Subscribe to Supabase Realtime channels for `feast_toasts`, `feast_guests`, `feasts` changes
-- Enable realtime publication on relevant tables (`ALTER PUBLICATION supabase_realtime ADD TABLE ...`)
-- Co-Tamada sees live view with read-only controls (can assign alaverdi, cannot pause/end)
-- Online indicator for connected collaborators
+- Add a subtle animated glow border (wine-muted pulsing border)
+- Slightly larger padding, add a small sparkle icon animation
+- Use `backdrop-blur` glass effect on the badge
 
-#### Phase 12 — Profile Editing & Pro Gating
-- Make profile page editable: avatar upload (to `avatars` bucket), display name, region, experience, language
-- Build `useProGate` hook checking `is_pro` + `pro_expires_at`
-- Enforce free limits: 5 AI generations/day (server + client), 10 favorites, 1 active feast
-- Add server-side rate limit check in `generate-toast` edge function using `get_daily_ai_count`
-- Soft upsell modals when limits reached; gold lock icons on Pro features
-- Create `/upgrade` page with feature comparison table and pricing
+#### C. Improve Subtitle & CTA Spacing
 
-#### Phase 13 — Stripe & Subscriptions
-- Enable Stripe integration
-- Create `create-checkout-session` edge function
-- Create `stripe-webhook` edge function handling subscription lifecycle events
-- Wire `/upgrade` page CTA to checkout session
-- Add `/profile/subscription` route for managing active subscription
+- Bump subtitle to `text-lg md:text-xl` with `text-foreground/70` instead of muted
+- Increase CTA margin to `mb-12`
+- Give secondary CTA an outline/border treatment instead of pure ghost
 
-#### Phase 14 — i18n & Polish
-- Set up i18next with `ka` (default) and `en` locales
-- Extract all hardcoded Georgian strings to locale JSON files
-- Add language toggle to sidebar footer and profile settings
-- Persist language choice to `profiles.preferred_language`
-- Toast content displays `_ka` or `_en` based on selected language
+#### D. Compact Testimonial Card
 
-#### Phase 15 — Advanced Features & Hardening
-- `generate-feast-plan` edge function — AI-generated toast schedule based on occasion/duration/formality
-- PDF export of feast plan using jsPDF (Pro only)
-- Dark mode support
-- Keyboard shortcuts in live feast mode (Space = complete, Esc = pause)
-- Additional seed toasts (expand from 11 to 50+)
-- Error boundary components, offline queue for failed writes, optimistic updates throughout
+- Reduce to a single-line horizontal layout: avatars + quote + attribution in one row
+- Smaller avatars (w-7 h-7), shorter quote, inline layout
+- Reduce overall card padding
+
+#### E. Boost Background Atmosphere
+
+- Increase gradient mesh opacity by ~40% (wine radial from 0.28 to 0.38, gold from 0.16 to 0.22)
+- Increase breathing orb opacity (wine from 0.30 to 0.40, gold from 0.25 to 0.32)
+- Make the arrival flash stronger (peak opacity from 0.25 to 0.40)
+
+#### F. Upgrade Mockup Presentation
+
+- Strengthen `glow-behind` pseudo-element opacity from 0.14 to 0.22
+- Add a second glow layer with gold tint for depth
+- Increase mockup float amplitude from 8px to 12px
+
+#### G. Floating Icons — Make or Break
+
+- Increase opacity to 0.35 for icon-float-1 and 0.28 for icon-float-2
+- Add a third floating icon (QvevriIcon) at bottom-right
+
+#### H. Add Hero Bottom Fade Transition
+
+- Add a gradient fade at the bottom of the hero section that blends into the trust bar background, creating a seamless transition
+
+---
+
+### Files to Edit
+
+| File | Changes |
+|------|---------|
+| `src/pages/Index.tsx` | Headline font size, badge glass effect, subtitle styling, CTA spacing, testimonial compacting, floating icon opacity, third icon, hero bottom fade div |
+| `src/index.css` | Gradient mesh opacity boost, shimmer fix for contrast, glow-behind strength, arrival flash intensity, orb values, badge glow animation |
+| `src/lib/animations.ts` | No changes needed — existing variants are fine |
+
+### Estimated scope
+8-10 targeted edits across 2 files. No structural changes, no new components.
 
