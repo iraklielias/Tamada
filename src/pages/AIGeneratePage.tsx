@@ -995,7 +995,7 @@ const AIGeneratePage = () => {
                   </Button>
                   {isRefining && (
                     <div className="min-h-[60px] flex items-center justify-center">
-                      <ThinkingFacts isVisible={true} language={(localStorage.getItem('tamada-lang') === 'en' ? 'en' : 'ka') as "ka" | "en"} />
+                      <ThinkingFacts isVisible={true} language={currentLang} />
                     </div>
                   )}
                 </div>
