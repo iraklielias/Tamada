@@ -125,7 +125,7 @@ function SceneGenerator({ active }: { active: boolean }) {
         <span className="text-[11px] font-semibold text-foreground">AI სადღეგრძელო</span>
       </motion.div>
 
-      <div className="space-y-2 flex-1">
+      <div className="space-y-2.5 flex-1">
         {selects.map((s, i) => (
           <motion.div
             key={s.label}
@@ -134,7 +134,7 @@ function SceneGenerator({ active }: { active: boolean }) {
             animate={step > i ? "animate" : { opacity: 0.3, y: 0, filter: "blur(0px)" }}
             className="flex items-center gap-2"
           >
-            <span className="text-[9px] text-muted-foreground w-16 shrink-0">{s.label}</span>
+            <span className="text-[10px] text-muted-foreground w-20 shrink-0">{s.label}</span>
             <div className={`flex-1 flex items-center justify-between px-2.5 py-1.5 rounded-md border text-[11px] transition-colors ${
               step > i ? "border-wine-muted/40 bg-wine-light/20 text-foreground font-medium" : "border-border bg-surface-1 text-muted-foreground"
             }`}>
@@ -158,7 +158,7 @@ function SceneGenerator({ active }: { active: boolean }) {
                   initial={{ opacity: 0, scale: 0 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ type: "spring", stiffness: 400, damping: 15, delay: i * 0.1 }}
-                  className="text-[9px] font-semibold px-2 py-0.5 rounded-full bg-wine-light text-wine-deep border border-wine-muted/30"
+                  className="text-[10px] font-semibold px-2.5 py-0.5 rounded-full bg-wine-light text-wine-deep border border-wine-muted/30"
                 >
                   {tag}
                 </motion.span>
@@ -246,7 +246,7 @@ function SceneResult({ active }: { active: boolean }) {
           style={{ backgroundColor: "hsl(var(--wine-light) / 0.2)" }}
         >
           <div className="h-0.5 wine-gradient" />
-          <div className="p-3 space-y-2">
+          <div className="p-3.5 space-y-2">
             {phase < 1 ? (
               <div className="space-y-2">
                 {[100, 70].map((w, i) => (
@@ -256,12 +256,12 @@ function SceneResult({ active }: { active: boolean }) {
               </div>
             ) : (
               <>
-                <p className="text-[11px] font-bold text-foreground leading-tight">
+                <p className="text-[12px] font-bold text-foreground leading-tight">
                   {typedTitle}
                   <TypingCursor active={phase >= 1 && phase < 2} height="h-3" />
                 </p>
                 {phase >= 2 && (
-                  <p className="text-[10px] text-foreground/80 leading-relaxed">
+                  <p className="text-[11px] text-foreground/80 leading-relaxed">
                     {typedBody}
                     <TypingCursor active={phase >= 2 && phase < 3} height="h-2.5" />
                   </p>
@@ -348,9 +348,9 @@ function SceneLiveFeast({ active }: { active: boolean }) {
             <div className="p-3 space-y-1.5">
               <div className="flex items-center gap-2">
                 <span className="text-[11px] font-bold text-foreground">{current.title}</span>
-                <span className="text-[8px] px-1.5 py-0.5 rounded-full bg-wine-light text-wine-deep font-semibold">{current.type}</span>
+                <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-wine-light text-wine-deep font-semibold">{current.type}</span>
               </div>
-              <p className="text-[10px] text-foreground/70 leading-relaxed line-clamp-2">{current.body}</p>
+              <p className="text-[11px] text-foreground/70 leading-relaxed line-clamp-2">{current.body}</p>
             </div>
           </motion.div>
         </AnimatePresence>
@@ -369,15 +369,18 @@ function SceneLiveFeast({ active }: { active: boolean }) {
           />
         </div>
         <div className="flex items-center justify-between">
-          <span className="text-[9px] text-muted-foreground font-medium">{toastIdx + 1}/7 სადღეგრძელო</span>
-          <span className="text-[9px] text-wine-deep font-semibold">{progress}%</span>
+          <span className="text-[10px] text-muted-foreground font-medium">{toastIdx + 1}/7 სადღეგრძელო</span>
+          <span className="text-[10px] text-wine-deep font-semibold">{progress}%</span>
         </div>
       </motion.div>
 
       <motion.div variants={staggerChild} className="flex items-center gap-1.5 pt-1.5">
-        {["✓ დასრულება", "⏭ გამოტოვება"].map((label) => (
-          <span key={label} className="text-[8px] px-2 py-1 rounded-md bg-surface-1 border border-border text-muted-foreground">{label}</span>
-        ))}
+        <span className="text-[9px] px-2.5 py-1 rounded-md bg-surface-1 border border-border text-muted-foreground flex items-center gap-1">
+          <Check className="h-2.5 w-2.5" /> დასრულება
+        </span>
+        <span className="text-[9px] px-2.5 py-1 rounded-md bg-surface-1 border border-border text-muted-foreground flex items-center gap-1">
+          <ArrowRight className="h-2.5 w-2.5" /> გამოტოვება
+        </span>
       </motion.div>
     </motion.div>
   );
@@ -408,7 +411,7 @@ function SceneChat({ active }: { active: boolean }) {
         <span className="text-[8px] px-1.5 py-0.5 rounded-full bg-gold/20 text-gold font-bold ml-auto">PRO</span>
       </motion.div>
 
-      <div className="flex-1 space-y-2.5">
+      <div className="flex-1 space-y-3">
         {/* User bubble — enters from right */}
         <AnimatePresence>
           {step >= 1 && (
@@ -418,7 +421,7 @@ function SceneChat({ active }: { active: boolean }) {
               transition={{ type: "spring", stiffness: 260, damping: 20 }}
               className="flex justify-end"
             >
-              <div className="max-w-[80%] px-3 py-2 rounded-2xl rounded-br-md bg-wine-deep text-white text-[10px] leading-relaxed">
+              <div className="max-w-[80%] px-3 py-2 rounded-2xl rounded-br-md bg-wine-deep text-white text-[11px] leading-relaxed">
                 ქორწილისთვის სადღეგრძელო მინდა
               </div>
             </motion.div>
@@ -434,10 +437,10 @@ function SceneChat({ active }: { active: boolean }) {
               transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.1 }}
               className="flex justify-start gap-2"
             >
-              <div className="w-6 h-6 rounded-full wine-gradient flex items-center justify-center shrink-0">
-                <HornIcon size={10} className="text-white" />
+              <div className="w-7 h-7 rounded-full wine-gradient flex items-center justify-center shrink-0">
+                <HornIcon size={12} className="text-white" />
               </div>
-              <div className="max-w-[78%] px-3 py-2 rounded-2xl rounded-bl-md bg-surface-1 border border-border text-[10px] text-foreground leading-relaxed">
+              <div className="max-w-[78%] px-3 py-2 rounded-2xl rounded-bl-md bg-surface-1 border border-border text-[11px] text-foreground leading-relaxed">
                 {typedResponse}
                 <TypingCursor active={step >= 2 && step < 3} height="h-2.5" />
               </div>
@@ -492,13 +495,13 @@ function SceneAlaverdi({ active }: { active: boolean }) {
         <span className="text-[11px] font-semibold text-foreground">ალავერდი</span>
       </motion.div>
 
-      <div className="space-y-2.5 flex-1">
-        <motion.div variants={staggerChild} className="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-wine-light/40 border border-wine-muted/25"
+      <div className="space-y-3 flex-1">
+        <motion.div variants={staggerChild} className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg bg-wine-light/40 border border-wine-muted/25"
           initial="initial" animate={active ? "animate" : "initial"}>
           <div className="w-7 h-7 rounded-full wine-gradient flex items-center justify-center text-white text-[10px] font-bold">გ</div>
           <div className="flex-1 min-w-0">
-            <div className="text-[10px] font-semibold text-foreground">გიორგი მამულაშვილი</div>
-            <div className="text-[9px] text-muted-foreground">მეჯვარე</div>
+            <div className="text-[11px] font-semibold text-foreground">გიორგი მამულაშვილი</div>
+            <div className="text-[10px] text-muted-foreground">მეჯვარე</div>
           </div>
           <div className="relative flex items-center gap-1">
             <motion.span className="text-xs font-bold text-wine-deep tabular-nums" key={count}
@@ -519,12 +522,12 @@ function SceneAlaverdi({ active }: { active: boolean }) {
 
         <AnimatePresence>
           {showSecond && (
-            <motion.div className="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-surface-1 border border-border/50"
+            <motion.div className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg bg-surface-1 border border-border/50"
               initial={{ opacity: 0, y: 6, filter: "blur(2px)" }} animate={{ opacity: 1, y: 0, filter: "blur(0px)" }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
               <div className="w-7 h-7 rounded-full bg-gold/20 flex items-center justify-center text-gold text-[10px] font-bold">ნ</div>
               <div className="flex-1">
-                <div className="text-[10px] font-semibold text-foreground">ნინო ჩხეიძე</div>
-                <div className="text-[9px] text-muted-foreground">მოწვეული</div>
+                <div className="text-[11px] font-semibold text-foreground">ნინო ჩხეიძე</div>
+                <div className="text-[10px] text-muted-foreground">მოწვეული</div>
               </div>
               <span className="text-xs font-bold text-foreground/50 tabular-nums">1</span>
             </motion.div>
@@ -615,7 +618,7 @@ export default function HeroMockupStory({ active = false }: { active?: boolean }
 
       {/* Content — Item 10: pause dimming */}
       <motion.div
-        className="p-4 sm:p-5 bg-background min-h-[280px] sm:min-h-[320px] flex flex-col relative"
+        className="p-5 sm:p-6 bg-background min-h-[300px] sm:min-h-[340px] flex flex-col relative"
         animate={{
           opacity: paused && active ? 0.85 : 1,
           filter: paused && active ? "saturate(0.85)" : "saturate(1)",

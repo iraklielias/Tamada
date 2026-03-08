@@ -514,9 +514,9 @@ function FeatureShowcase({
         {description}
       </p>
       {bullets && bullets.length > 0 && (
-        <ul className="space-y-2 mb-5">
+        <ul className="space-y-3 mb-5">
           {bullets.map((b, i) => (
-            <li key={i} className="flex items-center gap-2.5 text-sm text-foreground/80">
+            <li key={i} className="flex items-center gap-2.5 text-base text-foreground/80">
               <SystemIcon name="status.success" size="sm" className="text-wine-glow shrink-0" />
               {b}
             </li>
@@ -1376,7 +1376,7 @@ const Index = () => {
                       <Star key={i} className="h-2.5 w-2.5 fill-gold text-gold" />
                     ))}
                   </div>
-                   <p className="text-xs text-foreground/70 italic leading-snug">
+                   <p className="text-[13px] text-foreground/70 italic leading-snug">
                     {isKa ? "\u201Eსუფრა 10 წუთში დავგეგმე. ყველა ტიროდა.\u201C" : "\"Planned a supra in 10 min. Everyone cried.\""}
                   </p>
                 </div>
@@ -1809,7 +1809,7 @@ const Index = () => {
                   whileInView="onscreen"
                   viewport={{ once: true, margin: "-40px" }}
                   variants={timelineStep(i)}
-                  className="relative pl-20"
+                  className="relative pl-16 md:pl-20"
                 >
                   <div className="absolute left-0 top-4 w-14 h-14 rounded-xl wine-gradient flex items-center justify-center shadow-wine z-10 ring-4 ring-wine-light/50">
                     {item.icon}
