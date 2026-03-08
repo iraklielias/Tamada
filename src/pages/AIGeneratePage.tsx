@@ -305,12 +305,83 @@ const AIGeneratePage = () => {
     },
   });
 
+  const refineMutation = useMutation({
+    mutationFn: async () => {
+      const check = checkFeature("ai");
+      if (!check.allowed) {
+        setUpsellMessage(check.message);
+        setShowUpsell(true);
+        throw new Error(check.message);
+      }
+
+      if (!result || !user) throw new Error("No result to refine");
+
+      const styleOverrides: Record<string, string> = {};
+      if (refineTone) styleOverrides.tone = refineTone;
+      if (refineLength) styleOverrides.length = refineLength;
+      if (refineStyle) styleOverrides.style = refineStyle;
+
+      const startTime = performance.now();
+      const { data, error } = await supabase.functions.invoke("tamada-ai", {
+        body: {
+          action: "refine_toast",
+          refine_params: {
+            current_toast: editedBody,
+            instructions: refineComment.trim() || undefined,
+            style_overrides: Object.keys(styleOverrides).length > 0 ? styleOverrides : undefined,
+            generation_params: {
+              occasion_type: occasion,
+              formality_level: formality,
+              tone,
+              region: region !== "general" ? region : undefined,
+            },
+          },
+        },
+      });
+      const latencyMs = Math.round(performance.now() - startTime);
+      if (error) throw error;
+      if (data.error) throw new Error(data.error);
+
+      // Update latency on latest log entry
+      supabase
+        .from("ai_generation_log")
+        .select("id")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single()
+        .then(({ data: logEntry }) => {
+          if (logEntry) {
+            supabase.from("ai_generation_log").update({ latency_ms: latencyMs }).eq("id", logEntry.id).then(() => {});
+          }
+        });
+
+      return data as GeneratedToast;
+    },
+    onSuccess: (data) => {
+      setResult(data);
+      setEditedTitle(data.title_ka);
+      setEditedBody(data.body_ka);
+      setIsEditing(false);
+      setShowDiff(false);
+      setFeedbackGiven(null);
+      setRefineComment("");
+      setRefineOpen(false);
+      queryClient.invalidateQueries({ queryKey: ["daily-ai-count"] });
+      sonnerToast.success(t("ai.refined", "სადღეგრძელო დახვეწილია!"));
+    },
+    onError: (err: Error) => {
+      if (!showUpsell) sonnerToast.error(err.message || t("ai.generateFailed"));
+    },
+  });
+
   const copyToClipboard = () => {
     if (!editedBody) return;
     navigator.clipboard.writeText(editedBody);
     sonnerToast.success(t("common.copied"));
   };
 
+  const isRefining = refineMutation.isPending;
   const dg = result?.delivery_guidance;
   const meta = result?.metadata;
 
