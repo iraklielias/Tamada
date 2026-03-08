@@ -82,19 +82,8 @@ export function useInternalTamadaChat() {
       if (error) throw error;
       if (data.error) throw new Error(data.error);
 
-      // Add messages to history
-      if (data.transcription?.original_audio_text) {
-        chatHistoryRef.current.push({
-          role: "user",
-          content: data.transcription.original_audio_text,
-        });
-      }
-      if (data.message?.content) {
-        chatHistoryRef.current.push({
-          role: "assistant",
-          content: data.message.content,
-        });
-      }
+      // History is managed by AIVoiceMode.handleMessage → addMessage
+      // Do NOT push to chatHistoryRef here to avoid duplication
 
       return data as VoiceChatResponse;
     },
