@@ -605,7 +605,7 @@ const AIGeneratePage = () => {
           {/* ThinkingFacts during generation */}
           {generate.isPending && (
             <div className="min-h-[60px] flex items-center justify-center">
-              <ThinkingFacts isVisible={true} language={(localStorage.getItem('tamada-lang') === 'en' ? 'en' : 'ka') as "ka" | "en"} />
+              <ThinkingFacts isVisible={true} language={currentLang} />
             </div>
           )}
         </CardContent>
