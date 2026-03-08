@@ -1353,7 +1353,7 @@ const Index = () => {
                       <Star key={i} className="h-2.5 w-2.5 fill-gold text-gold" />
                     ))}
                   </div>
-                  <p className="text-xs text-foreground/70 italic truncate">
+                   <p className="text-xs text-foreground/70 italic leading-snug">
                     {isKa ? "\u201Eსუფრა 10 წუთში დავგეგმე. ყველა ტიროდა.\u201C" : "\"Planned a supra in 10 min. Everyone cried.\""}
                   </p>
                 </div>
