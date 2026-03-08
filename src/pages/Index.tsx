@@ -502,47 +502,73 @@ function FeatureShowcase({
   glowClass = "glow-behind",
   children,
 }: FeatureShowcaseProps) {
+  const sectionRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start end", "end start"],
+  });
+  const mockupParallaxY = useTransform(scrollYProgress, [0, 1], [30, -30]);
+  const bgGradientOpacity = useTransform(scrollYProgress, [0.1, 0.4, 0.8], [0, 1, 0]);
+
   const textBlock = (
     <motion.div
       initial="offscreen"
       whileInView="onscreen"
       viewport={{ once: true, margin: "-60px" }}
-      variants={reversed ? revealFromRight : revealFromLeft}
+      variants={featureTextStagger}
       className={reversed ? "order-first md:order-none" : ""}
     >
-      <div className="flex items-center gap-2.5 mb-3">
+      <motion.div variants={featureTextChild} className="flex items-center gap-2.5 mb-3">
         {number && (
-          <span className="w-8 h-8 rounded-full wine-gradient flex items-center justify-center text-xs font-bold text-white shadow-wine">
+          <motion.span
+            variants={springScaleIn}
+            className="w-8 h-8 rounded-full wine-gradient flex items-center justify-center text-xs font-bold text-white shadow-wine"
+          >
             {number}
-          </span>
+          </motion.span>
         )}
         <p className="text-sm font-bold uppercase tracking-[0.15em] text-wine-muted">
           {subtitle}
         </p>
-      </div>
-      <h2 className="font-display text-heading-1 text-foreground mb-4">
+      </motion.div>
+      <motion.h2
+        variants={deblurReveal}
+        className="font-display text-heading-1 text-foreground mb-4"
+      >
         {title}
-      </h2>
-      <p className="text-muted-foreground leading-relaxed max-w-md mb-4">
+      </motion.h2>
+      <motion.p variants={featureTextChild} className="text-muted-foreground leading-relaxed max-w-md mb-4">
         {description}
-      </p>
+      </motion.p>
       {bullets && bullets.length > 0 && (
-        <ul className="space-y-3 mb-5">
+        <motion.ul
+          variants={staggerBullets}
+          initial="offscreen"
+          whileInView="onscreen"
+          viewport={{ once: true, margin: "-40px" }}
+          className="space-y-3 mb-5"
+        >
           {bullets.map((b, i) => (
-            <li key={i} className="flex items-center gap-2.5 text-base text-foreground/80">
-              <SystemIcon name="status.success" size="sm" className="text-wine-glow shrink-0" />
+            <motion.li key={i} variants={bulletItem} className="flex items-center gap-2.5 text-base text-foreground/80">
+              <motion.span
+                variants={springScaleIn}
+              >
+                <SystemIcon name="status.success" size="sm" className="text-wine-glow shrink-0" />
+              </motion.span>
               {b}
-            </li>
+            </motion.li>
           ))}
-        </ul>
+        </motion.ul>
       )}
       {learnMoreHref && (
-        <Button variant="wine-outline" size="default" asChild className="mt-1">
-          <Link to={learnMoreHref}>
-            {learnMoreText || "Learn more"}
-            <SystemIcon name="action.next" size="sm" className="ml-1.5" />
-          </Link>
-        </Button>
+        <motion.div variants={featureTextChild}>
+          <Button variant="wine-outline" size="default" asChild className="mt-1">
+            <Link to={learnMoreHref}>
+              {learnMoreText || "Learn more"}
+              <SystemIcon name="action.next" size="sm" className="ml-1.5" />
+            </Link>
+          </Button>
+        </motion.div>
       )}
     </motion.div>
   );
@@ -552,18 +578,32 @@ function FeatureShowcase({
       initial="offscreen"
       whileInView="onscreen"
       viewport={{ once: true, margin: "-60px" }}
-      variants={reversed ? revealFromLeft : revealFromRight}
+      variants={springScaleIn}
       className={`${reversed ? "order-last md:order-none" : ""} ${glowClass}`}
-      style={{ willChange: "transform" }}
-      whileHover={{ scale: 1.02, transition: { duration: 0.3 } }}
+      style={{ y: mockupParallaxY, willChange: "transform" }}
+      whileHover={{
+        scale: 1.03,
+        rotateY: reversed ? -2 : 2,
+        transition: { type: "spring", stiffness: 200, damping: 20 },
+      }}
     >
       {children}
     </motion.div>
   );
 
   return (
-    <section className={`py-20 md:py-28 px-6 relative ${bgClass}`} style={bgStyle}>
-      <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-12 md:gap-16 items-center">
+    <section ref={sectionRef} className={`py-20 md:py-28 px-6 relative ${bgClass}`} style={bgStyle}>
+      {/* Radial gradient that fades in on scroll */}
+      <motion.div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          opacity: bgGradientOpacity,
+          background: reversed
+            ? "radial-gradient(ellipse 60% 50% at 20% 50%, hsla(353,41%,32%,0.04) 0%, transparent 70%)"
+            : "radial-gradient(ellipse 60% 50% at 80% 50%, hsla(353,41%,32%,0.04) 0%, transparent 70%)",
+        }}
+      />
+      <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-12 md:gap-16 items-center relative z-10">
         {reversed ? (
           <>
             {visualBlock}
