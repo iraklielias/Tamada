@@ -321,23 +321,43 @@
       radial-gradient(ellipse 45% 45% at 55% 75%, hsla(43,53%,55%,0.08) 0%, transparent 50%);
   }
 
-  /* Headline gradient shimmer sweep -- wider range, visible highlight */
+  /* Headline gradient shimmer sweep -- high-contrast highlight band */
   .hero-headline-shimmer {
-    background-size: 300% 100%;
-    animation: headline-shimmer 6s ease-in-out infinite;
+    background-size: 400% 100%;
+    animation: headline-shimmer-entrance 2s ease-out forwards, headline-shimmer 8s ease-in-out 2.5s infinite;
+  }
+  @keyframes headline-shimmer-entrance {
+    0% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
   }
   @keyframes headline-shimmer {
     0%, 100% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }
   }
 
-  /* CTA breathing glow -- box-shadow based for reliability */
+  /* CTA breathing glow -- strong initial pulse then steady breathing */
   .cta-glow {
-    animation: cta-glow-pulse 2.8s ease-in-out infinite;
+    animation: cta-glow-entrance 1.8s ease-out 1.5s forwards, cta-glow-pulse 3s ease-in-out 3.5s infinite;
+  }
+  @keyframes cta-glow-entrance {
+    0% { box-shadow: 0 0 0 0 hsla(353,50%,38%,0), 0 4px 12px hsla(353,50%,38%,0.10); }
+    50% { box-shadow: 0 0 40px 10px hsla(353,50%,38%,0.50), 0 4px 24px hsla(353,50%,38%,0.35); }
+    100% { box-shadow: 0 0 0 0 hsla(353,50%,38%,0.10), 0 4px 12px hsla(353,50%,38%,0.10); }
   }
   @keyframes cta-glow-pulse {
-    0%, 100% { box-shadow: 0 0 0 0 hsla(353,50%,38%,0.15), 0 4px 12px hsla(353,50%,38%,0.10); }
-    50% { box-shadow: 0 0 20px 4px hsla(353,50%,38%,0.35), 0 4px 18px hsla(353,50%,38%,0.20); }
+    0%, 100% { box-shadow: 0 0 0 0 hsla(353,50%,38%,0.12), 0 4px 12px hsla(353,50%,38%,0.10); }
+    50% { box-shadow: 0 0 30px 8px hsla(353,50%,38%,0.40), 0 4px 20px hsla(353,50%,38%,0.25); }
+  }
+
+  /* Hero arrival flash — one-shot radial pulse */
+  .hero-arrival-flash {
+    animation: arrival-flash 1.2s ease-out 1s forwards;
+    opacity: 0;
+  }
+  @keyframes arrival-flash {
+    0% { opacity: 0; transform: scale(0.6); }
+    40% { opacity: 0.25; transform: scale(1.1); }
+    100% { opacity: 0; transform: scale(1.6); }
   }
 
   /* Continuous gentle float for mockup -- delayed start */
