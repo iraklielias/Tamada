@@ -400,7 +400,7 @@ function SceneLiveFeast({ active }: { active: boolean }) {
    ═══════════════════════════════════════════ */
 function SceneChat({ active }: { active: boolean }) {
   const [step, setStep] = useState(0);
-  const aiResponse = "ბატონო, აი ქორწილის სადღეგრძელო: „მზე და მთვარე ერთად რომ ანათებენ, ისე გაანათონ თქვენმა სიყვარულმა ეს ოჯახი. გილოცავთ!"";
+  const aiResponse = "ბატონო, აი ქორწილის სადღეგრძელო: მზე და მთვარე ერთად რომ ანათებენ, ისე გაანათონ თქვენმა სიყვარულმა ეს ოჯახი. გილოცავთ!";
   const typedResponse = useSceneTyping(aiResponse, step >= 2, 16);
 
   useEffect(() => {
