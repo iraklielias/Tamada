@@ -1263,18 +1263,17 @@ const Index = () => {
 
               <motion.h1
                 variants={heroHeadlineReveal}
-                className="font-display text-foreground mb-5"
-                style={{ fontSize: "clamp(2.6rem, 5.5vw, 4.2rem)", lineHeight: 1.08, letterSpacing: "-0.03em" }}
+                className="font-display text-foreground mb-6"
+                style={{ fontSize: "clamp(2.2rem, 4.8vw, 3.6rem)", lineHeight: 1.08, letterSpacing: "-0.03em" }}
               >
                 {isKa ? (
                   <>
-                    იყავი თამადა,
+                    <span className="font-extrabold">იყავი თამადა,</span>
                     <br />
                     <span
-                      className="hero-headline-shimmer bg-clip-text text-transparent"
+                      className="relative inline-block text-wine-deep hero-headline-shimmer-v2"
                       style={{
-                        backgroundImage: "linear-gradient(90deg, hsl(var(--wine-deep)) 0%, hsl(350,65%,50%) 25%, hsla(0,0%,100%,0.35) 50%, hsl(350,65%,50%) 75%, hsl(var(--wine-deep)) 100%)",
-                        filter: "drop-shadow(0 2px 6px hsla(353,41%,32%,0.18))",
+                        textShadow: "0 2px 8px hsla(353,41%,32%,0.20)",
                       }}
                     >
                       რომელსაც დაიმახსოვრებენ
@@ -1282,13 +1281,12 @@ const Index = () => {
                   </>
                 ) : (
                   <>
-                    Be the tamada
+                    <span className="font-extrabold">Be the tamada</span>
                     <br />
                     <span
-                      className="hero-headline-shimmer bg-clip-text text-transparent"
+                      className="relative inline-block text-wine-deep hero-headline-shimmer-v2"
                       style={{
-                        backgroundImage: "linear-gradient(90deg, hsl(var(--wine-deep)) 0%, hsl(350,65%,50%) 25%, hsla(0,0%,100%,0.35) 50%, hsl(350,65%,50%) 75%, hsl(var(--wine-deep)) 100%)",
-                        filter: "drop-shadow(0 2px 6px hsla(353,41%,32%,0.18))",
+                        textShadow: "0 2px 8px hsla(353,41%,32%,0.20)",
                       }}
                     >
                       everyone remembers
