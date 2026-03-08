@@ -12,6 +12,7 @@ import {
 import HornIcon from "@/components/icons/HornIcon";
 import WineGlassIcon from "@/components/icons/WineGlassIcon";
 import QvevriIcon from "@/components/icons/QvevriIcon";
+import HeroMockupStory from "@/components/HeroMockupStory";
 import {
   heroStagger,
   heroBadgeReveal,
@@ -1329,7 +1330,7 @@ const Index = () => {
               </motion.div>
 
               {/* Mini-testimonial — compact single-row */}
-              <motion.div variants={heroTestimonialReveal} className="flex items-center gap-3 px-4 py-3 rounded-xl bg-card/50 border border-border/40 backdrop-blur-sm max-w-md">
+              <motion.div variants={heroTestimonialReveal} className="flex items-center gap-3 px-4 py-3 rounded-xl bg-card/50 border border-border/40 backdrop-blur-sm max-w-lg">
                 <div className="flex -space-x-2 shrink-0">
                   {["გ", "ნ", "დ"].map((initial, i) => (
                     <motion.div
@@ -1353,7 +1354,7 @@ const Index = () => {
                       <Star key={i} className="h-2.5 w-2.5 fill-gold text-gold" />
                     ))}
                   </div>
-                  <p className="text-xs text-foreground/70 italic truncate">
+                   <p className="text-xs text-foreground/70 italic leading-snug">
                     {isKa ? "\u201Eსუფრა 10 წუთში დავგეგმე. ყველა ტიროდა.\u201C" : "\"Planned a supra in 10 min. Everyone cried.\""}
                   </p>
                 </div>
@@ -1376,7 +1377,7 @@ const Index = () => {
               variants={heroMockupReveal}
             >
               <div className="mockup-float-delayed-v2">
-                <ProductMockup active={mockupActive} />
+                <HeroMockupStory active={mockupActive} />
               </div>
             </motion.div>
 
@@ -1388,7 +1389,7 @@ const Index = () => {
               transition={{ duration: 0.7, delay: 1.2, ease: [0, 0, 0.2, 1] }}
             >
               <div className="max-w-sm mx-auto">
-                <ProductMockup active={mockupActive} />
+                <HeroMockupStory active={mockupActive} />
               </div>
             </motion.div>
           </div>
