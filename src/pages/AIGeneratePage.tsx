@@ -109,15 +109,6 @@ interface ToastMetadata {
   generation_type?: string;
 }
 
-interface GeneratedToast {
-  title_ka: string;
-  body_ka: string;
-  title_en?: string;
-  body_en?: string;
-  metadata?: ToastMetadata;
-  delivery_guidance?: DeliveryGuidance;
-}
-
 const refineToneKeys = ["traditional", "humorous", "emotional", "philosophical"];
 const refineLengthKeys = ["shorter", "longer"];
 const refineStyleKeys = ["poetic", "storytelling", "proverbial", "direct"];
