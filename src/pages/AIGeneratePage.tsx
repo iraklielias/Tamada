@@ -34,6 +34,7 @@ import {
 import { toast as sonnerToast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import SystemIcon from "@/components/SystemIcon";
+import { ThinkingFacts } from "@/components/api-testing/ThinkingFacts";
 
 // Simple word-level diff
 function computeWordDiff(original: string, edited: string): { type: "same" | "added" | "removed"; text: string }[] {
