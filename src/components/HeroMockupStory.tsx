@@ -522,7 +522,7 @@ function SceneAlaverdi({ active }: { active: boolean }) {
 
         <AnimatePresence>
           {showSecond && (
-            <motion.div className="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-surface-1 border border-border/50"
+            <motion.div className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg bg-surface-1 border border-border/50"
               initial={{ opacity: 0, y: 6, filter: "blur(2px)" }} animate={{ opacity: 1, y: 0, filter: "blur(0px)" }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
               <div className="w-7 h-7 rounded-full bg-gold/20 flex items-center justify-center text-gold text-[10px] font-bold">ნ</div>
               <div className="flex-1">
