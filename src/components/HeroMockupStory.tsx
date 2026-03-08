@@ -369,8 +369,8 @@ function SceneLiveFeast({ active }: { active: boolean }) {
           />
         </div>
         <div className="flex items-center justify-between">
-          <span className="text-[9px] text-muted-foreground font-medium">{toastIdx + 1}/7 სადღეგრძელო</span>
-          <span className="text-[9px] text-wine-deep font-semibold">{progress}%</span>
+          <span className="text-[10px] text-muted-foreground font-medium">{toastIdx + 1}/7 სადღეგრძელო</span>
+          <span className="text-[10px] text-wine-deep font-semibold">{progress}%</span>
         </div>
       </motion.div>
 
