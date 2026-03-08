@@ -1442,60 +1442,6 @@ const Index = () => {
         </motion.div>
       </motion.section>
 
-      {/* ═══════════════ TRUST BAR ═══════════════ */}
-      {/* Item 26: Trust bar — overlap entrance with hero */}
-      <motion.section
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: "100px" }}
-        transition={{ duration: 0.5, ease: [0, 0, 0.2, 1] }}
-        className="py-12 md:py-14 px-6 relative overflow-hidden"
-        style={{
-          background: "linear-gradient(135deg, hsla(350,30%,93%,0.5) 0%, hsla(38,25%,97%,1) 40%, hsla(43,80%,94%,0.3) 100%)",
-        }}
-      >
-        <div className="absolute top-0 left-0 right-0 h-px section-divider" />
-        <div className="absolute bottom-0 left-0 right-0 h-px section-divider" />
-        <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-0">
-          {[
-            {
-              icon: <SystemIcon name="nav.ai" size="lg" className="text-gold" />,
-              number: "2,500+",
-              text: isKa ? "სადღეგრძელო წარმოთქმული" : "Toasts Delivered",
-              bg: "bg-gold-light/60",
-            },
-            {
-              icon: <HornIcon size={24} className="text-wine-deep" />,
-              number: "500+",
-              text: isKa ? "სუფრა ჩატარებული" : "Feasts Hosted",
-              bg: "bg-wine-light/60",
-            },
-            {
-              icon: <WineGlassIcon size={24} className="text-wine-glow" />,
-              number: "9",
-              text: isKa ? "რეგიონი დაფარული" : "Regions Covered",
-              bg: "bg-wine-light/40",
-            },
-          ].map((item, i) => (
-            <div
-              key={i}
-              className={`flex items-center gap-4 justify-center ${
-                i < 2 ? "md:border-r md:border-border/40" : ""
-              } py-2 md:py-0`}
-            >
-              <div className={`w-11 h-11 rounded-xl ${item.bg} flex items-center justify-center shrink-0`}>
-                {item.icon}
-              </div>
-              <div>
-                <span className="text-xl font-bold text-foreground block leading-tight">{item.number}</span>
-                <span className="text-sm text-muted-foreground font-medium">
-                  {item.text}
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </motion.section>
 
       {/* ═══════════════ FEATURES (zig-zag) ═══════════════ */}
       <div id="features">
