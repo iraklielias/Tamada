@@ -1096,34 +1096,35 @@ const Index = () => {
   const timelineRef = useRef<HTMLDivElement>(null);
   const [mockupActive, setMockupActive] = useState(false);
   const mockupContainerRef = useRef<HTMLDivElement>(null);
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+
+  // Item 22: Spring physics for 3D tilt
+  const mouseX = useSpring(0, { stiffness: 100, damping: 30 });
+  const mouseY = useSpring(0, { stiffness: 100, damping: 30 });
+  const tiltRotateX = useTransform(mouseY, [-1, 1], [4, -4]);
+  const tiltRotateY = useTransform(mouseX, [-1, 1], [-6, 6]);
 
   useEffect(() => {
     const timer = setTimeout(() => setMockupActive(true), 1800);
     return () => clearTimeout(timer);
   }, []);
 
-  // Mouse tracking for 3D tilt on mockup
+  // Mouse tracking for 3D tilt — feeds springs
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!mockupContainerRef.current) return;
-      const rect = mockupContainerRef.current.getBoundingClientRect();
-      const x = ((e.clientX - rect.left) / rect.width - 0.5) * 2;
-      const y = ((e.clientY - rect.top) / rect.height - 0.5) * 2;
-      setMousePos({ x, y });
-    };
     const el = mockupContainerRef.current;
-    if (el) {
-      el.addEventListener("mousemove", handleMouseMove);
-      el.addEventListener("mouseleave", () => setMousePos({ x: 0, y: 0 }));
-    }
-    return () => {
-      if (el) {
-        el.removeEventListener("mousemove", handleMouseMove);
-        el.removeEventListener("mouseleave", () => setMousePos({ x: 0, y: 0 }));
-      }
+    if (!el) return;
+    const handleMouseMove = (e: MouseEvent) => {
+      const rect = el.getBoundingClientRect();
+      mouseX.set(((e.clientX - rect.left) / rect.width - 0.5) * 2);
+      mouseY.set(((e.clientY - rect.top) / rect.height - 0.5) * 2);
     };
-  }, []);
+    const handleMouseLeave = () => { mouseX.set(0); mouseY.set(0); };
+    el.addEventListener("mousemove", handleMouseMove);
+    el.addEventListener("mouseleave", handleMouseLeave);
+    return () => {
+      el.removeEventListener("mousemove", handleMouseMove);
+      el.removeEventListener("mouseleave", handleMouseLeave);
+    };
+  }, [mouseX, mouseY]);
 
   const { scrollYProgress } = useScroll({
     target: heroRef,
@@ -1132,11 +1133,16 @@ const Index = () => {
   const heroOpacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
   const heroY = useTransform(scrollYProgress, [0, 0.8], [0, 80]);
   const heroMockupY = useTransform(scrollYProgress, [0, 0.8], [0, 50]);
-  // Multi-layer parallax within hero — each layer at a different speed for depth
+  // Item 21: Shadow depth tied to scroll
+  const mockupShadowOpacity = useTransform(scrollYProgress, [0, 0.5], [1, 0.3]);
+  // Multi-layer parallax
   const heroBadgeY = useTransform(scrollYProgress, [0, 0.6], [0, -30]);
-  
   const heroSubY = useTransform(scrollYProgress, [0, 0.6], [0, 18]);
   const heroCTAY = useTransform(scrollYProgress, [0, 0.6], [0, 28]);
+  // Item 24: Mobile mockup parallax
+  const heroMobileMockupY = useTransform(scrollYProgress, [0, 0.8], [0, 30]);
+  // Item 25: Bottom fade intensifies on scroll
+  const bottomFadeOpacity = useTransform(scrollYProgress, [0, 0.4], [0.6, 1]);
 
   const { scrollYProgress: timelineProgress } = useScroll({
     target: timelineRef,
