@@ -632,7 +632,7 @@ async function getOrCreateSession(apiKeyId: string, externalUserId: string, lang
   return { session: newSession, isNew: true };
 }
 
-async function loadRecentMessages(sessionId: string, limit = 10) {
+async function loadRecentMessages(sessionId: string, limit = 20) {
   const db = getSupabaseAdmin();
   const { data } = await db
     .from("external_chat_messages")
@@ -1205,6 +1205,7 @@ async function handleClearHistory(body: Record<string, unknown>, apiKeyData: Rec
 
   if (session) {
     await db.from("external_chat_messages").delete().eq("session_id", session.id);
+    await db.from("external_chat_sessions").update({ gathered_params: {} }).eq("id", session.id);
   }
 
   return new Response(JSON.stringify({ success: true }), {
