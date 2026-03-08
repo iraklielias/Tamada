@@ -1131,9 +1131,11 @@ const Index = () => {
   const heroOpacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
   const heroY = useTransform(scrollYProgress, [0, 0.8], [0, 80]);
   const heroMockupY = useTransform(scrollYProgress, [0, 0.8], [0, 50]);
-  // Multi-layer parallax within hero
-  const heroBadgeY = useTransform(scrollYProgress, [0, 0.5], [0, -15]);
-  const heroSubY = useTransform(scrollYProgress, [0, 0.5], [0, 12]);
+  // Multi-layer parallax within hero — each layer at a different speed for depth
+  const heroBadgeY = useTransform(scrollYProgress, [0, 0.6], [0, -30]);
+  const heroHeadlineY = useTransform(scrollYProgress, [0, 0.6], [0, -12]);
+  const heroSubY = useTransform(scrollYProgress, [0, 0.6], [0, 18]);
+  const heroCTAY = useTransform(scrollYProgress, [0, 0.6], [0, 28]);
 
   const { scrollYProgress: timelineProgress } = useScroll({
     target: timelineRef,
@@ -1229,7 +1231,7 @@ const Index = () => {
               <motion.h1
                 variants={heroHeadlineReveal}
                 className="font-display text-foreground mb-5"
-                style={{ fontSize: "clamp(2.6rem, 5.5vw, 4.2rem)", lineHeight: 1.08, letterSpacing: "-0.03em" }}
+                style={{ y: heroHeadlineY, fontSize: "clamp(2.6rem, 5.5vw, 4.2rem)", lineHeight: 1.08, letterSpacing: "-0.03em" }}
               >
                 {isKa ? (
                   <>
@@ -1272,7 +1274,7 @@ const Index = () => {
                   : "Plan your supra in 60 seconds. AI writes your toasts. Go live and let the tradition flow."}
               </motion.p>
 
-              <motion.div variants={heroCTAReveal} className="flex flex-col sm:flex-row items-start gap-4 mb-10">
+              <motion.div variants={heroCTAReveal} style={{ y: heroCTAY }} className="flex flex-col sm:flex-row items-start gap-4 mb-10">
                 <Button variant="hero" size="lg" asChild className="btn-shimmer cta-glow h-14 px-10 text-lg rounded-xl shadow-wine">
                   <Link to="/auth/signup">
                     {isKa ? "დაიწყე უფასოდ" : "Start free"}
