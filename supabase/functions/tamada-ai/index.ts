@@ -963,6 +963,44 @@ ${p.language === "en" ? "- ენა: მხოლოდ ინგლისუ�
     "estimated_duration_minutes": 2
   }
 }`;
+    } else if (action === "refine_toast") {
+      const rt = body.refine_params || {};
+      const currentToast = rt.current_toast || "";
+      const instructions = rt.instructions || "";
+      const styleOverrides = rt.style_overrides || {};
+      const origParams = rt.generation_params || {};
+
+      const overrideLines: string[] = [];
+      if (styleOverrides.tone) overrideLines.push("- tone: " + styleOverrides.tone);
+      if (styleOverrides.length) overrideLines.push("- length: " + (styleOverrides.length === "shorter" ? "shorter" : "longer"));
+      if (styleOverrides.style) overrideLines.push("- style: " + styleOverrides.style);
+
+      userMessage = `The user already received a toast and wants to refine it.
+
+Current toast:
+"""
+${currentToast}
+"""
+
+${instructions ? `User instruction: "${instructions}"` : ""}
+${overrideLines.length > 0 ? `Style changes:\n${overrideLines.join("\n")}` : ""}
+${origParams.occasion_type ? `- Original occasion: ${origParams.occasion_type}` : ""}
+${origParams.formality_level ? `- Formality: ${origParams.formality_level}` : ""}
+${origParams.region ? `- Region: ${origParams.region}` : ""}
+
+Refine the existing toast according to the instructions. Keep the core structure but improve it.
+Respond strictly in JSON format:
+{
+  "title_ka": "...", "body_ka": "...", "title_en": "...", "body_en": "...",
+  "metadata": { "toast_type": "${origParams.toast_type || "custom"}", "region_style": "${origParams.region || "general"}", "tone": "${styleOverrides.tone || origParams.tone || "traditional"}", "complexity": "moderate", "generation_type": "refined" },
+  "delivery_guidance": {
+    "recommended_pace": "slow|moderate|conversational (pick one)",
+    "emotional_peak_location": "beginning|middle|end (pick one)",
+    "pause_suggestions": ["after which sentence to pause"],
+    "glass_raise_moment": "when to raise the glass",
+    "estimated_duration_minutes": 2
+  }
+}`;
     } else if (action === "regenerate" || action === "refine") {
       const r = refinement_params || {};
       userMessage = `მომხმარებელმა უკვე მიიღო სადღეგრძელო და სურს ცვლილება.
