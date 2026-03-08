@@ -421,7 +421,7 @@ function SceneChat({ active }: { active: boolean }) {
               transition={{ type: "spring", stiffness: 260, damping: 20 }}
               className="flex justify-end"
             >
-              <div className="max-w-[80%] px-3 py-2 rounded-2xl rounded-br-md bg-wine-deep text-white text-[10px] leading-relaxed">
+              <div className="max-w-[80%] px-3 py-2 rounded-2xl rounded-br-md bg-wine-deep text-white text-[11px] leading-relaxed">
                 ქორწილისთვის სადღეგრძელო მინდა
               </div>
             </motion.div>
