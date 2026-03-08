@@ -1375,7 +1375,7 @@ const Index = () => {
               animate="animate"
               variants={heroMockupReveal}
             >
-              <div className="mockup-float-delayed">
+              <div className="mockup-float-delayed-v2">
                 <ProductMockup active={mockupActive} />
               </div>
             </motion.div>
