@@ -12,7 +12,7 @@ import {
 import HornIcon from "@/components/icons/HornIcon";
 import WineGlassIcon from "@/components/icons/WineGlassIcon";
 import QvevriIcon from "@/components/icons/QvevriIcon";
-import HeroMockupStory from "@/components/HeroMockupStory";
+import HeroInteractiveDemo from "@/components/HeroInteractiveDemo";
 import {
   heroStagger,
   heroBadgeReveal,
@@ -1377,7 +1377,7 @@ const Index = () => {
               variants={heroMockupReveal}
             >
               <div className="mockup-float-delayed-v2">
-                <HeroMockupStory active={mockupActive} />
+                <HeroInteractiveDemo active={mockupActive} language={isKa ? "ka" : "en"} />
               </div>
             </motion.div>
 
@@ -1389,7 +1389,7 @@ const Index = () => {
               transition={{ duration: 0.7, delay: 1.2, ease: [0, 0, 0.2, 1] }}
             >
               <div className="max-w-sm mx-auto">
-                <HeroMockupStory active={mockupActive} />
+                <HeroInteractiveDemo active={mockupActive} language={isKa ? "ka" : "en"} />
               </div>
             </motion.div>
           </div>

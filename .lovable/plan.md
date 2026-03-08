@@ -1,92 +1,109 @@
 
 
-## Interactive Hero Demo — Final Execution Strategy
+## TAMADA — Status Audit & Master Execution Plan
 
-### What We're Building
+### What Is Built
 
-Replace the passive auto-playing `HeroMockupStory` with a 3-step interactive mini-demo inside the same browser chrome. Visitors pick an occasion, watch AI generate a real toast, then see the result with a conversion CTA. The old auto-play animation runs as idle state before interaction.
+| Area | Status |
+|------|--------|
+| Landing page (`/`) | Done — hero, features, how-it-works, footer |
+| Auth (login, signup, callback) | Done — email/password, onAuthStateChange, protected routes |
+| Onboarding wizard (`/onboarding`) | Done — 4 steps: name, region, experience, occasions |
+| App shell (sidebar + bottom nav) | Done — collapsible sidebar, mobile bottom nav, profile footer |
+| Dashboard (`/dashboard`) | Done — greeting, quick actions, recent feasts, popular toasts |
+| Toasts browse (`/toasts`) | Done — search, occasion/formality filters, favorite toggle |
+| AI Generator (`/ai-generate`) | Done — occasion/formality/topic form, edge function, save to favorites |
+| Favorites (`/favorites`) | Done — list system + custom favorites, remove |
+| Library (`/library`) | Done — reads toast_templates (currently 0 rows) |
+| Profile (`/profile`) | Done — read-only display, logout |
+| Edge function: `generate-toast` | Done — Lovable AI gateway, JSON parse |
+| Database schema + RLS | Done — all 11 tables, policies in place |
+| Seed data: toasts | Done — 11 system toasts |
 
-### Flow
+### What Is NOT Built
 
-```text
-IDLE STATE (before interaction)
-  Current HeroMockupStory auto-plays at full opacity
-  Overlaid: subtle pulsing "სცადე ახლავე ▼" indicator
+| Area | Spec Section |
+|------|-------------|
+| **Feast CRUD** — `/feasts`, `/feasts/new`, `/feasts/:id` | Sections 3, 4, 5 |
+| **Live Feast Mode** — `/feasts/:id/live` with timer, toast progression, alerts, audio | Section 6 |
+| **Alaverdi tracking** — FAB, guest assignment, count increment | Section 6 |
+| **Co-Tamada / Realtime** — share code, join link, Supabase Realtime sync | Section 6 + Realtime spec |
+| **Toast template seeding** — 7 templates with JSONB sequences | Seed Data |
+| **More sample toasts** — spec calls for 50-100; we have 11 | Seed Data |
+| **Feast plan from template** — selecting a template populates feast_toasts | Section 4 |
+| **AI Feast Plan generator** — `generate-feast-plan` edge function | AI Integration |
+| **Pro gating / useProGate hook** — daily limits, feature locks, upsell modals | Free vs Pro |
+| **Upgrade page** (`/upgrade`) — comparison table, Stripe checkout | Section 11 |
+| **Stripe integration** — checkout session, webhook, subscription management | Edge Functions |
+| **Profile editing** — avatar upload, edit name/region/experience/language | Section 10 |
+| **PDF export** — jsPDF feast plan export (Pro) | Section 5 |
+| **i18n** — i18next setup, language toggle, all strings externalized | i18n spec |
+| **Dark mode** | Design System |
+| **Keyboard shortcuts** | Desktop spec |
+| **Additional occasion types** in filters (christening, guest_reception, friendly_gathering) | Throughout |
+| **config.toml** — `generate-toast` function entry with `verify_jwt = false` | Edge function config |
 
-USER CLICKS → STEP 1: Pick Occasion
-  2×2 grid of occasion cards (centered, generous spacing)
-  ┌──────────────┐  ┌──────────────┐
-  │  💒 ქორწილი   │  │  🎂 დაბადება  │
-  └──────────────┘  └──────────────┘
-  ┌──────────────┐  ┌──────────────┐
-  │  🤝 მეგობარს  │  │  🏠 სტუმარს   │
-  └──────────────┘  └──────────────┘
-  Bottom: 3-step progress dots (step 1 active)
+---
 
-STEP 2: AI Generating
-  Shimmer skeletons (1.2s) → typed title → typed body
-  Bottom: pulsing "გაგრძელება →" button appears after typing
-  Progress dots (step 2 active)
+### Master Execution Plan (8 Phases)
 
-STEP 3: Result + CTA
-  Full toast card with copy button
-  "მოგეწონა?" text + wine-gradient "დაიწყე უფასოდ" CTA
-  "სხვა სცადე" reset link
-  Progress dots (step 3 active)
-```
+#### Phase 8 — Seed Data & Config Fixes
+- Seed 7 toast templates into `toast_templates` table (wedding, birthday, memorial, guest reception, holiday, corporate, friendly gathering) with proper `toast_sequence` JSONB arrays
+- Add `[functions.generate-toast]` with `verify_jwt = false` to `supabase/config.toml`
+- Add missing occasion types to all filter dropdowns across pages (christening, guest_reception, friendly_gathering, other)
 
-### Layout & Spacing Rules
+#### Phase 9 — Feast CRUD (Core)
+- Create `/feasts` page — list user's feasts with status filter pills + search
+- Create `/feasts/new` page — multi-section form: basic info, details (guest count, formality, region, duration), template selection, optional guest list
+- Create `/feasts/:id` page — tabbed view (Plan, Guests, Details) with toast timeline, guest management, edit metadata, delete
+- Add routes to `App.tsx`, add "სუფრები" nav item to sidebar and bottom nav
+- Dashboard "ახალი სუფრა" quick action routes to `/feasts/new`; feast cards link to `/feasts/:id`
 
-- **Mockup container**: Same browser chrome (dots, URL bar) as current. Inner content area: `p-5 sm:p-6`, `min-h-[300px] sm:min-h-[340px]`
-- **Occasion cards**: `gap-3`, each card `px-4 py-3.5 rounded-xl`, centered in container with `max-w-[280px] mx-auto`
-- **Step transitions**: 500ms crossfade (same as current `sceneVariants`), no wipe
-- **Progress dots**: 3 pills at bottom in the indicator bar area, with step labels ("აირჩიე", "იქმნება", "შედეგი")
-- **CTA button**: Full-width within card, `h-11 rounded-xl`, wine-gradient
-- **All text**: Minimum 11px for body, 12px for labels, 13px for titles — nothing smaller
+#### Phase 10 — Live Feast Mode
+- Create `/feasts/:id/live` — full-screen immersive view
+- Current toast display with complete text, toast number, type
+- Next-up preview (2 upcoming toasts)
+- Elapsed time tracker + progress bar
+- "Completed" and "Skip" buttons that update `feast_toasts` status
+- Pause/Resume/End feast controls updating `feasts.status`
+- Timer alert system: amber glow + audio chime at configurable intervals before next toast (Web Audio API)
+- Alaverdi FAB: bottom sheet with guest list, tap to assign, increment `alaverdi_count` via `increment_alaverdi` RPC
 
-### AI Integration
+#### Phase 11 — Co-Tamada & Realtime
+- Generate `share_code` on feast, build `/feasts/:id/join/:shareCode` route
+- Add user as `feast_collaborator` on join
+- Subscribe to Supabase Realtime channels for `feast_toasts`, `feast_guests`, `feasts` changes
+- Enable realtime publication on relevant tables (`ALTER PUBLICATION supabase_realtime ADD TABLE ...`)
+- Co-Tamada sees live view with read-only controls (can assign alaverdi, cannot pause/end)
+- Online indicator for connected collaborators
 
-Call existing `tamada-ai` edge function directly via `supabase.functions.invoke("tamada-ai", { body })`:
-- `action: "generate_toast"`
-- `generation_params: { occasion_type, formality_level: "formal", language }`
-- No auth header needed — function handles null userId gracefully
-- **Fallback toast**: Hardcoded beautiful example if API fails, so demo never breaks
+#### Phase 12 — Profile Editing & Pro Gating
+- Make profile page editable: avatar upload (to `avatars` bucket), display name, region, experience, language
+- Build `useProGate` hook checking `is_pro` + `pro_expires_at`
+- Enforce free limits: 5 AI generations/day (server + client), 10 favorites, 1 active feast
+- Add server-side rate limit check in `generate-toast` edge function using `get_daily_ai_count`
+- Soft upsell modals when limits reached; gold lock icons on Pro features
+- Create `/upgrade` page with feature comparison table and pricing
 
-### Files to Change
+#### Phase 13 — Stripe & Subscriptions
+- Enable Stripe integration
+- Create `create-checkout-session` edge function
+- Create `stripe-webhook` edge function handling subscription lifecycle events
+- Wire `/upgrade` page CTA to checkout session
+- Add `/profile/subscription` route for managing active subscription
 
-| File | What |
-|------|------|
-| `src/components/HeroInteractiveDemo.tsx` | **New file** — 3-step interactive component with idle/picker/generating/result states |
-| `src/components/HeroMockupStory.tsx` | No changes — kept as idle background animation |
-| `src/pages/Index.tsx` | Swap `<HeroMockupStory>` for `<HeroInteractiveDemo>` which internally renders `HeroMockupStory` as idle state |
+#### Phase 14 — i18n & Polish
+- Set up i18next with `ka` (default) and `en` locales
+- Extract all hardcoded Georgian strings to locale JSON files
+- Add language toggle to sidebar footer and profile settings
+- Persist language choice to `profiles.preferred_language`
+- Toast content displays `_ka` or `_en` based on selected language
 
-### Component Architecture
-
-```text
-HeroInteractiveDemo
-├── state: "idle" | "pick" | "generating" | "result"
-├── idle → renders HeroMockupStory + "try it" overlay button
-├── pick → 2×2 occasion grid + step dots
-├── generating → shimmer → typed text (reuse useSceneTyping)
-│   └── calls supabase.functions.invoke("tamada-ai")
-├── result → toast card + copy + CTA + "try another"
-└── bottom bar: 3 step indicators with labels
-```
-
-### Interaction Details
-
-- **Idle → Pick**: User clicks the "სცადე" overlay button. Auto-play stops, crossfade to picker.
-- **Pick → Generating**: User clicks an occasion card. Card briefly scales up, then crossfade to generation view.
-- **Generating → Result**: Auto-transition after typing completes + 1s settle. Or user clicks "გაგრძელება".
-- **Result → Pick**: "სხვა სცადე" link resets to picker (not idle).
-- **Error handling**: If API call fails within 8s, show fallback toast with a small "offline" badge.
-- **Cache**: Store last generated toast per occasion in component state to avoid re-fetching on "try another" → same occasion.
-
-### Spacing & Visual Hierarchy
-
-- Occasion cards: Wine-light background on hover, wine-muted border, `transition-all duration-200`
-- Between sections: consistent `gap-4` vertical rhythm
-- Toast result card: Same styling as `SceneResult` (wine-gradient top bar, bordered card)
-- CTA section: `mt-4 pt-4 border-t border-border/30` separator before conversion block
-- "Try another" link: `text-xs text-muted-foreground underline` — subtle, not competing with CTA
+#### Phase 15 — Advanced Features & Hardening
+- `generate-feast-plan` edge function — AI-generated toast schedule based on occasion/duration/formality
+- PDF export of feast plan using jsPDF (Pro only)
+- Dark mode support
+- Keyboard shortcuts in live feast mode (Space = complete, Esc = pause)
+- Additional seed toasts (expand from 11 to 50+)
+- Error boundary components, offline queue for failed writes, optimistic updates throughout
 
