@@ -883,7 +883,14 @@ async function handleChatMessage(body: Record<string, unknown>, apiKeyData: Reco
   const { content: aiContent, tokensUsed, durationMs } = await generateAIResponse([...gatheredContext, ...recentMessages]);
 
   // Extract params from AI response
-  const { cleanContent, params: extractedParams } = extractParams(aiContent);
+  let { cleanContent, params: extractedParams } = extractParams(aiContent);
+
+  // Guard: if AI responded with only a params block, provide fallback text
+  if (!cleanContent.replace(/[\s\-=_*#`~>|.,:;!?"""''()\[\]{}]/g, "").trim()) {
+    cleanContent = language === "ka"
+      ? "მადლობა, ინფორმაცია მივიღე! ახლა მოვამზადებ სადღეგრძელოს..."
+      : "Thanks, got it! Let me prepare the toast now...";
+  }
 
   // Store gathered params on session
   if (extractedParams) {
