@@ -209,8 +209,8 @@ function SceneResult({ active }: { active: boolean }) {
     if (!active) { setPhase(0); setShowGlow(false); return; }
     const t0 = setTimeout(() => { setPhase(1); setShowGlow(true); }, 1200);
     const t0b = setTimeout(() => setShowGlow(false), 1600);
-    const t2 = setTimeout(() => setPhase(2), 2500);
-    const t3 = setTimeout(() => setPhase(3), 5000);
+    const t2 = setTimeout(() => setPhase(2), 1800);
+    const t3 = setTimeout(() => setPhase(3), 5500);
     return () => { clearTimeout(t0); clearTimeout(t0b); clearTimeout(t2); clearTimeout(t3); };
   }, [active]);
 
