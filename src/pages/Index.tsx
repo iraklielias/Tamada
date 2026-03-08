@@ -1377,32 +1377,33 @@ const Index = () => {
               </motion.div>
             </motion.div>
 
-            {/* Right: product mockup -- 3D tilt on hover, parallax, stronger glow */}
+            {/* Right: product mockup — Item 22: spring physics tilt, Item 23: landing bounce */}
             <motion.div
               ref={mockupContainerRef}
               className="relative glow-behind-strong hidden lg:block"
               style={{
                 perspective: "1200px",
                 y: heroMockupY,
-                rotateX: mousePos.y * -4,
-                rotateY: mousePos.x * 6,
-                transition: "transform 0.15s ease-out",
+                rotateX: tiltRotateX,
+                rotateY: tiltRotateY,
+                opacity: mockupShadowOpacity,
               }}
-              initial="initial"
-              animate="animate"
-              variants={heroMockupReveal}
+              initial={{ opacity: 0, y: 50, rotateX: 12, rotateY: -8, scale: 0.92 }}
+              animate={{ opacity: 1, y: [50, -4, 0], rotateX: 0, rotateY: 0, scale: 1 }}
+              transition={{ duration: 1.1, ease: [0, 0, 0.2, 1], delay: 0.6, y: { times: [0, 0.7, 1], duration: 1.2, delay: 0.6 } }}
             >
               <div className="mockup-float-delayed-v2">
                 <HeroMockupStory active={mockupActive} />
               </div>
             </motion.div>
 
-            {/* Mobile: simplified mockup preview */}
+            {/* Mobile — Item 24: lighter scroll parallax */}
             <motion.div
               className="lg:hidden relative"
               initial={{ opacity: 0, y: 30, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               transition={{ duration: 0.7, delay: 1.2, ease: [0, 0, 0.2, 1] }}
+              style={{ y: heroMobileMockupY }}
             >
               <div className="max-w-sm mx-auto">
                 <HeroMockupStory active={mockupActive} />
@@ -1411,8 +1412,8 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Hero bottom fade transition */}
-        <div className="absolute bottom-0 left-0 right-0 h-32 pointer-events-none" style={{ background: "linear-gradient(to bottom, transparent 0%, hsl(var(--background)) 100%)" }} />
+        {/* Item 25: Taller bottom fade, intensifies on scroll */}
+        <motion.div className="absolute bottom-0 left-0 right-0 h-40 pointer-events-none" style={{ background: "linear-gradient(to bottom, transparent 0%, hsl(var(--background)) 100%)", opacity: bottomFadeOpacity }} />
 
         {/* Scroll indicator */}
         <motion.div
