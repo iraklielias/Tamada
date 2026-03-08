@@ -1251,6 +1251,301 @@ ${fc.skipped_count ? `- გამოტოვებული: ${fc.skipped_count
         JSON.stringify({ success: true, signal }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
+    } else if (action === "chat_generate") {
+      // ── Internal conversational chat (PRO feature) ──
+      const chatMessages = body.chat_messages || [];
+      const chatLanguage = body.language || "ka";
+      const chatStyleOverrides = body.style_overrides || {};
+
+      if (!Array.isArray(chatMessages) || chatMessages.length === 0) {
+        return new Response(
+          JSON.stringify({ error: "chat_messages array is required" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const langEnforcement = `[Language: ${chatLanguage}. Respond ONLY in ${chatLanguage === "ka" ? "Georgian" : "English"}. No bilingual output.]`;
+      const voiceModeHint = body.voice_mode
+        ? "\nVOICE_CONVERSATION_MODE is active. Keep responses concise (1-2 sentences) but ALWAYS follow the conversational parameter-gathering rules."
+        : "";
+      const styleHint = Object.keys(chatStyleOverrides).length > 0
+        ? `\n[Style overrides: ${JSON.stringify(chatStyleOverrides)}]`
+        : "";
+
+      const systemMessages = [
+        { role: "system", content: fullSystemPrompt },
+        { role: "system", content: langEnforcement + voiceModeHint + styleHint },
+      ];
+
+      const aiMessages = chatMessages.map((m: any) => ({
+        role: m.role === "assistant" ? "assistant" : "user",
+        content: m.content,
+      }));
+
+      const chatResponse = await fetch(
+        "https://ai.gateway.lovable.dev/v1/chat/completions",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          },
+          body: JSON.stringify({
+            model: body.voice_mode ? "google/gemini-3-flash-preview" : "google/gemini-3-pro-preview",
+            messages: [...systemMessages, ...aiMessages],
+            temperature: 0.8,
+            max_tokens: 1500,
+          }),
+        }
+      );
+
+      if (!chatResponse.ok) {
+        const errText = await chatResponse.text();
+        if (chatResponse.status === 429) {
+          return new Response(JSON.stringify({ error: "AI rate limit exceeded." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+        throw new Error(`AI API error: ${chatResponse.status} ${errText}`);
+      }
+
+      const chatResult = await chatResponse.json();
+      const chatContent = chatResult.choices?.[0]?.message?.content || "";
+      const chatTokens = chatResult.usage?.total_tokens || 0;
+
+      // Extract params blocks
+      const paramsMatch = chatContent.match(/===PARAMS===\s*([\s\S]*?)\s*===END_PARAMS===/);
+      let cleanContent = chatContent.replace(/===PARAMS===[\s\S]*?===END_PARAMS===/, "").trim();
+      let extractedParams: Record<string, unknown> | null = null;
+      if (paramsMatch) {
+        try { extractedParams = JSON.parse(paramsMatch[1].trim()); } catch {}
+      }
+
+      // Guard against empty content
+      if (!cleanContent.replace(/[\s\-=_*#`~>|.,:;!?"""''()\[\]{}]/g, "").trim()) {
+        cleanContent = chatLanguage === "ka"
+          ? "მადლობა, ინფორმაცია მივიღე! ახლა მოვამზადებ სადღეგრძელოს..."
+          : "Thanks, got it! Let me prepare the toast now...";
+      }
+
+      // Detect toast
+      const hasToastDelimiters = cleanContent.includes("===TOAST_START===") || cleanContent.includes("===TOAST_END===");
+      const hasCheers = cleanContent.includes("გაუმარჯოს");
+      const hasMemorial = cleanContent.includes("ნათელი იყოს") || cleanContent.includes("ღვთის შეუნდოს");
+      const isToast = hasToastDelimiters || hasCheers || hasMemorial;
+
+      // Parse structured toast from delimiters
+      let structuredToast: Record<string, unknown> | null = null;
+      if (hasToastDelimiters) {
+        const toastMatch = cleanContent.match(/===TOAST_START===\s*([\s\S]*?)\s*===TOAST_END===/);
+        if (toastMatch) {
+          const toastText = toastMatch[1].trim();
+          structuredToast = {
+            title_ka: "სადღეგრძელო",
+            body_ka: toastText,
+            metadata: { generation_type: "conversational" },
+          };
+        }
+      }
+
+      // Log generation
+      if (userId) {
+        await supabase.from("ai_generation_log").insert({
+          user_id: userId,
+          generation_type: "chat_generate",
+          input_params: { message_count: chatMessages.length, language: chatLanguage },
+          output_text: cleanContent.substring(0, 500),
+          model_used: body.voice_mode ? "google/gemini-3-flash-preview" : "google/gemini-3-pro-preview",
+          tokens_used: chatTokens,
+        });
+      }
+
+      return new Response(JSON.stringify({
+        success: true,
+        content: cleanContent,
+        message_type: isToast ? "toast" : "text",
+        toast: structuredToast,
+        extracted_params: extractedParams,
+        tokens_used: chatTokens,
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    } else if (action === "chat_voice") {
+      // ── Internal voice chat (PRO feature) ──
+      const audioBase64 = body.audio_base64 as string;
+      const audioFormat = (body.audio_format as string) || "webm";
+      const chatLanguage = (body.language as string) || "ka";
+      const chatMessages = body.chat_messages || [];
+
+      if (!audioBase64) {
+        return new Response(JSON.stringify({ error: "audio_base64 is required" }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // Import base64 decode
+      const { decode: b64Decode } = await import("https://deno.land/std@0.168.0/encoding/base64.ts");
+      const { encode: b64Encode } = await import("https://deno.land/std@0.168.0/encoding/base64.ts");
+
+      // STT
+      const ELEVENLABS_API_KEY = Deno.env.get("ELEVENLABS_API_KEY");
+      if (!ELEVENLABS_API_KEY) throw new Error("ELEVENLABS_API_KEY not configured");
+
+      const audioBytes = b64Decode(audioBase64);
+      const blob = new Blob([audioBytes], { type: `audio/${audioFormat}` });
+      const sttFormData = new FormData();
+      sttFormData.append("file", blob, `recording.${audioFormat}`);
+      sttFormData.append("model_id", "scribe_v2");
+      sttFormData.append("language_code", chatLanguage === "en" ? "eng" : "kat");
+      sttFormData.append("tag_audio_events", "false");
+
+      const sttResponse = await fetch("https://api.elevenlabs.io/v1/speech-to-text", {
+        method: "POST",
+        headers: { "xi-api-key": ELEVENLABS_API_KEY },
+        body: sttFormData,
+      });
+
+      if (!sttResponse.ok) {
+        const errText = await sttResponse.text();
+        console.error("STT error:", sttResponse.status, errText);
+        throw new Error(`STT failed: ${sttResponse.status}`);
+      }
+
+      const sttData = await sttResponse.json();
+      const transcribedText = (sttData.text || "").replace(/\[.*?\]/g, "").trim();
+
+      if (!transcribedText) {
+        return new Response(JSON.stringify({ success: false, error: "No speech detected" }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // AI Generation
+      const langEnforcement = `[Language: ${chatLanguage}. Respond ONLY in ${chatLanguage === "ka" ? "Georgian" : "English"}. No bilingual output.]`;
+      const systemMessages = [
+        { role: "system", content: fullSystemPrompt },
+        { role: "system", content: langEnforcement + "\nVOICE_CONVERSATION_MODE is active. Keep responses concise (1-2 sentences) but ALWAYS follow the conversational parameter-gathering rules. NEVER respond with ONLY a ===PARAMS=== block." },
+      ];
+
+      const aiMessages = [
+        ...chatMessages.map((m: any) => ({ role: m.role === "assistant" ? "assistant" : "user", content: m.content })),
+        { role: "user", content: transcribedText },
+      ];
+
+      const voiceAiResponse = await fetch(
+        "https://ai.gateway.lovable.dev/v1/chat/completions",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          },
+          body: JSON.stringify({
+            model: "google/gemini-3-flash-preview",
+            messages: [...systemMessages, ...aiMessages],
+            temperature: 0.8,
+            max_tokens: 1500,
+          }),
+        }
+      );
+
+      if (!voiceAiResponse.ok) {
+        throw new Error(`AI API error: ${voiceAiResponse.status}`);
+      }
+
+      const voiceAiResult = await voiceAiResponse.json();
+      let voiceContent = voiceAiResult.choices?.[0]?.message?.content || "";
+
+      // Extract params
+      const vParamsMatch = voiceContent.match(/===PARAMS===\s*([\s\S]*?)\s*===END_PARAMS===/);
+      voiceContent = voiceContent.replace(/===PARAMS===[\s\S]*?===END_PARAMS===/, "").trim();
+      let voiceExtractedParams: Record<string, unknown> | null = null;
+      if (vParamsMatch) {
+        try { voiceExtractedParams = JSON.parse(vParamsMatch[1].trim()); } catch {}
+      }
+
+      // Guard empty content
+      if (!voiceContent.replace(/[\s\-=_*#`~>|.,:;!?"""''()\[\]{}]/g, "").trim()) {
+        voiceContent = chatLanguage === "ka"
+          ? "მადლობა, ინფორმაცია მივიღე!"
+          : "Thanks, got it!";
+      }
+
+      // TTS
+      const VOICE_ID = Deno.env.get("ELEVENLABS_VOICE_ID") || "JBFqnCBsd6RMkjVDRZzb";
+      const ttsText = voiceContent.replace(/===TOAST_START===|===TOAST_END===|---/g, "").trim();
+      const speakable = ttsText.replace(/[\s\-=_*#`~>|.,:;!?"""''()\[\]{}]/g, "").trim();
+
+      let audioUrl: string | null = null;
+      let audioDuration: number | null = null;
+
+      if (speakable) {
+        try {
+          const ttsResponse = await fetch(
+            `https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}?output_format=mp3_44100_128`,
+            {
+              method: "POST",
+              headers: {
+                "xi-api-key": ELEVENLABS_API_KEY,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                text: ttsText,
+                model_id: "eleven_v3",
+                language_code: chatLanguage === "en" ? "en" : "ka",
+                voice_settings: { stability: 0.5, similarity_boost: 0.75, style: 0.4 },
+              }),
+            }
+          );
+
+          if (ttsResponse.ok) {
+            const ttsBuffer = await ttsResponse.arrayBuffer();
+            const ttsBytes = new Uint8Array(ttsBuffer);
+            const msgId = crypto.randomUUID();
+            const path = `internal-chat/${userId || "anon"}/${msgId}.mp3`;
+
+            const { error: uploadErr } = await supabase.storage
+              .from("chat-audio")
+              .upload(path, ttsBytes, { contentType: "audio/mpeg", upsert: true });
+
+            if (!uploadErr) {
+              const { data: urlData } = supabase.storage.from("chat-audio").getPublicUrl(path);
+              audioUrl = urlData.publicUrl;
+              audioDuration = Math.max(1, ttsText.length / 15);
+            }
+          } else {
+            console.warn("TTS failed:", ttsResponse.status, "— returning text-only");
+          }
+        } catch (ttsErr) {
+          console.warn("TTS error:", ttsErr, "— returning text-only");
+        }
+      }
+
+      // Log
+      if (userId) {
+        await supabase.from("ai_generation_log").insert({
+          user_id: userId,
+          generation_type: "chat_voice",
+          input_params: { language: chatLanguage, transcribed_length: transcribedText.length },
+          output_text: voiceContent.substring(0, 500),
+          model_used: "google/gemini-3-flash-preview",
+        });
+      }
+
+      return new Response(JSON.stringify({
+        success: true,
+        transcription: { original_audio_text: transcribedText, language_detected: chatLanguage },
+        message: {
+          id: crypto.randomUUID(),
+          role: "assistant",
+          content: voiceContent,
+          message_type: voiceContent.includes("===TOAST_START===") ? "toast" : "text",
+          audio_url: audioUrl,
+          audio_duration_seconds: audioDuration,
+          created_at: new Date().toISOString(),
+        },
+        extracted_params: voiceExtractedParams,
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     } else {
       return new Response(
         JSON.stringify({ error: `Unknown action: ${action}` }),
