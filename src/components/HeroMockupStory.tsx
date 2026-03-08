@@ -375,9 +375,12 @@ function SceneLiveFeast({ active }: { active: boolean }) {
       </motion.div>
 
       <motion.div variants={staggerChild} className="flex items-center gap-1.5 pt-1.5">
-        {["✓ დასრულება", "⏭ გამოტოვება"].map((label) => (
-          <span key={label} className="text-[8px] px-2 py-1 rounded-md bg-surface-1 border border-border text-muted-foreground">{label}</span>
-        ))}
+        <span className="text-[9px] px-2.5 py-1 rounded-md bg-surface-1 border border-border text-muted-foreground flex items-center gap-1">
+          <Check className="h-2.5 w-2.5" /> დასრულება
+        </span>
+        <span className="text-[9px] px-2.5 py-1 rounded-md bg-surface-1 border border-border text-muted-foreground flex items-center gap-1">
+          <ArrowRight className="h-2.5 w-2.5" /> გამოტოვება
+        </span>
       </motion.div>
     </motion.div>
   );
