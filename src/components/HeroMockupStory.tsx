@@ -563,12 +563,8 @@ export default function HeroMockupStory({ active = false }: { active?: boolean }
   }, []);
 
   const handleDotClick = useCallback((s: SceneNum) => {
-    setShowWipe(true);
-    setTimeout(() => {
-      setScene(s);
-      setProgressKey((k) => k + 1);
-      setShowWipe(false);
-    }, 150);
+    setScene(s);
+    setProgressKey((k) => k + 1);
   }, []);
 
   const currentDuration = SCENE_META[scene - 1].duration;
