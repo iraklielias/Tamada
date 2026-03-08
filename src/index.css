@@ -378,9 +378,18 @@
     animation-delay: 1.6s;
     animation-fill-mode: backwards;
   }
+  .mockup-float-delayed-v2 {
+    animation: mockup-float-v2 5s ease-in-out infinite;
+    animation-delay: 1.6s;
+    animation-fill-mode: backwards;
+  }
   @keyframes mockup-float {
     0%, 100% { transform: translateY(0px); }
     50% { transform: translateY(-8px); }
+  }
+  @keyframes mockup-float-v2 {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-12px); }
   }
 
   /* Floating cultural icon perpetual float -- with subtle rotation */

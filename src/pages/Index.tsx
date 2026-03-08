@@ -1354,7 +1354,7 @@ const Index = () => {
                     ))}
                   </div>
                   <p className="text-xs text-foreground/70 italic truncate">
-                    {isKa ? "„სუფრა 10 წუთში დავგეგმე. ყველა ტიროდა."" : "\"Planned a supra in 10 min. Everyone cried.\""}
+                    {isKa ? "\u201Eსუფრა 10 წუთში დავგეგმე. ყველა ტიროდა.\u201C" : "\"Planned a supra in 10 min. Everyone cried.\""}
                   </p>
                 </div>
               </motion.div>
