@@ -1250,10 +1250,13 @@ const Index = () => {
               variants={heroStagger}
               style={{ y: heroY }}
             >
-              {/* Badge pill — with its own parallax */}
-              <motion.div variants={heroBadgeReveal} style={{ y: heroBadgeY }} className="mb-5">
-                <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-wine-light/60 border border-wine-muted/25 text-xs font-semibold text-wine-deep tracking-wide">
-                  <SystemIcon name="nav.ai" size="xs" />
+              {/* Badge pill — glass effect with animated glow */}
+              <motion.div variants={heroBadgeReveal} style={{ y: heroBadgeY }} className="mb-6">
+                <span className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-wine-light/40 backdrop-blur-md border border-wine-muted/30 text-xs font-bold text-wine-deep tracking-wide shadow-sm badge-glow-pulse">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-wine-glow opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-wine-deep" />
+                  </span>
                   {isKa ? "AI-ით გაძლიერებული სუფრის დაგეგმვა" : "AI-Powered Feast Planning"}
                 </span>
               </motion.div>
