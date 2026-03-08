@@ -495,8 +495,8 @@ function SceneAlaverdi({ active }: { active: boolean }) {
         <span className="text-[11px] font-semibold text-foreground">ალავერდი</span>
       </motion.div>
 
-      <div className="space-y-2.5 flex-1">
-        <motion.div variants={staggerChild} className="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-wine-light/40 border border-wine-muted/25"
+      <div className="space-y-3 flex-1">
+        <motion.div variants={staggerChild} className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg bg-wine-light/40 border border-wine-muted/25"
           initial="initial" animate={active ? "animate" : "initial"}>
           <div className="w-7 h-7 rounded-full wine-gradient flex items-center justify-center text-white text-[10px] font-bold">გ</div>
           <div className="flex-1 min-w-0">
