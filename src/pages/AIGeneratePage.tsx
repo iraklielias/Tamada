@@ -139,10 +139,13 @@ const AIGeneratePage = () => {
   const [refineTone, setRefineTone] = useState<string | null>(null);
   const [refineLength, setRefineLength] = useState<string | null>(null);
   const [refineStyle, setRefineStyle] = useState<string | null>(null);
+  // Chat/Voice mode state (PRO)
+  const [chatModeOpen, setChatModeOpen] = useState(false);
+  const [voiceModeOpen, setVoiceModeOpen] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { checkFeature, dailyAICount, limits, canGenerateAI } = useProGate();
+  const { checkFeature, dailyAICount, limits, canGenerateAI, isPro } = useProGate();
 
   const generate = useMutation({
     mutationFn: async () => {
