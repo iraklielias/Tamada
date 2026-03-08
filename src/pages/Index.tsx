@@ -1165,7 +1165,7 @@ function PricingSection({ isKa }: { isKa: boolean }) {
               </Link>
             </Button>
           </motion.div>
-        </div>
+        </motion.div>
       </div>
     </section>
   );
