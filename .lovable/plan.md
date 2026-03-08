@@ -1,109 +1,120 @@
 
 
-## TAMADA — Status Audit & Master Execution Plan
+# Hero Section UX Audit — Expert Assessment
 
-### What Is Built
+## Current Grades
 
-| Area | Status |
-|------|--------|
-| Landing page (`/`) | Done — hero, features, how-it-works, footer |
-| Auth (login, signup, callback) | Done — email/password, onAuthStateChange, protected routes |
-| Onboarding wizard (`/onboarding`) | Done — 4 steps: name, region, experience, occasions |
-| App shell (sidebar + bottom nav) | Done — collapsible sidebar, mobile bottom nav, profile footer |
-| Dashboard (`/dashboard`) | Done — greeting, quick actions, recent feasts, popular toasts |
-| Toasts browse (`/toasts`) | Done — search, occasion/formality filters, favorite toggle |
-| AI Generator (`/ai-generate`) | Done — occasion/formality/topic form, edge function, save to favorites |
-| Favorites (`/favorites`) | Done — list system + custom favorites, remove |
-| Library (`/library`) | Done — reads toast_templates (currently 0 rows) |
-| Profile (`/profile`) | Done — read-only display, logout |
-| Edge function: `generate-toast` | Done — Lovable AI gateway, JSON parse |
-| Database schema + RLS | Done — all 11 tables, policies in place |
-| Seed data: toasts | Done — 11 system toasts |
-
-### What Is NOT Built
-
-| Area | Spec Section |
-|------|-------------|
-| **Feast CRUD** — `/feasts`, `/feasts/new`, `/feasts/:id` | Sections 3, 4, 5 |
-| **Live Feast Mode** — `/feasts/:id/live` with timer, toast progression, alerts, audio | Section 6 |
-| **Alaverdi tracking** — FAB, guest assignment, count increment | Section 6 |
-| **Co-Tamada / Realtime** — share code, join link, Supabase Realtime sync | Section 6 + Realtime spec |
-| **Toast template seeding** — 7 templates with JSONB sequences | Seed Data |
-| **More sample toasts** — spec calls for 50-100; we have 11 | Seed Data |
-| **Feast plan from template** — selecting a template populates feast_toasts | Section 4 |
-| **AI Feast Plan generator** — `generate-feast-plan` edge function | AI Integration |
-| **Pro gating / useProGate hook** — daily limits, feature locks, upsell modals | Free vs Pro |
-| **Upgrade page** (`/upgrade`) — comparison table, Stripe checkout | Section 11 |
-| **Stripe integration** — checkout session, webhook, subscription management | Edge Functions |
-| **Profile editing** — avatar upload, edit name/region/experience/language | Section 10 |
-| **PDF export** — jsPDF feast plan export (Pro) | Section 5 |
-| **i18n** — i18next setup, language toggle, all strings externalized | i18n spec |
-| **Dark mode** | Design System |
-| **Keyboard shortcuts** | Desktop spec |
-| **Additional occasion types** in filters (christening, guest_reception, friendly_gathering) | Throughout |
-| **config.toml** — `generate-toast` function entry with `verify_jwt = false` | Edge function config |
+| Category | Grade | Score |
+|----------|-------|-------|
+| **Animation Quality** | D+ | 4/10 |
+| **Visual Hierarchy** | B- | 6.5/10 |
+| **Layout & Spacing** | B | 7/10 |
+| **Interactivity & Delight** | D | 3.5/10 |
+| **Performance Feel** | C | 5/10 |
+| **Mobile Experience** | C- | 4.5/10 |
+| **Overall Hero Impact** | C- | 5/10 |
 
 ---
 
-### Master Execution Plan (8 Phases)
+## What's Good
 
-#### Phase 8 — Seed Data & Config Fixes
-- Seed 7 toast templates into `toast_templates` table (wedding, birthday, memorial, guest reception, holiday, corporate, friendly gathering) with proper `toast_sequence` JSONB arrays
-- Add `[functions.generate-toast]` with `verify_jwt = false` to `supabase/config.toml`
-- Add missing occasion types to all filter dropdowns across pages (christening, guest_reception, friendly_gathering, other)
+- **Solid structural foundation**: Two-column hero with text left / mockup right is proven conversion layout
+- **Gradient mesh background**: The layered radial gradients create depth without being garish
+- **Social proof placement**: Mini-testimonial below CTA is strong conversion pattern
+- **Brand consistency**: Wine color palette, cultural icons, typography all cohesive
+- **Scroll indicator**: Mouse-wheel animation at bottom is a nice touch
+- **ProductMockup**: The animated dashboard mockup with live progress bar, staggered list items, and pulsing indicators is well-crafted
 
-#### Phase 9 — Feast CRUD (Core)
-- Create `/feasts` page — list user's feasts with status filter pills + search
-- Create `/feasts/new` page — multi-section form: basic info, details (guest count, formality, region, duration), template selection, optional guest list
-- Create `/feasts/:id` page — tabbed view (Plan, Guests, Details) with toast timeline, guest management, edit metadata, delete
-- Add routes to `App.tsx`, add "სუფრები" nav item to sidebar and bottom nav
-- Dashboard "ახალი სუფრა" quick action routes to `/feasts/new`; feast cards link to `/feasts/:id`
+---
 
-#### Phase 10 — Live Feast Mode
-- Create `/feasts/:id/live` — full-screen immersive view
-- Current toast display with complete text, toast number, type
-- Next-up preview (2 upcoming toasts)
-- Elapsed time tracker + progress bar
-- "Completed" and "Skip" buttons that update `feast_toasts` status
-- Pause/Resume/End feast controls updating `feasts.status`
-- Timer alert system: amber glow + audio chime at configurable intervals before next toast (Web Audio API)
-- Alaverdi FAB: bottom sheet with guest list, tap to assign, increment `alaverdi_count` via `increment_alaverdi` RPC
+## Why It Feels 4/10 — Root Cause Analysis
 
-#### Phase 11 — Co-Tamada & Realtime
-- Generate `share_code` on feast, build `/feasts/:id/join/:shareCode` route
-- Add user as `feast_collaborator` on join
-- Subscribe to Supabase Realtime channels for `feast_toasts`, `feast_guests`, `feasts` changes
-- Enable realtime publication on relevant tables (`ALTER PUBLICATION supabase_realtime ADD TABLE ...`)
-- Co-Tamada sees live view with read-only controls (can assign alaverdi, cannot pause/end)
-- Online indicator for connected collaborators
+### 1. Everything Animates the Same Way (Monotony)
+Every element uses the same pattern: `opacity: 0 → 1` + `y: N → 0`. Badge, headline, subtitle, CTA, testimonial — they all slide up with nearly identical easing and timing. The human eye reads this as a single "block reveal" rather than a choreographed sequence. There's no variation in animation *type* — no scale, no blur, no rotation, no spring physics on the text elements.
 
-#### Phase 12 — Profile Editing & Pro Gating
-- Make profile page editable: avatar upload (to `avatars` bucket), display name, region, experience, language
-- Build `useProGate` hook checking `is_pro` + `pro_expires_at`
-- Enforce free limits: 5 AI generations/day (server + client), 10 favorites, 1 active feast
-- Add server-side rate limit check in `generate-toast` edge function using `get_daily_ai_count`
-- Soft upsell modals when limits reached; gold lock icons on Pro features
-- Create `/upgrade` page with feature comparison table and pricing
+### 2. Stagger Timing Is Too Tight
+`heroStagger` uses `staggerChildren: 0.14` with `delayChildren: 0.3`. That's only 140ms between elements. At 60fps, the user perceives them as appearing almost simultaneously. World-class hero stagger uses 200-300ms gaps with accelerating or decelerating rhythm.
 
-#### Phase 13 — Stripe & Subscriptions
-- Enable Stripe integration
-- Create `create-checkout-session` edge function
-- Create `stripe-webhook` edge function handling subscription lifecycle events
-- Wire `/upgrade` page CTA to checkout session
-- Add `/profile/subscription` route for managing active subscription
+### 3. The Headline Shimmer Is Invisible
+`hero-headline-shimmer` animates `background-position` over 6 seconds on a wine-colored gradient. The color range between start and end is so narrow (all wine tones) that the shimmer is nearly imperceptible. Compare to Stripe's shimmer which sweeps a white highlight across dark text — high contrast creates the "wow" moment.
 
-#### Phase 14 — i18n & Polish
-- Set up i18next with `ka` (default) and `en` locales
-- Extract all hardcoded Georgian strings to locale JSON files
-- Add language toggle to sidebar footer and profile settings
-- Persist language choice to `profiles.preferred_language`
-- Toast content displays `_ka` or `_en` based on selected language
+### 4. CTA Glow Is Subtle to the Point of Nonexistence
+`cta-glow-pulse` goes from `0 0 0 0` to `0 0 20px 4px` shadow. On a wine-colored button this reads as a very faint halo. No user consciously notices this. The `btn-shimmer` sweep is better but fires every 3s — too slow to catch attention on first load.
 
-#### Phase 15 — Advanced Features & Hardening
-- `generate-feast-plan` edge function — AI-generated toast schedule based on occasion/duration/formality
-- PDF export of feast plan using jsPDF (Pro only)
-- Dark mode support
-- Keyboard shortcuts in live feast mode (Space = complete, Esc = pause)
-- Additional seed toasts (expand from 11 to 50+)
-- Error boundary components, offline queue for failed writes, optimistic updates throughout
+### 5. Background Orbs Are Wallpaper, Not Energy
+The two breathing orbs (`animate: { x, y, scale }`) move on 8s and 10s cycles. They're so slow and low-opacity (0.22, 0.18) that they feel like static texture, not living energy. They don't respond to or complement the text entrance.
+
+### 6. No "Moment of Arrival" — Missing Climax
+World-class heroes have a *climax moment* — typically 0.8-1.2s after load — where all entrance animations converge and something *extra* happens (a particle burst, a logo morph, a color shift). This hero just... finishes revealing. There's no payoff.
+
+### 7. Floating Icons Are Ghost-Like
+The cultural icons (horn, wine glass) animate to `opacity: 0.16` and `0.13`. They're so faint they're invisible on most monitors. They exist but contribute nothing.
+
+### 8. No Motion on Scroll Within Hero Viewport
+`heroOpacity` and `heroY` only activate on scroll *out* of the hero. While the user is *in* the hero (which is where 80% of time is spent), everything is static after the initial reveal.
+
+### 9. Mobile Gets Nothing
+The mockup is `hidden lg:block`. The floating icons are `hidden lg:block`. On mobile, the hero is just text sliding up — zero visual interest beyond the gradient background.
+
+---
+
+## Master Execution Strategy
+
+### Phase 1: Animation Choreography Overhaul
+**File: `src/lib/animations.ts`**
+- Increase `heroStagger.staggerChildren` from 0.14 → 0.22
+- Increase `delayChildren` from 0.3 → 0.15 (start sooner, spread wider)
+- Add `filter: "blur(8px)"` to `heroHeadlineReveal.initial` — headline deblurs as it rises, creating focus-pull effect
+- Add spring physics to `heroBadgeReveal`: `type: "spring", stiffness: 200, damping: 18` instead of tween
+- Give `heroCTAReveal` a distinct motion — scale from 0.9 with overshoot spring instead of x/y slide
+- Add a new `heroMockupReveal` with 3D rotation: `rotateY: -8` → `0` combined with current `rotateX`
+
+### Phase 2: Headline Shimmer + CTA Glow Upgrade
+**File: `src/index.css`**
+- Rework `hero-headline-shimmer`: Insert a bright `hsla(0,0%,100%,0.25)` highlight band in the gradient that sweeps once on load (2s) then settles into subtle loop
+- Rework `cta-glow-pulse`: Increase peak shadow radius to `0 0 30px 8px` with higher opacity. Add a one-shot stronger pulse at 1.5s delay (the "climax moment")
+- Add new `@keyframes hero-entrance-flash` — a full-viewport radial flash that fires once at ~1s, creating the arrival moment
+
+### Phase 3: Background Energy
+**File: `src/pages/Index.tsx` (hero section)**
+- Increase orb opacity from 0.22/0.18 → 0.30/0.25
+- Speed up orb cycles from 8s/10s → 5s/7s
+- Add a third orb (smaller, faster, wine-gold blend) that appears only after 1s delay
+- Increase floating icon opacity from 0.16/0.13 → 0.25/0.20 and add subtle `rotate` oscillation to the float keyframes
+- Add a one-shot "light sweep" div that animates across the hero background at ~0.8s (the arrival flash)
+
+### Phase 4: Scroll Interactivity Within Hero
+**File: `src/pages/Index.tsx` (hero section)**
+- Add `useTransform` for subtle parallax *within* the hero viewport: badge moves at 0.95x scroll, headline at 1x, subtitle at 1.05x — creates depth layering
+- Mockup should have slight counter-parallax (moves up as user scrolls down slightly)
+- The social proof card could have a gentle `rotateX` tilt based on scroll position
+
+### Phase 5: Mobile Hero Enhancement
+**File: `src/pages/Index.tsx` (hero section)**
+- Show a simplified, smaller version of ProductMockup on mobile (below the CTA) — even a static screenshot-like version with a subtle scale-in animation
+- Or: add a "mini-preview" strip showing 3 small cards (AI, Live, Library) that slide in from the sides on mobile
+- Keep background orbs on mobile but reduce size by 50%
+
+### Phase 6: Post-Reveal Micro-Interactions
+**File: `src/pages/Index.tsx`**
+- Add hover parallax to the ProductMockup: track mouse position and apply subtle `rotateX`/`rotateY` (3D tilt card effect)
+- CTA button: on hover, the shimmer sweep accelerates and the glow intensifies
+- Social proof avatars: on hover, they "pop up" with a spring animation and show a tiny tooltip
+
+---
+
+### Files to Change
+
+| File | Changes |
+|------|---------|
+| `src/lib/animations.ts` | Rework all hero variants with varied motion types, blur, springs, wider stagger |
+| `src/index.css` | Upgrade shimmer, glow, add entrance flash keyframe, improve float keyframes |
+| `src/pages/Index.tsx` | Enhance orbs, icons, add mobile mockup, add mouse-parallax on mockup, add scroll depth layers |
+
+### Priority Order
+1. Phase 1 + 2 (animation + shimmer/glow) — biggest bang, single render pass
+2. Phase 3 (background energy) — immediate visual uplift
+3. Phase 6 (micro-interactions) — delight layer
+4. Phase 5 (mobile) — reach layer
+5. Phase 4 (scroll interactivity) — polish layer
 
