@@ -1973,18 +1973,20 @@ const Index = () => {
           initial="offscreen"
           whileInView="onscreen"
           viewport={{ once: true, margin: "-80px" }}
-          variants={scrollReveal}
+          variants={featureTextStagger}
         >
-          <HornIcon size={56} className="text-white/70 mx-auto mb-6" />
+          <motion.div variants={springScaleIn}>
+            <HornIcon size={56} className="text-white/70 mx-auto mb-6" />
+          </motion.div>
 
           {/* Testimonial quote */}
-          <p className="text-white/50 italic text-base mb-6 max-w-md mx-auto">
+          <motion.p variants={featureTextChild} className="text-white/50 italic text-base mb-6 max-w-md mx-auto">
             {isKa
               ? `„მამის დაბადების დღეზე თამადობა მეშინოდა. TAMADA-მ თავდაჯერებულობა მომცა."`
               : "\"I was terrified of being tamada. TAMADA gave me the confidence.\""}
-          </p>
+          </motion.p>
 
-          <h2
+          <div
             className="font-display text-white mb-6"
             style={{
               fontSize: "clamp(2.2rem, 5vw, 3.5rem)",
@@ -1992,39 +1994,47 @@ const Index = () => {
               letterSpacing: "-0.02em",
             }}
           >
-            {isKa ? (
-              <>
-                შენი შემდეგი სუფრა მოდის.
-                <br />
-                მზად იქნები?
-              </>
-            ) : (
-              <>
-                Your next supra is coming.
-                <br />
-                Will you be ready?
-              </>
+            {(isKa
+              ? ["შენი", "შემდეგი", "სუფრა", "მოდის.", "\n", "მზად", "იქნები?"]
+              : ["Your", "next", "supra", "is", "coming.", "\n", "Will", "you", "be", "ready?"]
+            ).map((word, wi) =>
+              word === "\n" ? (
+                <br key={wi} />
+              ) : (
+                <motion.span
+                  key={wi}
+                  className="inline-block mr-[0.3em]"
+                  initial="offscreen"
+                  whileInView="onscreen"
+                  viewport={{ once: true }}
+                  variants={ctaDeblurWord(wi)}
+                >
+                  {word}
+                </motion.span>
+              )
             )}
-          </h2>
-          <p className="text-lg text-white/60 max-w-lg mx-auto mb-10 leading-relaxed">
+          </div>
+          <motion.p variants={featureTextChild} className="text-lg text-white/60 max-w-lg mx-auto mb-10 leading-relaxed">
             {isKa
               ? "შეუერთდი მზარდ საზოგადოებას, რომელიც ქართული სუფრის ტრადიციას AI-ის ძალით აღადგენს."
               : "Join a growing community bringing Georgian feast traditions back to life with the power of AI."}
-          </p>
-          <Button
-            variant="hero"
-            size="lg"
-            asChild
-            className="btn-shimmer bg-white text-wine-deep hover:bg-white/95 shadow-elevated h-14 px-10 text-lg rounded-xl font-semibold"
-          >
-            <Link to="/auth/signup">
-              {isKa ? "დაიწყე უფასოდ" : "Start free"}
-              <SystemIcon name="action.next" size="md" className="ml-1.5" />
-            </Link>
-          </Button>
-          <p className="text-sm text-white/40 mt-5">
+          </motion.p>
+          <motion.div variants={heroCTAReveal}>
+            <Button
+              variant="hero"
+              size="lg"
+              asChild
+              className="btn-shimmer bg-white text-wine-deep hover:bg-white/95 shadow-elevated h-14 px-10 text-lg rounded-xl font-semibold"
+            >
+              <Link to="/auth/signup">
+                {isKa ? "დაიწყე უფასოდ" : "Start free"}
+                <SystemIcon name="action.next" size="md" className="ml-1.5" />
+              </Link>
+            </Button>
+          </motion.div>
+          <motion.p variants={featureTextChild} className="text-sm text-white/40 mt-5">
             {isKa ? "კრედიტ ბარათი არ სჭირდება" : "No credit card required"}
-          </p>
+          </motion.p>
         </motion.div>
       </section>
 
