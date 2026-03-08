@@ -229,7 +229,7 @@ function SceneResult({ active }: { active: boolean }) {
         )}
       </motion.div>
 
-      <motion.div variants={staggerChild} className="relative flex-1">
+      <motion.div variants={staggerChild} className="relative">
         <AnimatePresence>
           {showGlow && (
             <motion.div
@@ -244,7 +244,7 @@ function SceneResult({ active }: { active: boolean }) {
         </AnimatePresence>
 
         <motion.div
-          className="rounded-lg border overflow-hidden relative"
+          className="rounded-lg border relative"
           animate={{
             borderColor: showGlow
               ? "hsl(var(--gold) / 0.6)"
@@ -253,7 +253,7 @@ function SceneResult({ active }: { active: boolean }) {
           transition={{ duration: 0.3 }}
           style={{ backgroundColor: "hsl(var(--wine-light) / 0.2)" }}
         >
-          <div className="h-0.5 wine-gradient" />
+          <div className="h-0.5 wine-gradient rounded-t-lg" />
           <div className="p-3.5 space-y-2">
             {phase < 1 ? (
               <div className="space-y-2">
