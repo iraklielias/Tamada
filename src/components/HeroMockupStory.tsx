@@ -517,11 +517,11 @@ const SCENES = [1, 2, 3, 4, 5] as const;
 type SceneNum = typeof SCENES[number];
 
 const SCENE_META: { label: string; duration: number }[] = [
-  { label: "გენერატორი", duration: 2800 },
-  { label: "შედეგი",     duration: 3500 },
-  { label: "ლაივ სუფრა", duration: 3200 },
-  { label: "AI ჩატი",    duration: 3500 },
-  { label: "ალავერდი",   duration: 2800 },
+  { label: "გენერატორი", duration: 5500 },
+  { label: "შედეგი",     duration: 7000 },
+  { label: "ლაივ სუფრა", duration: 6000 },
+  { label: "AI ჩატი",    duration: 7000 },
+  { label: "ალავერდი",   duration: 5000 },
 ];
 
 export default function HeroMockupStory({ active = false }: { active?: boolean }) {
