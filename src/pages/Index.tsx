@@ -919,30 +919,59 @@ function MissionStats({ isKa }: { isKa: boolean }) {
 
   return (
     <div className="max-w-4xl mx-auto text-center relative z-10" ref={ref}>
+      {/* Breathing orbs for Mission section */}
+      <motion.div
+        className="absolute -top-20 -left-20 w-[300px] h-[300px] rounded-full pointer-events-none"
+        style={{ background: "radial-gradient(circle, hsla(353,55%,38%,0.25) 0%, transparent 70%)", filter: "blur(40px)" }}
+        animate={{ scale: [1, 1.15, 1], x: [0, 20, 0] }}
+        transition={{ duration: 6, repeat: Infinity, ease: [0.45, 0.05, 0.55, 0.95] }}
+      />
+      <motion.div
+        className="absolute -bottom-16 -right-16 w-[250px] h-[250px] rounded-full pointer-events-none"
+        style={{ background: "radial-gradient(circle, hsla(43,60%,50%,0.20) 0%, transparent 70%)", filter: "blur(40px)" }}
+        animate={{ scale: [1, 1.12, 1], y: [0, -15, 0] }}
+        transition={{ duration: 6, repeat: Infinity, ease: [0.45, 0.05, 0.55, 0.95], delay: 0.5 }}
+      />
+
       <motion.div
         initial="offscreen"
         whileInView="onscreen"
         viewport={{ once: true, margin: "-60px" }}
-        variants={scrollRevealScale}
+        variants={featureTextStagger}
       >
-        <QvevriIcon
-          size={64}
-          className="text-white/60 mx-auto mb-6"
-        />
-        <h2 className="font-display text-heading-1 text-white mb-6">
+        <motion.div variants={springScaleIn}>
+          <motion.div
+            animate={{ rotate: [0, 3, -3, 0] }}
+            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          >
+            <QvevriIcon
+              size={64}
+              className="text-white/60 mx-auto mb-6"
+            />
+          </motion.div>
+        </motion.div>
+        <motion.h2 variants={deblurReveal} className="font-display text-heading-1 text-white mb-6">
           {isKa
             ? "ტრადიცია ტექნოლოგიასთან ერთად"
             : "Tradition Meets Technology"}
-        </h2>
-        <p className="text-xl text-white/70 leading-relaxed max-w-2xl mx-auto mb-6">
+        </motion.h2>
+        <motion.p variants={featureTextChild} className="text-xl text-white/70 leading-relaxed max-w-2xl mx-auto mb-6">
           {isKa
             ? "ქართულ სუფრას 3,000 წელი აქვს. ჩვენ ვზრუნავთ, რომ კიდევ 3,000 იცოცხლოს."
             : "The Georgian supra is 3,000 years old. We're making sure it lives another 3,000."}
-        </p>
+        </motion.p>
 
         <div className="grid grid-cols-3 gap-4 md:gap-6 mt-12">
           {STATS.map((stat, i) => (
-            <div key={i} className="text-center p-5 md:p-6 rounded-2xl bg-white/[0.08] backdrop-blur-sm border border-white/10">
+            <motion.div
+              key={i}
+              initial="offscreen"
+              whileInView="onscreen"
+              viewport={{ once: true }}
+              variants={springScaleIn}
+              transition={{ delay: i * 0.15 }}
+              className="text-center p-5 md:p-6 rounded-2xl bg-white/[0.08] backdrop-blur-sm border border-white/10"
+            >
               <div className="text-4xl md:text-5xl font-bold text-white font-display tabular-nums">
                 <AnimatedCount to={stat.to} active={inView} delay={0.2 + i * 0.15} />
                 <span className="text-gold">{stat.suffix}</span>
@@ -950,7 +979,7 @@ function MissionStats({ isKa }: { isKa: boolean }) {
               <div className="text-sm text-white/60 font-medium mt-2">
                 {stat.label}
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
       </motion.div>
