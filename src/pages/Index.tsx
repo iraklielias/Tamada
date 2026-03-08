@@ -1334,12 +1334,18 @@ const Index = () => {
               </motion.p>
 
               <motion.div variants={heroCTAReveal} style={{ y: heroCTAY }} className="flex flex-col sm:flex-row items-start gap-4 mb-12">
-                <Button variant="hero" size="lg" asChild className="btn-shimmer cta-glow h-14 px-10 text-lg rounded-xl shadow-wine">
-                  <Link to="/auth/signup">
-                    {isKa ? "დაიწყე უფასოდ" : "Start free"}
-                    <SystemIcon name="action.next" size="md" className="ml-1.5" />
-                  </Link>
-                </Button>
+                {/* Item 19: CTA idle breath */}
+                <motion.div
+                  animate={{ scale: [1, 1.015, 1] }}
+                  transition={{ duration: 4, repeat: Infinity, delay: 3, ease: "easeInOut" }}
+                >
+                  <Button variant="hero" size="lg" asChild className="btn-shimmer cta-glow h-14 px-10 text-lg rounded-xl shadow-wine">
+                    <Link to="/auth/signup">
+                      {isKa ? "დაიწყე უფასოდ" : "Start free"}
+                      <SystemIcon name="action.next" size="md" className="ml-1.5" />
+                    </Link>
+                  </Button>
+                </motion.div>
                 <Button variant="outline" size="lg" className="text-foreground/70 border-border-strong h-14 px-8 text-base hover:bg-accent" onClick={() => document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" })}>
                   {isKa ? "როგორ მუშაობს?" : "See how it works"}
                 </Button>
