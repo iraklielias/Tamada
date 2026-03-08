@@ -315,10 +315,10 @@
   /* Gradient mesh for hero and premium sections */
   .gradient-mesh-hero {
     background:
-      radial-gradient(ellipse 100% 70% at 50% -20%, hsla(353,50%,35%,0.28) 0%, transparent 60%),
-      radial-gradient(ellipse 55% 55% at 82% 15%, hsla(36,65%,50%,0.16) 0%, transparent 50%),
-      radial-gradient(ellipse 55% 45% at 12% 45%, hsla(353,55%,38%,0.14) 0%, transparent 50%),
-      radial-gradient(ellipse 45% 45% at 55% 75%, hsla(43,53%,55%,0.08) 0%, transparent 50%);
+      radial-gradient(ellipse 100% 70% at 50% -20%, hsla(353,50%,35%,0.38) 0%, transparent 60%),
+      radial-gradient(ellipse 55% 55% at 82% 15%, hsla(36,65%,50%,0.22) 0%, transparent 50%),
+      radial-gradient(ellipse 55% 45% at 12% 45%, hsla(353,55%,38%,0.20) 0%, transparent 50%),
+      radial-gradient(ellipse 45% 45% at 55% 75%, hsla(43,53%,55%,0.12) 0%, transparent 50%);
   }
 
   /* Headline gradient shimmer sweep -- high-contrast highlight band */
