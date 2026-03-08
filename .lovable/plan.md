@@ -1,109 +1,75 @@
 
 
-## TAMADA — Status Audit & Master Execution Plan
+## Hero Mockup Story — Expert UX Enhancement Plan
 
-### What Is Built
+### Current State Assessment
 
-| Area | Status |
-|------|--------|
-| Landing page (`/`) | Done — hero, features, how-it-works, footer |
-| Auth (login, signup, callback) | Done — email/password, onAuthStateChange, protected routes |
-| Onboarding wizard (`/onboarding`) | Done — 4 steps: name, region, experience, occasions |
-| App shell (sidebar + bottom nav) | Done — collapsible sidebar, mobile bottom nav, profile footer |
-| Dashboard (`/dashboard`) | Done — greeting, quick actions, recent feasts, popular toasts |
-| Toasts browse (`/toasts`) | Done — search, occasion/formality filters, favorite toggle |
-| AI Generator (`/ai-generate`) | Done — occasion/formality/topic form, edge function, save to favorites |
-| Favorites (`/favorites`) | Done — list system + custom favorites, remove |
-| Library (`/library`) | Done — reads toast_templates (currently 0 rows) |
-| Profile (`/profile`) | Done — read-only display, logout |
-| Edge function: `generate-toast` | Done — Lovable AI gateway, JSON parse |
-| Database schema + RLS | Done — all 11 tables, policies in place |
-| Seed data: toasts | Done — 11 system toasts |
+The 5-scene animated story is structurally sound but has these issues:
 
-### What Is NOT Built
+**1. No scene progress indicator — scenes feel abrupt**
+Each scene just appears and disappears. There's no visual sense of time passing within a scene. Users don't know how long to watch before it changes.
 
-| Area | Spec Section |
-|------|-------------|
-| **Feast CRUD** — `/feasts`, `/feasts/new`, `/feasts/:id` | Sections 3, 4, 5 |
-| **Live Feast Mode** — `/feasts/:id/live` with timer, toast progression, alerts, audio | Section 6 |
-| **Alaverdi tracking** — FAB, guest assignment, count increment | Section 6 |
-| **Co-Tamada / Realtime** — share code, join link, Supabase Realtime sync | Section 6 + Realtime spec |
-| **Toast template seeding** — 7 templates with JSONB sequences | Seed Data |
-| **More sample toasts** — spec calls for 50-100; we have 11 | Seed Data |
-| **Feast plan from template** — selecting a template populates feast_toasts | Section 4 |
-| **AI Feast Plan generator** — `generate-feast-plan` edge function | AI Integration |
-| **Pro gating / useProGate hook** — daily limits, feature locks, upsell modals | Free vs Pro |
-| **Upgrade page** (`/upgrade`) — comparison table, Stripe checkout | Section 11 |
-| **Stripe integration** — checkout session, webhook, subscription management | Edge Functions |
-| **Profile editing** — avatar upload, edit name/region/experience/language | Section 10 |
-| **PDF export** — jsPDF feast plan export (Pro) | Section 5 |
-| **i18n** — i18next setup, language toggle, all strings externalized | i18n spec |
-| **Dark mode** | Design System |
-| **Keyboard shortcuts** | Desktop spec |
-| **Additional occasion types** in filters (christening, guest_reception, friendly_gathering) | Throughout |
-| **config.toml** — `generate-toast` function entry with `verify_jwt = false` | Edge function config |
+**2. Scenes feel disconnected — no narrative continuity**
+The jump from Generator → Result → Live Feast → Chat → Alaverdi feels like 5 separate demos, not one story. There's no visual thread connecting them.
+
+**3. Content area height jumps between scenes**
+Scene 1 (3 selects + tags + button) is taller than Scene 5 (2 guest rows). This causes the mockup to visually "bounce" in height, breaking immersion.
+
+**4. No micro-interactions — feels like a slideshow**
+Everything fades in linearly. No satisfying spring pops, no particle effects on key moments (like when the toast generates or when alaverdi increments).
+
+**5. Scene transitions are plain crossfades**
+`AnimatePresence mode="wait"` with a simple opacity+y shift. No directional awareness — whether going forward or backward feels the same.
+
+**6. The bottom nav dots are tiny and disconnected**
+Labels at 7px are unreadable. The dots don't show progress within a scene.
+
+**7. No "wow moment" — the generating-to-result transition**
+The most important moment in the product (AI creates a toast) happens with a simple shimmer → text fade. This should be the hero's climax.
 
 ---
 
-### Master Execution Plan (8 Phases)
+### Enhancement Plan
 
-#### Phase 8 — Seed Data & Config Fixes
-- Seed 7 toast templates into `toast_templates` table (wedding, birthday, memorial, guest reception, holiday, corporate, friendly gathering) with proper `toast_sequence` JSONB arrays
-- Add `[functions.generate-toast]` with `verify_jwt = false` to `supabase/config.toml`
-- Add missing occasion types to all filter dropdowns across pages (christening, guest_reception, friendly_gathering, other)
+#### A. Add Scene Progress Bar
+Add a thin wine-gradient progress bar at the top of the browser content area that fills from 0% to 100% during each scene's duration. This gives users a sense of timing and creates anticipation for the next scene. Implemented as a `motion.div` with `animate={{ width: "100%" }}` and `transition={{ duration: sceneDuration/1000 }}`.
 
-#### Phase 9 — Feast CRUD (Core)
-- Create `/feasts` page — list user's feasts with status filter pills + search
-- Create `/feasts/new` page — multi-section form: basic info, details (guest count, formality, region, duration), template selection, optional guest list
-- Create `/feasts/:id` page — tabbed view (Plan, Guests, Details) with toast timeline, guest management, edit metadata, delete
-- Add routes to `App.tsx`, add "სუფრები" nav item to sidebar and bottom nav
-- Dashboard "ახალი სუფრა" quick action routes to `/feasts/new`; feast cards link to `/feasts/:id`
+#### B. Fix Content Height Stability
+Set `min-h-[280px]` on the scene container and make all scenes render within that fixed height using `flex flex-col justify-between`. No more height jumping.
 
-#### Phase 10 — Live Feast Mode
-- Create `/feasts/:id/live` — full-screen immersive view
-- Current toast display with complete text, toast number, type
-- Next-up preview (2 upcoming toasts)
-- Elapsed time tracker + progress bar
-- "Completed" and "Skip" buttons that update `feast_toasts` status
-- Pause/Resume/End feast controls updating `feasts.status`
-- Timer alert system: amber glow + audio chime at configurable intervals before next toast (Web Audio API)
-- Alaverdi FAB: bottom sheet with guest list, tap to assign, increment `alaverdi_count` via `increment_alaverdi` RPC
+#### C. Add Narrative Connector — Scene Transition Effect
+Replace plain crossfade with a brief wine-gradient "wipe" overlay that flashes between scenes (100ms). A thin horizontal line sweeps down during scene change, creating a cinematic cut feel. Implement as an overlay `motion.div` that scales from `scaleY(0)` to `scaleY(1)` to `scaleY(0)`.
 
-#### Phase 11 — Co-Tamada & Realtime
-- Generate `share_code` on feast, build `/feasts/:id/join/:shareCode` route
-- Add user as `feast_collaborator` on join
-- Subscribe to Supabase Realtime channels for `feast_toasts`, `feast_guests`, `feasts` changes
-- Enable realtime publication on relevant tables (`ALTER PUBLICATION supabase_realtime ADD TABLE ...`)
-- Co-Tamada sees live view with read-only controls (can assign alaverdi, cannot pause/end)
-- Online indicator for connected collaborators
+#### D. Scene 2 Climax — "Generation Moment"
+When the shimmer skeletons resolve into the typed toast:
+- A brief radial wine glow pulse emanates from the card center (200ms, opacity 0→0.3→0)
+- The card border briefly flashes gold before settling to wine-muted
+- A single sparkle particle rises from the Sparkles icon
 
-#### Phase 12 — Profile Editing & Pro Gating
-- Make profile page editable: avatar upload (to `avatars` bucket), display name, region, experience, language
-- Build `useProGate` hook checking `is_pro` + `pro_expires_at`
-- Enforce free limits: 5 AI generations/day (server + client), 10 favorites, 1 active feast
-- Add server-side rate limit check in `generate-toast` edge function using `get_daily_ai_count`
-- Soft upsell modals when limits reached; gold lock icons on Pro features
-- Create `/upgrade` page with feature comparison table and pricing
+This makes the AI generation feel magical, not mundane.
 
-#### Phase 13 — Stripe & Subscriptions
-- Enable Stripe integration
-- Create `create-checkout-session` edge function
-- Create `stripe-webhook` edge function handling subscription lifecycle events
-- Wire `/upgrade` page CTA to checkout session
-- Add `/profile/subscription` route for managing active subscription
+#### E. Scene 3 — Animate the Progress More
+Currently the progress bar jumps from 28% to 42% to 57%. Add intermediate steps so it visually fills smoothly. Also add a brief scale pulse on the toast card when it swaps (the crossfade exists but lacks punch — add `scale: [1, 1.02, 1]` on entry).
 
-#### Phase 14 — i18n & Polish
-- Set up i18next with `ka` (default) and `en` locales
-- Extract all hardcoded Georgian strings to locale JSON files
-- Add language toggle to sidebar footer and profile settings
-- Persist language choice to `profiles.preferred_language`
-- Toast content displays `_ka` or `_en` based on selected language
+#### F. Scene 5 (Alaverdi) — Add Sound-Free "Clap" Effect
+When the +1 floats up, add 3 tiny confetti dots (wine, gold, green) that spring outward from the count number and fade. This makes the alaverdi moment feel celebratory.
 
-#### Phase 15 — Advanced Features & Hardening
-- `generate-feast-plan` edge function — AI-generated toast schedule based on occasion/duration/formality
-- PDF export of feast plan using jsPDF (Pro only)
-- Dark mode support
-- Keyboard shortcuts in live feast mode (Space = complete, Esc = pause)
-- Additional seed toasts (expand from 11 to 50+)
-- Error boundary components, offline queue for failed writes, optimistic updates throughout
+#### G. Upgrade Bottom Navigation
+- Increase label text from 7px to 8px
+- Replace plain dots with a pill-shaped progress indicator per scene (the active scene's dot is a pill that fills with wine-gradient as the scene progresses)
+- Make dots clickable (already are) but add a subtle scale bounce on click
+
+#### H. Auto-Pause on Hover
+When user hovers the mockup, pause the scene timer. Resume on mouse leave. This lets users study a scene they're interested in. Add a subtle "⏸" icon that fades in at top-right on hover.
+
+---
+
+### Files to Edit
+
+| File | Changes |
+|------|---------|
+| `src/components/HeroMockupStory.tsx` | All changes above: progress bar, fixed height, transition wipe, generation climax effect, alaverdi confetti, nav upgrade, hover-pause |
+
+### Estimated Scope
+Single file, ~40 lines added/modified across existing scene functions + main component. No new dependencies.
 
