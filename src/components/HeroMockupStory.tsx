@@ -554,7 +554,7 @@ type SceneNum = typeof SCENES[number];
 
 const SCENE_META: { label: string; duration: number }[] = [
   { label: "გენერატორი", duration: 5500 },
-  { label: "შედეგი",     duration: 7000 },
+  { label: "შედეგი",     duration: 7500 },
   { label: "ლაივ სუფრა", duration: 6000 },
   { label: "AI ჩატი",    duration: 7000 },
   { label: "ალავერდი",   duration: 5000 },
