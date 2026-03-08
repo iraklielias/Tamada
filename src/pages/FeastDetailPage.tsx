@@ -530,6 +530,11 @@ const ToastDetailDialog: React.FC<ToastDetailDialogProps> = ({
                       {regenSingleToast.isPending ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5 mr-1.5" />}
                       {t("feastDetail.generateBody")}
                     </Button>
+                    {regenSingleToast.isPending && (
+                      <div className="min-h-[60px] flex items-center justify-center">
+                        <ThinkingFacts isVisible={true} language={isEnLang ? "en" : "ka"} />
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <>
