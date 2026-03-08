@@ -1161,9 +1161,9 @@ const Index = () => {
 
         {/* Hero arrival flash — one-shot radial pulse at ~1s */}
         <div
-          className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full pointer-events-none hero-arrival-flash"
+          className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full pointer-events-none hero-arrival-flash"
           style={{
-            background: "radial-gradient(circle, hsla(353,55%,40%,0.35) 0%, hsla(353,55%,40%,0) 70%)",
+            background: "radial-gradient(circle, hsla(353,55%,40%,0.50) 0%, hsla(353,55%,40%,0) 70%)",
           }}
         />
 
@@ -1197,33 +1197,33 @@ const Index = () => {
           })}
         </div>
 
-        {/* Animated breathing orbs -- higher opacity, faster cycles */}
+        {/* Animated breathing orbs -- boosted opacity */}
         <motion.div
           className="absolute top-[8%] left-[10%] w-[500px] h-[500px] rounded-full pointer-events-none"
-          style={{ background: "radial-gradient(circle, hsla(353,55%,38%,0.30) 0%, transparent 70%)", filter: "blur(50px)" }}
+          style={{ background: "radial-gradient(circle, hsla(353,55%,38%,0.40) 0%, transparent 70%)", filter: "blur(50px)" }}
           animate={{ x: [0, 35, 0], y: [0, -25, 0], scale: [1, 1.15, 1] }}
           transition={{ duration: 5, repeat: Infinity, ease: [0.45, 0.05, 0.55, 0.95] }}
         />
         <motion.div
           className="absolute bottom-[10%] right-[8%] w-[420px] h-[420px] rounded-full pointer-events-none"
-          style={{ background: "radial-gradient(circle, hsla(43,60%,50%,0.25) 0%, transparent 70%)", filter: "blur(50px)" }}
+          style={{ background: "radial-gradient(circle, hsla(43,60%,50%,0.32) 0%, transparent 70%)", filter: "blur(50px)" }}
           animate={{ x: [0, -25, 0], y: [0, 30, 0], scale: [1, 1.12, 1] }}
           transition={{ duration: 7, repeat: Infinity, ease: [0.45, 0.05, 0.55, 0.95], delay: 1 }}
         />
-        {/* Third orb — smaller, faster, wine-gold blend, delayed entrance */}
+        {/* Third orb — smaller, faster, wine-gold blend */}
         <motion.div
           className="absolute top-[40%] right-[30%] w-[280px] h-[280px] rounded-full pointer-events-none"
-          style={{ background: "radial-gradient(circle, hsla(350,50%,42%,0.18) 0%, hsla(43,50%,50%,0.08) 50%, transparent 70%)", filter: "blur(40px)" }}
+          style={{ background: "radial-gradient(circle, hsla(350,50%,42%,0.24) 0%, hsla(43,50%,50%,0.12) 50%, transparent 70%)", filter: "blur(40px)" }}
           initial={{ opacity: 0, scale: 0.5 }}
           animate={{ opacity: 1, scale: [0.9, 1.1, 0.9], x: [0, 20, 0], y: [0, -15, 0] }}
           transition={{ opacity: { delay: 1, duration: 0.8 }, scale: { duration: 4, repeat: Infinity, delay: 1.5 }, x: { duration: 4, repeat: Infinity, delay: 1.5 }, y: { duration: 4, repeat: Infinity, delay: 1.5 } }}
         />
 
-        {/* Floating cultural icons -- visible, with rotation */}
+        {/* Floating cultural icons -- boosted opacity + third icon */}
         <motion.div
           className="absolute top-[18%] right-[7%] pointer-events-none hidden lg:block"
           initial={{ opacity: 0, scale: 0.5, rotate: -20 }}
-          animate={{ opacity: 0.25, scale: 1, rotate: 0 }}
+          animate={{ opacity: 0.35, scale: 1, rotate: 0 }}
           transition={{ duration: 1.2, delay: 1.5, ease: "easeOut" }}
         >
           <div className="icon-float-1">
@@ -1233,11 +1233,22 @@ const Index = () => {
         <motion.div
           className="absolute bottom-[22%] left-[4%] pointer-events-none hidden lg:block"
           initial={{ opacity: 0, scale: 0.5, rotate: 15 }}
-          animate={{ opacity: 0.20, scale: 1, rotate: 0 }}
+          animate={{ opacity: 0.28, scale: 1, rotate: 0 }}
           transition={{ duration: 1.2, delay: 1.8, ease: "easeOut" }}
         >
           <div className="icon-float-2">
             <WineGlassIcon size={42} className="text-wine-muted" />
+          </div>
+        </motion.div>
+        {/* Third floating icon — QvevriIcon bottom-right */}
+        <motion.div
+          className="absolute bottom-[30%] right-[5%] pointer-events-none hidden lg:block"
+          initial={{ opacity: 0, scale: 0.5, rotate: 10 }}
+          animate={{ opacity: 0.22, scale: 1, rotate: 0 }}
+          transition={{ duration: 1.2, delay: 2.1, ease: "easeOut" }}
+        >
+          <div className="icon-float-1" style={{ animationDelay: "3s" }}>
+            <QvevriIcon size={48} className="text-wine-muted" />
           </div>
         </motion.div>
 
@@ -1250,28 +1261,30 @@ const Index = () => {
               variants={heroStagger}
               style={{ y: heroY }}
             >
-              {/* Badge pill — with its own parallax */}
-              <motion.div variants={heroBadgeReveal} style={{ y: heroBadgeY }} className="mb-5">
-                <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-wine-light/60 border border-wine-muted/25 text-xs font-semibold text-wine-deep tracking-wide">
-                  <SystemIcon name="nav.ai" size="xs" />
+              {/* Badge pill — glass effect with animated glow */}
+              <motion.div variants={heroBadgeReveal} style={{ y: heroBadgeY }} className="mb-6">
+                <span className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-wine-light/40 backdrop-blur-md border border-wine-muted/30 text-xs font-bold text-wine-deep tracking-wide shadow-sm badge-glow-pulse">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-wine-glow opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-wine-deep" />
+                  </span>
                   {isKa ? "AI-ით გაძლიერებული სუფრის დაგეგმვა" : "AI-Powered Feast Planning"}
                 </span>
               </motion.div>
 
               <motion.h1
                 variants={heroHeadlineReveal}
-                className="font-display text-foreground mb-5"
-                style={{ fontSize: "clamp(2.6rem, 5.5vw, 4.2rem)", lineHeight: 1.08, letterSpacing: "-0.03em" }}
+                className="font-display text-foreground mb-6"
+                style={{ fontSize: "clamp(2.2rem, 4.8vw, 3.6rem)", lineHeight: 1.08, letterSpacing: "-0.03em" }}
               >
                 {isKa ? (
                   <>
-                    იყავი თამადა,
+                    <span className="font-extrabold">იყავი თამადა,</span>
                     <br />
                     <span
-                      className="hero-headline-shimmer bg-clip-text text-transparent"
+                      className="relative inline-block text-wine-deep hero-headline-shimmer-v2"
                       style={{
-                        backgroundImage: "linear-gradient(90deg, hsl(var(--wine-deep)) 0%, hsl(350,65%,50%) 25%, hsla(0,0%,100%,0.35) 50%, hsl(350,65%,50%) 75%, hsl(var(--wine-deep)) 100%)",
-                        filter: "drop-shadow(0 2px 6px hsla(353,41%,32%,0.18))",
+                        textShadow: "0 2px 8px hsla(353,41%,32%,0.20)",
                       }}
                     >
                       რომელსაც დაიმახსოვრებენ
@@ -1279,13 +1292,12 @@ const Index = () => {
                   </>
                 ) : (
                   <>
-                    Be the tamada
+                    <span className="font-extrabold">Be the tamada</span>
                     <br />
                     <span
-                      className="hero-headline-shimmer bg-clip-text text-transparent"
+                      className="relative inline-block text-wine-deep hero-headline-shimmer-v2"
                       style={{
-                        backgroundImage: "linear-gradient(90deg, hsl(var(--wine-deep)) 0%, hsl(350,65%,50%) 25%, hsla(0,0%,100%,0.35) 50%, hsl(350,65%,50%) 75%, hsl(var(--wine-deep)) 100%)",
-                        filter: "drop-shadow(0 2px 6px hsla(353,41%,32%,0.18))",
+                        textShadow: "0 2px 8px hsla(353,41%,32%,0.20)",
                       }}
                     >
                       everyone remembers
@@ -1297,72 +1309,61 @@ const Index = () => {
               <motion.p
                 variants={heroSubReveal}
                 style={{ y: heroSubY }}
-                className="text-base md:text-lg text-muted-foreground max-w-md leading-relaxed mb-8"
+                className="text-lg md:text-xl text-foreground/65 max-w-md leading-relaxed mb-12"
               >
                 {isKa
                   ? "დაგეგმე სუფრა 60 წამში. AI დაწერს სადღეგრძელოებს. გააქტიურე ლაივ რეჟიმი და მიეცი ტრადიციას გზა."
                   : "Plan your supra in 60 seconds. AI writes your toasts. Go live and let the tradition flow."}
               </motion.p>
 
-              <motion.div variants={heroCTAReveal} style={{ y: heroCTAY }} className="flex flex-col sm:flex-row items-start gap-4 mb-10">
+              <motion.div variants={heroCTAReveal} style={{ y: heroCTAY }} className="flex flex-col sm:flex-row items-start gap-4 mb-12">
                 <Button variant="hero" size="lg" asChild className="btn-shimmer cta-glow h-14 px-10 text-lg rounded-xl shadow-wine">
                   <Link to="/auth/signup">
                     {isKa ? "დაიწყე უფასოდ" : "Start free"}
                     <SystemIcon name="action.next" size="md" className="ml-1.5" />
                   </Link>
                 </Button>
-                <Button variant="ghost" size="lg" className="text-muted-foreground h-14 px-8 text-base" onClick={() => document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" })}>
+                <Button variant="outline" size="lg" className="text-foreground/70 border-border-strong h-14 px-8 text-base hover:bg-accent" onClick={() => document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" })}>
                   {isKa ? "როგორ მუშაობს?" : "See how it works"}
                 </Button>
               </motion.div>
 
-              {/* Mini-testimonial social proof */}
-              <motion.div variants={heroTestimonialReveal} className="p-4 rounded-xl bg-card/60 border border-border/50 backdrop-blur-sm max-w-md">
-                <div className="flex items-start gap-3.5">
-                  <div className="flex -space-x-2.5 shrink-0">
-                    {["გ", "ნ", "დ", "მ"].map((initial, i) => (
-                      <motion.div
-                        key={i}
-                        initial={{ opacity: 0, scale: 0 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ type: "spring", stiffness: 300, damping: 15, delay: 1.8 + i * 0.08 }}
-                        className="w-9 h-9 rounded-full border-2 border-background flex items-center justify-center text-[10px] font-bold"
-                        style={{
-                          background: [
-                            "hsl(353,41%,32%)", "hsl(350,60%,45%)",
-                            "hsl(43,53%,55%)", "hsl(349,69%,32%)",
-                          ][i],
-                          color: "white",
-                        }}
-                        whileHover={{ scale: 1.2, y: -4, transition: { type: "spring", stiffness: 400, damping: 12 } }}
-                      >
-                        {initial}
-                      </motion.div>
+              {/* Mini-testimonial — compact single-row */}
+              <motion.div variants={heroTestimonialReveal} className="flex items-center gap-3 px-4 py-3 rounded-xl bg-card/50 border border-border/40 backdrop-blur-sm max-w-md">
+                <div className="flex -space-x-2 shrink-0">
+                  {["გ", "ნ", "დ"].map((initial, i) => (
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 0, scale: 0 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ type: "spring", stiffness: 300, damping: 15, delay: 1.8 + i * 0.08 }}
+                      className="w-7 h-7 rounded-full border-2 border-background flex items-center justify-center text-[9px] font-bold"
+                      style={{
+                        background: ["hsl(353,41%,32%)", "hsl(350,60%,45%)", "hsl(43,53%,55%)"][i],
+                        color: "white",
+                      }}
+                    >
+                      {initial}
+                    </motion.div>
+                  ))}
+                </div>
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <div className="flex items-center gap-0.5 shrink-0">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className="h-2.5 w-2.5 fill-gold text-gold" />
                     ))}
                   </div>
-                  <div>
-                    <div className="flex items-center gap-0.5 mb-1">
-                      {[...Array(5)].map((_, i) => (
-                        <Star key={i} className="h-3 w-3 fill-gold text-gold" />
-                      ))}
-                    </div>
-                    <p className="text-sm text-foreground/80 italic leading-snug">
-                      {isKa
-                        ? `„ძმის ქორწილის სუფრა 10 წუთში დავგეგმე. 12 სადღეგრძელო AI-მ დაწერა. ყველა სტუმარი ტიროდა."`
-                        : "\"Planned my brother's wedding supra in 10 minutes. AI wrote 12 toasts. Every guest cried.\""}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1.5 font-medium">
-                      {isKa ? "გიორგი კ., ქორწილის თამადა" : "Giorgi K., Wedding Host"}
-                    </p>
-                  </div>
+                  <p className="text-xs text-foreground/70 italic truncate">
+                    {isKa ? "\u201Eსუფრა 10 წუთში დავგეგმე. ყველა ტიროდა.\u201C" : "\"Planned a supra in 10 min. Everyone cried.\""}
+                  </p>
                 </div>
               </motion.div>
             </motion.div>
 
-            {/* Right: product mockup -- 3D tilt on hover, parallax */}
+            {/* Right: product mockup -- 3D tilt on hover, parallax, stronger glow */}
             <motion.div
               ref={mockupContainerRef}
-              className="relative glow-behind hidden lg:block"
+              className="relative glow-behind-strong hidden lg:block"
               style={{
                 perspective: "1200px",
                 y: heroMockupY,
@@ -1374,7 +1375,7 @@ const Index = () => {
               animate="animate"
               variants={heroMockupReveal}
             >
-              <div className="mockup-float-delayed">
+              <div className="mockup-float-delayed-v2">
                 <ProductMockup active={mockupActive} />
               </div>
             </motion.div>
@@ -1392,6 +1393,9 @@ const Index = () => {
             </motion.div>
           </div>
         </div>
+
+        {/* Hero bottom fade transition */}
+        <div className="absolute bottom-0 left-0 right-0 h-32 pointer-events-none" style={{ background: "linear-gradient(to bottom, transparent 0%, hsl(var(--background)) 100%)" }} />
 
         {/* Scroll indicator */}
         <motion.div
