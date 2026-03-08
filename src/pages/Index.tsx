@@ -1167,6 +1167,36 @@ const Index = () => {
           }}
         />
 
+        {/* Particle burst at ~1s climax */}
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+          {Array.from({ length: 16 }).map((_, i) => {
+            const angle = (i / 16) * 360;
+            const distance = 120 + Math.random() * 100;
+            const rad = (angle * Math.PI) / 180;
+            const tx = Math.cos(rad) * distance;
+            const ty = Math.sin(rad) * distance;
+            const size = 3 + Math.random() * 4;
+            return (
+              <span
+                key={i}
+                className="particle-burst-dot"
+                style={{
+                  width: size,
+                  height: size,
+                  '--tx': `${tx}px`,
+                  '--ty': `${ty}px`,
+                  animationDelay: `${1 + Math.random() * 0.15}s`,
+                  background: i % 3 === 0
+                    ? 'hsl(var(--wine-deep))'
+                    : i % 3 === 1
+                    ? 'hsl(43, 53%, 55%)'
+                    : 'hsl(350, 60%, 50%)',
+                } as React.CSSProperties}
+              />
+            );
+          })}
+        </div>
+
         {/* Animated breathing orbs -- higher opacity, faster cycles */}
         <motion.div
           className="absolute top-[8%] left-[10%] w-[500px] h-[500px] rounded-full pointer-events-none"

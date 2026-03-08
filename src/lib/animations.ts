@@ -100,11 +100,11 @@ export const heroBadgeReveal: Variants = {
 };
 
 export const heroHeadlineReveal: Variants = {
-  initial: { opacity: 0, y: 48, filter: "blur(8px)" },
+  initial: { opacity: 0, filter: "blur(8px)", scale: 0.97 },
   animate: {
     opacity: 1,
-    y: 0,
     filter: "blur(0px)",
+    scale: 1,
     transition: { duration: 0.8, ease: easeOut },
   },
 };
