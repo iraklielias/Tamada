@@ -385,7 +385,31 @@ const AIGeneratePage = () => {
   const dg = result?.delivery_guidance;
   const meta = result?.metadata;
 
+  const handleToastFromChat = useCallback((toast: GeneratedToast) => {
+    setResult(toast);
+    setOriginalResult(toast);
+    setEditedTitle(toast.title_ka);
+    setEditedBody(toast.body_ka);
+    setIsEditing(false);
+    setShowDiff(false);
+    setFeedbackGiven(null);
+    setChatModeOpen(false);
+    setVoiceModeOpen(false);
+    queryClient.invalidateQueries({ queryKey: ["daily-ai-count"] });
+    sonnerToast.success(t("ai.created"));
+  }, [queryClient, t]);
+
+  const handleOpenChatMode = useCallback(() => {
+    if (!isPro) {
+      setUpsellMessage(t("ai.proChatRequired", "ჩათი თამადასთან ხელმისაწვდომია მხოლოდ PRO მომხმარებლებისთვის"));
+      setShowUpsell(true);
+      return;
+    }
+    setChatModeOpen(true);
+  }, [isPro, t]);
+
   return (
+    <>
     <div className="p-4 md:p-6 max-w-3xl mx-auto space-y-6 pb-24">
       {/* Header */}
       <div className="flex items-center justify-between">
