@@ -1231,7 +1231,7 @@ const Index = () => {
               <motion.h1
                 variants={heroHeadlineReveal}
                 className="font-display text-foreground mb-5"
-                style={{ fontSize: "clamp(2.6rem, 5.5vw, 4.2rem)", lineHeight: 1.08, letterSpacing: "-0.03em" }}
+                style={{ y: heroHeadlineY, fontSize: "clamp(2.6rem, 5.5vw, 4.2rem)", lineHeight: 1.08, letterSpacing: "-0.03em" }}
               >
                 {isKa ? (
                   <>
