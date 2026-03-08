@@ -277,7 +277,7 @@ function SceneResult({ active }: { active: boolean }) {
               </>
             )}
           </div>
-        </div>
+        </motion.div>
       </motion.div>
 
       <AnimatePresence>
