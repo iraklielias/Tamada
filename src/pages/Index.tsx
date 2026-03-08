@@ -1157,8 +1157,8 @@ const Index = () => {
         style={{ opacity: heroOpacity }}
         className="relative min-h-screen flex flex-col items-center justify-center px-6 pt-28 pb-20 overflow-hidden noise-overlay"
       >
-        {/* Dramatic gradient mesh background */}
-        <div className="absolute inset-0 pointer-events-none gradient-mesh-hero" />
+        {/* Item 15: Gradient mesh with subtle animation */}
+        <div className="absolute inset-0 pointer-events-none gradient-mesh-hero animate-gradient-shift" />
 
         {/* Hero arrival flash — one-shot radial pulse at ~1s */}
         <div
