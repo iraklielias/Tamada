@@ -701,7 +701,7 @@ async function generateAIResponse(messages: { role: string; content: string }[])
       messages: [
         { role: "system", content: FULL_SYSTEM_PROMPT },
         ...messages.map((m) => ({
-          role: m.role === "assistant" ? "assistant" : "user",
+          role: m.role === "assistant" ? "assistant" : m.role === "system" ? "system" : "user",
           content: m.content,
         })),
       ],
