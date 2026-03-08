@@ -1,6 +1,7 @@
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -45,17 +46,33 @@ export function AppSidebar() {
       {/* ─── Header ─── */}
       <SidebarHeader className="p-4">
         <div className="flex items-center gap-2.5">
-          <SystemIcon
-            name="decor.horn"
-            variant="chip"
-            tone="primary"
-            size="md"
-            className="shadow-wine shrink-0"
-          />
+          <motion.div
+            initial={{ scale: 0, rotate: -180, opacity: 0 }}
+            animate={{ scale: 1, rotate: 0, opacity: 1 }}
+            transition={{
+              type: "spring",
+              stiffness: 200,
+              damping: 14,
+              delay: 0.15,
+            }}
+          >
+            <SystemIcon
+              name="decor.horn"
+              variant="chip"
+              tone="primary"
+              size="md"
+              className="shadow-wine shrink-0"
+            />
+          </motion.div>
           {!collapsed && (
-            <span className="font-display text-lg font-bold text-foreground tracking-tight">
+            <motion.span
+              className="font-display text-lg font-bold text-foreground tracking-tight"
+              initial={{ opacity: 0, x: -12, filter: "blur(6px)" }}
+              animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
+              transition={{ duration: 0.5, delay: 0.35, ease: "easeOut" }}
+            >
               TAMADA
-            </span>
+            </motion.span>
           )}
         </div>
       </SidebarHeader>
