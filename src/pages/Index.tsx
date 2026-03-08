@@ -1039,14 +1039,18 @@ function PricingSection({ isKa }: { isKa: boolean }) {
           </div>
         </motion.div>
 
-        <div className="grid md:grid-cols-2 gap-6 md:gap-8 items-start">
+        <motion.div
+          initial="offscreen"
+          whileInView="onscreen"
+          viewport={{ once: true, margin: "-40px" }}
+          variants={pricingCardStagger}
+          className="grid md:grid-cols-2 gap-6 md:gap-8 items-start"
+        >
           {/* Free plan */}
           <motion.div
-            initial="offscreen"
-            whileInView="onscreen"
-            viewport={{ once: true, margin: "-40px" }}
-            variants={timelineStep(0)}
-            className="p-6 md:p-8 rounded-2xl bg-card border border-border transition-all duration-200 hover:border-wine-muted/40 hover:shadow-card-hover"
+            variants={springScaleIn}
+            whileHover={{ y: -4, transition: { type: "spring", stiffness: 300, damping: 24 } }}
+            className="p-6 md:p-8 rounded-2xl bg-card border border-border transition-colors duration-200 hover:border-wine-muted/40"
           >
             <h3 className="text-heading-3 text-foreground mb-1">
               {isKa ? "უფასო" : "Free"}
