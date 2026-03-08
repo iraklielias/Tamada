@@ -112,6 +112,10 @@ interface GeneratedToast {
   delivery_guidance?: DeliveryGuidance;
 }
 
+const refineToneKeys = ["traditional", "humorous", "emotional", "philosophical"];
+const refineLengthKeys = ["shorter", "longer"];
+const refineStyleKeys = ["poetic", "storytelling", "proverbial", "direct"];
+
 const AIGeneratePage = () => {
   const { t } = useTranslation();
   const [occasion, setOccasion] = useState("supra");
@@ -132,6 +136,12 @@ const AIGeneratePage = () => {
   const [feedbackGiven, setFeedbackGiven] = useState<"positive" | "negative" | null>(null);
   const [showReveal, setShowReveal] = useState(false);
   const [advancedOpen, setAdvancedOpen] = useState(false);
+  // Refinement state
+  const [refineOpen, setRefineOpen] = useState(false);
+  const [refineComment, setRefineComment] = useState("");
+  const [refineTone, setRefineTone] = useState<string | null>(null);
+  const [refineLength, setRefineLength] = useState<string | null>(null);
+  const [refineStyle, setRefineStyle] = useState<string | null>(null);
   const { user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
