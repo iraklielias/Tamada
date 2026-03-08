@@ -27,6 +27,19 @@ import {
   revealFromRight,
   mockupReveal,
   timelineStep,
+  deblurReveal,
+  springScaleIn,
+  staggerBullets,
+  bulletItem,
+  hoverLift,
+  featureTextStagger,
+  featureTextChild,
+  quoteIconReveal,
+  starFill,
+  timelineIconReveal,
+  timelineCardStagger,
+  pricingCardStagger,
+  ctaDeblurWord,
 } from "@/lib/animations";
 import SystemIcon from "@/components/SystemIcon";
 import {
@@ -489,47 +502,73 @@ function FeatureShowcase({
   glowClass = "glow-behind",
   children,
 }: FeatureShowcaseProps) {
+  const sectionRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start end", "end start"],
+  });
+  const mockupParallaxY = useTransform(scrollYProgress, [0, 1], [30, -30]);
+  const bgGradientOpacity = useTransform(scrollYProgress, [0.1, 0.4, 0.8], [0, 1, 0]);
+
   const textBlock = (
     <motion.div
       initial="offscreen"
       whileInView="onscreen"
       viewport={{ once: true, margin: "-60px" }}
-      variants={reversed ? revealFromRight : revealFromLeft}
+      variants={featureTextStagger}
       className={reversed ? "order-first md:order-none" : ""}
     >
-      <div className="flex items-center gap-2.5 mb-3">
+      <motion.div variants={featureTextChild} className="flex items-center gap-2.5 mb-3">
         {number && (
-          <span className="w-8 h-8 rounded-full wine-gradient flex items-center justify-center text-xs font-bold text-white shadow-wine">
+          <motion.span
+            variants={springScaleIn}
+            className="w-8 h-8 rounded-full wine-gradient flex items-center justify-center text-xs font-bold text-white shadow-wine"
+          >
             {number}
-          </span>
+          </motion.span>
         )}
         <p className="text-sm font-bold uppercase tracking-[0.15em] text-wine-muted">
           {subtitle}
         </p>
-      </div>
-      <h2 className="font-display text-heading-1 text-foreground mb-4">
+      </motion.div>
+      <motion.h2
+        variants={deblurReveal}
+        className="font-display text-heading-1 text-foreground mb-4"
+      >
         {title}
-      </h2>
-      <p className="text-muted-foreground leading-relaxed max-w-md mb-4">
+      </motion.h2>
+      <motion.p variants={featureTextChild} className="text-muted-foreground leading-relaxed max-w-md mb-4">
         {description}
-      </p>
+      </motion.p>
       {bullets && bullets.length > 0 && (
-        <ul className="space-y-3 mb-5">
+        <motion.ul
+          variants={staggerBullets}
+          initial="offscreen"
+          whileInView="onscreen"
+          viewport={{ once: true, margin: "-40px" }}
+          className="space-y-3 mb-5"
+        >
           {bullets.map((b, i) => (
-            <li key={i} className="flex items-center gap-2.5 text-base text-foreground/80">
-              <SystemIcon name="status.success" size="sm" className="text-wine-glow shrink-0" />
+            <motion.li key={i} variants={bulletItem} className="flex items-center gap-2.5 text-base text-foreground/80">
+              <motion.span
+                variants={springScaleIn}
+              >
+                <SystemIcon name="status.success" size="sm" className="text-wine-glow shrink-0" />
+              </motion.span>
               {b}
-            </li>
+            </motion.li>
           ))}
-        </ul>
+        </motion.ul>
       )}
       {learnMoreHref && (
-        <Button variant="wine-outline" size="default" asChild className="mt-1">
-          <Link to={learnMoreHref}>
-            {learnMoreText || "Learn more"}
-            <SystemIcon name="action.next" size="sm" className="ml-1.5" />
-          </Link>
-        </Button>
+        <motion.div variants={featureTextChild}>
+          <Button variant="wine-outline" size="default" asChild className="mt-1">
+            <Link to={learnMoreHref}>
+              {learnMoreText || "Learn more"}
+              <SystemIcon name="action.next" size="sm" className="ml-1.5" />
+            </Link>
+          </Button>
+        </motion.div>
       )}
     </motion.div>
   );
@@ -539,18 +578,32 @@ function FeatureShowcase({
       initial="offscreen"
       whileInView="onscreen"
       viewport={{ once: true, margin: "-60px" }}
-      variants={reversed ? revealFromLeft : revealFromRight}
+      variants={springScaleIn}
       className={`${reversed ? "order-last md:order-none" : ""} ${glowClass}`}
-      style={{ willChange: "transform" }}
-      whileHover={{ scale: 1.02, transition: { duration: 0.3 } }}
+      style={{ y: mockupParallaxY, willChange: "transform" }}
+      whileHover={{
+        scale: 1.03,
+        rotateY: reversed ? -2 : 2,
+        transition: { type: "spring", stiffness: 200, damping: 20 },
+      }}
     >
       {children}
     </motion.div>
   );
 
   return (
-    <section className={`py-20 md:py-28 px-6 relative ${bgClass}`} style={bgStyle}>
-      <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-12 md:gap-16 items-center">
+    <section ref={sectionRef} className={`py-20 md:py-28 px-6 relative ${bgClass}`} style={bgStyle}>
+      {/* Radial gradient that fades in on scroll */}
+      <motion.div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          opacity: bgGradientOpacity,
+          background: reversed
+            ? "radial-gradient(ellipse 60% 50% at 20% 50%, hsla(353,41%,32%,0.04) 0%, transparent 70%)"
+            : "radial-gradient(ellipse 60% 50% at 80% 50%, hsla(353,41%,32%,0.04) 0%, transparent 70%)",
+        }}
+      />
+      <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-12 md:gap-16 items-center relative z-10">
         {reversed ? (
           <>
             {visualBlock}
@@ -866,30 +919,59 @@ function MissionStats({ isKa }: { isKa: boolean }) {
 
   return (
     <div className="max-w-4xl mx-auto text-center relative z-10" ref={ref}>
+      {/* Breathing orbs for Mission section */}
+      <motion.div
+        className="absolute -top-20 -left-20 w-[300px] h-[300px] rounded-full pointer-events-none"
+        style={{ background: "radial-gradient(circle, hsla(353,55%,38%,0.25) 0%, transparent 70%)", filter: "blur(40px)" }}
+        animate={{ scale: [1, 1.15, 1], x: [0, 20, 0] }}
+        transition={{ duration: 6, repeat: Infinity, ease: [0.45, 0.05, 0.55, 0.95] }}
+      />
+      <motion.div
+        className="absolute -bottom-16 -right-16 w-[250px] h-[250px] rounded-full pointer-events-none"
+        style={{ background: "radial-gradient(circle, hsla(43,60%,50%,0.20) 0%, transparent 70%)", filter: "blur(40px)" }}
+        animate={{ scale: [1, 1.12, 1], y: [0, -15, 0] }}
+        transition={{ duration: 6, repeat: Infinity, ease: [0.45, 0.05, 0.55, 0.95], delay: 0.5 }}
+      />
+
       <motion.div
         initial="offscreen"
         whileInView="onscreen"
         viewport={{ once: true, margin: "-60px" }}
-        variants={scrollRevealScale}
+        variants={featureTextStagger}
       >
-        <QvevriIcon
-          size={64}
-          className="text-white/60 mx-auto mb-6"
-        />
-        <h2 className="font-display text-heading-1 text-white mb-6">
+        <motion.div variants={springScaleIn}>
+          <motion.div
+            animate={{ rotate: [0, 3, -3, 0] }}
+            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          >
+            <QvevriIcon
+              size={64}
+              className="text-white/60 mx-auto mb-6"
+            />
+          </motion.div>
+        </motion.div>
+        <motion.h2 variants={deblurReveal} className="font-display text-heading-1 text-white mb-6">
           {isKa
             ? "ტრადიცია ტექნოლოგიასთან ერთად"
             : "Tradition Meets Technology"}
-        </h2>
-        <p className="text-xl text-white/70 leading-relaxed max-w-2xl mx-auto mb-6">
+        </motion.h2>
+        <motion.p variants={featureTextChild} className="text-xl text-white/70 leading-relaxed max-w-2xl mx-auto mb-6">
           {isKa
             ? "ქართულ სუფრას 3,000 წელი აქვს. ჩვენ ვზრუნავთ, რომ კიდევ 3,000 იცოცხლოს."
             : "The Georgian supra is 3,000 years old. We're making sure it lives another 3,000."}
-        </p>
+        </motion.p>
 
         <div className="grid grid-cols-3 gap-4 md:gap-6 mt-12">
           {STATS.map((stat, i) => (
-            <div key={i} className="text-center p-5 md:p-6 rounded-2xl bg-white/[0.08] backdrop-blur-sm border border-white/10">
+            <motion.div
+              key={i}
+              initial="offscreen"
+              whileInView="onscreen"
+              viewport={{ once: true }}
+              variants={springScaleIn}
+              transition={{ delay: i * 0.15 }}
+              className="text-center p-5 md:p-6 rounded-2xl bg-white/[0.08] backdrop-blur-sm border border-white/10"
+            >
               <div className="text-4xl md:text-5xl font-bold text-white font-display tabular-nums">
                 <AnimatedCount to={stat.to} active={inView} delay={0.2 + i * 0.15} />
                 <span className="text-gold">{stat.suffix}</span>
@@ -897,7 +979,7 @@ function MissionStats({ isKa }: { isKa: boolean }) {
               <div className="text-sm text-white/60 font-medium mt-2">
                 {stat.label}
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
       </motion.div>
@@ -923,15 +1005,15 @@ function PricingSection({ isKa }: { isKa: boolean }) {
           initial="offscreen"
           whileInView="onscreen"
           viewport={{ once: true, margin: "-80px" }}
-          variants={scrollReveal}
+          variants={featureTextStagger}
           className="text-center mb-10"
         >
-          <p className="text-sm font-bold uppercase tracking-[0.15em] text-wine-muted mb-3">
+          <motion.p variants={featureTextChild} className="text-sm font-bold uppercase tracking-[0.15em] text-wine-muted mb-3">
             {isKa ? "ფასები" : "Pricing"}
-          </p>
-          <h2 className="font-display text-heading-1 text-foreground mb-3">
+          </motion.p>
+          <motion.h2 variants={deblurReveal} className="font-display text-heading-1 text-foreground mb-3">
             {isKa ? "დაიწყე უფასოდ. გააძლიერე, როცა სუფრა მოითხოვს." : "Start free. Upgrade when your supra demands it."}
-          </h2>
+          </motion.h2>
 
           {/* Monthly/Annual toggle */}
           <div className="inline-flex items-center gap-3 p-1.5 rounded-xl bg-surface-1 border border-border">
@@ -957,14 +1039,18 @@ function PricingSection({ isKa }: { isKa: boolean }) {
           </div>
         </motion.div>
 
-        <div className="grid md:grid-cols-2 gap-6 md:gap-8 items-start">
+        <motion.div
+          initial="offscreen"
+          whileInView="onscreen"
+          viewport={{ once: true, margin: "-40px" }}
+          variants={pricingCardStagger}
+          className="grid md:grid-cols-2 gap-6 md:gap-8 items-start"
+        >
           {/* Free plan */}
           <motion.div
-            initial="offscreen"
-            whileInView="onscreen"
-            viewport={{ once: true, margin: "-40px" }}
-            variants={timelineStep(0)}
-            className="p-6 md:p-8 rounded-2xl bg-card border border-border transition-all duration-200 hover:border-wine-muted/40 hover:shadow-card-hover"
+            variants={springScaleIn}
+            whileHover={{ y: -4, transition: { type: "spring", stiffness: 300, damping: 24 } }}
+            className="p-6 md:p-8 rounded-2xl bg-card border border-border transition-colors duration-200 hover:border-wine-muted/40"
           >
             <h3 className="text-heading-3 text-foreground mb-1">
               {isKa ? "უფასო" : "Free"}
@@ -1010,11 +1096,9 @@ function PricingSection({ isKa }: { isKa: boolean }) {
 
           {/* Pro plan — elevated */}
           <motion.div
-            initial="offscreen"
-            whileInView="onscreen"
-            viewport={{ once: true, margin: "-40px" }}
-            variants={timelineStep(1)}
-            className="p-6 md:p-8 rounded-2xl bg-wine-light/20 border-2 border-wine-muted/50 relative overflow-hidden transition-all duration-200 hover:border-wine-muted/70 shadow-wine md:scale-[1.03] md:origin-top"
+            variants={springScaleIn}
+            whileHover={{ y: -4, transition: { type: "spring", stiffness: 300, damping: 24 } }}
+            className="p-6 md:p-8 rounded-2xl bg-wine-light/20 border-2 border-wine-muted/50 relative overflow-hidden transition-colors duration-200 hover:border-wine-muted/70 shadow-wine md:scale-[1.03] md:origin-top animate-pulse-glow-wine"
           >
             <div className="flex items-center gap-2 mb-4">
               <span className="px-2.5 py-1 rounded-full bg-wine-deep/10 border border-wine-muted/30 text-[10px] font-bold text-wine-deep">
@@ -1081,7 +1165,7 @@ function PricingSection({ isKa }: { isKa: boolean }) {
               </Link>
             </Button>
           </motion.div>
-        </div>
+        </motion.div>
       </div>
     </section>
   );
@@ -1530,21 +1614,21 @@ const Index = () => {
         <div className="absolute top-0 left-0 right-0 h-px section-divider" />
         <div className="absolute bottom-0 left-0 right-0 h-px section-divider" />
 
-        <motion.div
-          initial="offscreen"
-          whileInView="onscreen"
-          viewport={{ once: true, margin: "-80px" }}
-          variants={scrollReveal}
-          className="max-w-5xl mx-auto"
-        >
-          <div className="text-center mb-14">
-            <p className="text-sm font-bold uppercase tracking-[0.15em] text-wine-muted mb-3">
+        <div className="max-w-5xl mx-auto">
+          <motion.div
+            initial="offscreen"
+            whileInView="onscreen"
+            viewport={{ once: true, margin: "-80px" }}
+            variants={featureTextStagger}
+            className="text-center mb-14"
+          >
+            <motion.p variants={featureTextChild} className="text-sm font-bold uppercase tracking-[0.15em] text-wine-muted mb-3">
               {isKa ? "შეფასებები" : "Testimonials"}
-            </p>
-            <h2 className="font-display text-heading-1 text-foreground">
+            </motion.p>
+            <motion.h2 variants={deblurReveal} className="font-display text-heading-1 text-foreground">
               {isKa ? "რას ამბობენ მომხმარებლები" : "What Our Users Say"}
-            </h2>
-          </div>
+            </motion.h2>
+          </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
@@ -1575,35 +1659,65 @@ const Index = () => {
             ].map((t, i) => (
               <motion.div
                 key={i}
-                initial={{ opacity: 0, y: 30, rotate: i === 0 ? -1 : i === 2 ? 1 : 0 }}
-                whileInView={{ opacity: 1, y: 0, rotate: 0 }}
+                initial="offscreen"
+                whileInView="onscreen"
+                whileHover="hover"
                 viewport={{ once: true, margin: "-40px" }}
-                transition={{ duration: 0.55, delay: i * 0.15, ease: [0, 0, 0.2, 1] }}
-                className="p-6 md:p-7 rounded-2xl bg-card border border-border hover:border-wine-muted/40 transition-all duration-300 hover:shadow-card-hover group"
+                variants={springScaleIn}
+                transition={{ delay: i * 0.15 }}
+                className="p-6 md:p-7 rounded-2xl bg-card border border-border hover:border-wine-muted/40 transition-colors duration-300 group"
+                style={{ perspective: 800 }}
               >
-                <div className="flex items-center gap-1 mb-4">
-                  {[...Array(5)].map((_, si) => (
-                    <Star key={si} className="h-4 w-4 fill-gold text-gold" />
-                  ))}
-                </div>
-                <Quote className="h-5 w-5 text-wine-muted/40 mb-3" />
-                <p className="text-foreground/80 leading-relaxed mb-6 italic">
-                  "{t.quote}"
-                </p>
-                <div className="h-px bg-border mb-4" />
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full wine-gradient flex items-center justify-center text-sm font-bold text-white">
-                    {t.initial}
+                <motion.div
+                  variants={hoverLift}
+                  initial="rest"
+                  whileHover="hover"
+                >
+                  <div className="flex items-center gap-1 mb-4">
+                    {[...Array(5)].map((_, si) => (
+                      <motion.div
+                        key={si}
+                        initial="offscreen"
+                        whileInView="onscreen"
+                        viewport={{ once: true }}
+                        variants={starFill(si + i * 5)}
+                      >
+                        <Star className="h-4 w-4 fill-gold text-gold" />
+                      </motion.div>
+                    ))}
                   </div>
-                  <div>
-                    <div className="text-sm font-semibold text-foreground">{t.name}</div>
-                    <div className="text-xs text-muted-foreground">{t.role}</div>
+                  <motion.div
+                    initial="offscreen"
+                    whileInView="onscreen"
+                    viewport={{ once: true }}
+                    variants={quoteIconReveal}
+                  >
+                    <Quote className="h-5 w-5 text-wine-muted/40 mb-3" />
+                  </motion.div>
+                  <p className="text-foreground/80 leading-relaxed mb-6 italic">
+                    "{t.quote}"
+                  </p>
+                  <div className="h-px bg-border mb-4" />
+                  <div className="flex items-center gap-3">
+                    <motion.div
+                      initial="offscreen"
+                      whileInView="onscreen"
+                      viewport={{ once: true }}
+                      variants={springScaleIn}
+                      className="w-10 h-10 rounded-full wine-gradient flex items-center justify-center text-sm font-bold text-white"
+                    >
+                      {t.initial}
+                    </motion.div>
+                    <div>
+                      <div className="text-sm font-semibold text-foreground">{t.name}</div>
+                      <div className="text-xs text-muted-foreground">{t.role}</div>
+                    </div>
                   </div>
-                </div>
+                </motion.div>
               </motion.div>
             ))}
           </div>
-        </motion.div>
+        </div>
       </section>
 
       {/* ═══════════════ HOW IT WORKS ═══════════════ */}
@@ -1616,17 +1730,17 @@ const Index = () => {
             initial="offscreen"
             whileInView="onscreen"
             viewport={{ once: true, margin: "-80px" }}
-            variants={scrollReveal}
+            variants={featureTextStagger}
             className="mb-14"
           >
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-wine-muted mb-3">
+            <motion.p variants={featureTextChild} className="text-xs font-bold uppercase tracking-[0.2em] text-wine-muted mb-3">
               {isKa ? "როგორ მუშაობს" : "How It Works"}
-            </p>
-            <h2 className="font-display text-heading-1 text-foreground">
+            </motion.p>
+            <motion.h2 variants={deblurReveal} className="font-display text-heading-1 text-foreground">
               {isKa
                 ? "სუფრამდე ოთხი ნაბიჯია"
                 : "Four steps to a flawless supra"}
-            </h2>
+            </motion.h2>
           </motion.div>
 
           <div className="relative" ref={timelineRef}>
@@ -1754,29 +1868,38 @@ const Index = () => {
                   initial="offscreen"
                   whileInView="onscreen"
                   viewport={{ once: true, margin: "-40px" }}
-                  variants={timelineStep(i)}
+                  variants={timelineCardStagger}
                   className="relative pl-16 md:pl-20"
                 >
-                  <div className="absolute left-0 top-4 w-14 h-14 rounded-xl wine-gradient flex items-center justify-center shadow-wine z-10 ring-4 ring-wine-light/50">
+                  <motion.div
+                    variants={timelineIconReveal}
+                    className="absolute left-0 top-4 w-14 h-14 rounded-xl wine-gradient flex items-center justify-center shadow-wine z-10 ring-4 ring-wine-light/50"
+                  >
                     {item.icon}
-                  </div>
-                  <div className="p-6 md:p-7 rounded-2xl bg-card border border-border hover:border-wine-muted/30 transition-all duration-200 hover:shadow-card-hover">
-                    <div className="flex items-center gap-3 mb-1">
+                  </motion.div>
+                  <motion.div
+                    variants={springScaleIn}
+                    whileHover={{ y: -3, boxShadow: "var(--shadow-md)", transition: { type: "spring", stiffness: 300, damping: 24 } }}
+                    className="p-6 md:p-7 rounded-2xl bg-card border border-border hover:border-wine-muted/30 transition-colors duration-200"
+                  >
+                    <motion.div variants={featureTextChild} className="flex items-center gap-3 mb-1">
                       <span className="text-[10px] font-bold uppercase tracking-widest text-wine-muted">
                         {isKa ? "ნაბიჯი" : "Step"} {item.step}
                       </span>
-                      <span className="px-2 py-0.5 rounded-full bg-wine-light/60 text-[9px] font-bold text-wine-deep tracking-wide">
+                      <motion.span variants={springScaleIn} className="px-2 py-0.5 rounded-full bg-wine-light/60 text-[9px] font-bold text-wine-deep tracking-wide">
                         {item.badge}
-                      </span>
-                    </div>
-                    <h3 className="text-heading-3 text-foreground mt-1 mb-2">
+                      </motion.span>
+                    </motion.div>
+                    <motion.h3 variants={featureTextChild} className="text-heading-3 text-foreground mt-1 mb-2">
                       {item.title}
-                    </h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed max-w-md">
+                    </motion.h3>
+                    <motion.p variants={featureTextChild} className="text-sm text-muted-foreground leading-relaxed max-w-md">
                       {item.desc}
-                    </p>
-                    {item.mini}
-                  </div>
+                    </motion.p>
+                    <motion.div variants={featureTextChild}>
+                      {item.mini}
+                    </motion.div>
+                  </motion.div>
                 </motion.div>
               ))}
             </div>
@@ -1850,18 +1973,20 @@ const Index = () => {
           initial="offscreen"
           whileInView="onscreen"
           viewport={{ once: true, margin: "-80px" }}
-          variants={scrollReveal}
+          variants={featureTextStagger}
         >
-          <HornIcon size={56} className="text-white/70 mx-auto mb-6" />
+          <motion.div variants={springScaleIn}>
+            <HornIcon size={56} className="text-white/70 mx-auto mb-6" />
+          </motion.div>
 
           {/* Testimonial quote */}
-          <p className="text-white/50 italic text-base mb-6 max-w-md mx-auto">
+          <motion.p variants={featureTextChild} className="text-white/50 italic text-base mb-6 max-w-md mx-auto">
             {isKa
               ? `„მამის დაბადების დღეზე თამადობა მეშინოდა. TAMADA-მ თავდაჯერებულობა მომცა."`
               : "\"I was terrified of being tamada. TAMADA gave me the confidence.\""}
-          </p>
+          </motion.p>
 
-          <h2
+          <div
             className="font-display text-white mb-6"
             style={{
               fontSize: "clamp(2.2rem, 5vw, 3.5rem)",
@@ -1869,39 +1994,47 @@ const Index = () => {
               letterSpacing: "-0.02em",
             }}
           >
-            {isKa ? (
-              <>
-                შენი შემდეგი სუფრა მოდის.
-                <br />
-                მზად იქნები?
-              </>
-            ) : (
-              <>
-                Your next supra is coming.
-                <br />
-                Will you be ready?
-              </>
+            {(isKa
+              ? ["შენი", "შემდეგი", "სუფრა", "მოდის.", "\n", "მზად", "იქნები?"]
+              : ["Your", "next", "supra", "is", "coming.", "\n", "Will", "you", "be", "ready?"]
+            ).map((word, wi) =>
+              word === "\n" ? (
+                <br key={wi} />
+              ) : (
+                <motion.span
+                  key={wi}
+                  className="inline-block mr-[0.3em]"
+                  initial="offscreen"
+                  whileInView="onscreen"
+                  viewport={{ once: true }}
+                  variants={ctaDeblurWord(wi)}
+                >
+                  {word}
+                </motion.span>
+              )
             )}
-          </h2>
-          <p className="text-lg text-white/60 max-w-lg mx-auto mb-10 leading-relaxed">
+          </div>
+          <motion.p variants={featureTextChild} className="text-lg text-white/60 max-w-lg mx-auto mb-10 leading-relaxed">
             {isKa
               ? "შეუერთდი მზარდ საზოგადოებას, რომელიც ქართული სუფრის ტრადიციას AI-ის ძალით აღადგენს."
               : "Join a growing community bringing Georgian feast traditions back to life with the power of AI."}
-          </p>
-          <Button
-            variant="hero"
-            size="lg"
-            asChild
-            className="btn-shimmer bg-white text-wine-deep hover:bg-white/95 shadow-elevated h-14 px-10 text-lg rounded-xl font-semibold"
-          >
-            <Link to="/auth/signup">
-              {isKa ? "დაიწყე უფასოდ" : "Start free"}
-              <SystemIcon name="action.next" size="md" className="ml-1.5" />
-            </Link>
-          </Button>
-          <p className="text-sm text-white/40 mt-5">
+          </motion.p>
+          <motion.div variants={heroCTAReveal}>
+            <Button
+              variant="hero"
+              size="lg"
+              asChild
+              className="btn-shimmer bg-white text-wine-deep hover:bg-white/95 shadow-elevated h-14 px-10 text-lg rounded-xl font-semibold"
+            >
+              <Link to="/auth/signup">
+                {isKa ? "დაიწყე უფასოდ" : "Start free"}
+                <SystemIcon name="action.next" size="md" className="ml-1.5" />
+              </Link>
+            </Button>
+          </motion.div>
+          <motion.p variants={featureTextChild} className="text-sm text-white/40 mt-5">
             {isKa ? "კრედიტ ბარათი არ სჭირდება" : "No credit card required"}
-          </p>
+          </motion.p>
         </motion.div>
       </section>
 
