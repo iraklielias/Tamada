@@ -23,24 +23,25 @@ function useSceneTyping(text: string, active: boolean, speed = 35) {
 
 /* ═══════════════════════════════════════════
    CONFETTI PARTICLES (Alaverdi celebration)
+   — Item 6: Bigger particles, more travel, rotation
    ═══════════════════════════════════════════ */
 function ConfettiDots({ show }: { show: boolean }) {
   const dots = [
-    { color: "hsl(var(--wine-deep))", x: -12, y: -14, delay: 0 },
-    { color: "hsl(var(--gold))", x: 8, y: -18, delay: 0.05 },
-    { color: "hsl(var(--success))", x: 14, y: -8, delay: 0.1 },
+    { color: "hsl(var(--wine-deep))", x: -20, y: -22, delay: 0, rotate: 180 },
+    { color: "hsl(var(--gold))", x: 14, y: -26, delay: 0.05, rotate: -150 },
+    { color: "hsl(var(--success))", x: 22, y: -12, delay: 0.1, rotate: 120 },
   ];
   return (
     <AnimatePresence>
       {show && dots.map((d, i) => (
         <motion.div
           key={i}
-          className="absolute w-1 h-1 rounded-full"
+          className="absolute w-1.5 h-1.5 rounded-full"
           style={{ backgroundColor: d.color }}
-          initial={{ opacity: 1, x: 0, y: 0, scale: 1 }}
-          animate={{ opacity: 0, x: d.x, y: d.y, scale: 0.5 }}
+          initial={{ opacity: 1, x: 0, y: 0, scale: 1, rotate: 0 }}
+          animate={{ opacity: 0, x: d.x, y: d.y, scale: 0.4, rotate: d.rotate }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.5, delay: d.delay, ease: "easeOut" }}
+          transition={{ duration: 0.6, delay: d.delay, ease: "easeOut" }}
         />
       ))}
     </AnimatePresence>
@@ -49,12 +50,50 @@ function ConfettiDots({ show }: { show: boolean }) {
 
 /* ═══════════════════════════════════════════
    SHARED ANIMATION VARIANTS
+   — Items 1-3: stagger children, entry/exit blur
    ═══════════════════════════════════════════ */
-const sceneVariants = {
-  initial: { opacity: 0, y: 8 },
-  animate: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" as const } },
-  exit: { opacity: 0, y: -4, transition: { duration: 0.4, ease: "easeIn" as const } },
+const staggerChild = {
+  initial: { opacity: 0, y: 6, filter: "blur(3px)" },
+  animate: { opacity: 1, y: 0, filter: "blur(0px)", transition: { duration: 0.35, ease: "easeOut" as const } },
 };
+
+const sceneVariants = {
+  initial: { opacity: 0, y: 8, filter: "blur(4px)" },
+  animate: {
+    opacity: 1,
+    y: 0,
+    filter: "blur(0px)",
+    transition: {
+      duration: 0.5,
+      ease: "easeOut" as const,
+      staggerChildren: 0.12,
+    },
+  },
+  exit: {
+    opacity: 0,
+    y: -4,
+    filter: "blur(2px)",
+    transition: { duration: 0.4, ease: "easeIn" as const },
+  },
+};
+
+/* ═══════════════════════════════════════════
+   TYPING CURSOR — Item 4: rounded, sine-wave, scale exit
+   ═══════════════════════════════════════════ */
+function TypingCursor({ active, height = "h-3" }: { active: boolean; height?: string }) {
+  return (
+    <AnimatePresence>
+      {active && (
+        <motion.span
+          className={`inline-block w-[2px] ${height} bg-wine-deep ml-0.5 align-middle rounded-full`}
+          animate={{ opacity: [1, 0.2, 1] }}
+          exit={{ scale: 0, opacity: 0, transition: { duration: 0.15 } }}
+          transition={{ duration: 0.7, repeat: Infinity, ease: "easeInOut" }}
+        />
+      )}
+    </AnimatePresence>
+  );
+}
 
 /* ═══════════════════════════════════════════
    SCENE 1 — AI Generator Form (Selects + Tags)
@@ -81,19 +120,18 @@ function SceneGenerator({ active }: { active: boolean }) {
 
   return (
     <motion.div variants={sceneVariants} initial="initial" animate="animate" exit="exit" className="h-full flex flex-col">
-      <div className="flex items-center gap-2 mb-2">
+      <motion.div variants={staggerChild} className="flex items-center gap-2 mb-2">
         <Sparkles className="h-3.5 w-3.5 text-wine-glow" />
         <span className="text-[11px] font-semibold text-foreground">AI სადღეგრძელო</span>
-      </div>
+      </motion.div>
 
       <div className="space-y-2 flex-1">
-        {/* Select dropdowns */}
         {selects.map((s, i) => (
           <motion.div
             key={s.label}
-            initial={{ opacity: 0, x: -8 }}
-            animate={step > i ? { opacity: 1, x: 0 } : { opacity: 0.3, x: 0 }}
-            transition={{ duration: 0.3, delay: i * 0.05 }}
+            variants={staggerChild}
+            initial="initial"
+            animate={step > i ? "animate" : { opacity: 0.3, y: 0, filter: "blur(0px)" }}
             className="flex items-center gap-2"
           >
             <span className="text-[9px] text-muted-foreground w-16 shrink-0">{s.label}</span>
@@ -106,7 +144,6 @@ function SceneGenerator({ active }: { active: boolean }) {
           </motion.div>
         ))}
 
-        {/* Summary tag strip */}
         <AnimatePresence>
           {step >= 4 && (
             <motion.div
@@ -131,11 +168,10 @@ function SceneGenerator({ active }: { active: boolean }) {
         </AnimatePresence>
       </div>
 
-      {/* Generate button */}
       <motion.div
-        initial={{ opacity: 0, y: 4 }}
-        animate={step >= 4 ? { opacity: 1, y: 0 } : {}}
-        transition={{ delay: 0.2, duration: 0.3 }}
+        variants={staggerChild}
+        initial="initial"
+        animate={step >= 4 ? "animate" : "initial"}
         className="mt-auto pt-2"
       >
         <motion.div
@@ -151,11 +187,10 @@ function SceneGenerator({ active }: { active: boolean }) {
 }
 
 /* ═══════════════════════════════════════════
-   SCENE 2 — AI Result Card (Title + Body + Guidance)
-   With generation climax glow effect
+   SCENE 2 — AI Result Card
    ═══════════════════════════════════════════ */
 function SceneResult({ active }: { active: boolean }) {
-  const [phase, setPhase] = useState(0); // 0=shimmer, 1=title, 2=body, 3=guidance
+  const [phase, setPhase] = useState(0);
   const [showGlow, setShowGlow] = useState(false);
   const title = "ნეფე-პატარძლის სადღეგრძელო";
   const body = "დიდება ღმერთს, რომელმაც მოგვცა ეს დღე — ორი გულის ერთ ცხოვრებად შეკვრის დღე...";
@@ -173,7 +208,7 @@ function SceneResult({ active }: { active: boolean }) {
 
   return (
     <motion.div variants={sceneVariants} initial="initial" animate="animate" exit="exit" className="h-full flex flex-col">
-      <div className="flex items-center gap-2 mb-2">
+      <motion.div variants={staggerChild} className="flex items-center gap-2 mb-2">
         <motion.div animate={active && phase < 2 ? { rotate: [0, 15, -15, 0] } : {}} transition={{ duration: 1.5, repeat: Infinity }}>
           <Sparkles className="h-3.5 w-3.5 text-gold" />
         </motion.div>
@@ -184,11 +219,9 @@ function SceneResult({ active }: { active: boolean }) {
             <span className="text-[9px] text-green-600 dark:text-green-400 font-medium">მზადაა</span>
           </motion.div>
         )}
-      </div>
+      </motion.div>
 
-      {/* Result card with climax glow */}
-      <div className="relative flex-1">
-        {/* Radial glow pulse on generation */}
+      <motion.div variants={staggerChild} className="relative flex-1">
         <AnimatePresence>
           {showGlow && (
             <motion.div
@@ -225,24 +258,23 @@ function SceneResult({ active }: { active: boolean }) {
               <>
                 <p className="text-[11px] font-bold text-foreground leading-tight">
                   {typedTitle}
-                  {phase < 2 && <motion.span className="inline-block w-0.5 h-3 bg-wine-deep ml-0.5 align-middle" animate={{ opacity: [1, 0, 1] }} transition={{ duration: 0.6, repeat: Infinity }} />}
+                  <TypingCursor active={phase >= 1 && phase < 2} height="h-3" />
                 </p>
                 {phase >= 2 && (
                   <p className="text-[10px] text-foreground/80 leading-relaxed">
                     {typedBody}
-                    {phase < 3 && <motion.span className="inline-block w-0.5 h-2.5 bg-wine-deep ml-0.5 align-middle" animate={{ opacity: [1, 0, 1] }} transition={{ duration: 0.6, repeat: Infinity }} />}
+                    <TypingCursor active={phase >= 2 && phase < 3} height="h-2.5" />
                   </p>
                 )}
               </>
             )}
           </div>
         </motion.div>
-      </div>
+      </motion.div>
 
-      {/* Delivery guidance */}
       <AnimatePresence>
         {phase >= 3 && (
-          <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} className="space-y-1.5 mt-auto pt-2">
+          <motion.div initial={{ opacity: 0, y: 4, filter: "blur(2px)" }} animate={{ opacity: 1, y: 0, filter: "blur(0px)" }} className="space-y-1.5 mt-auto pt-2">
             <div className="flex items-center gap-3 text-[9px] text-muted-foreground">
               <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> 2-3 წუთი</span>
               <span className="flex items-center gap-1"><Wine className="h-3 w-3" /> 🥂 მე-3 წინადადება</span>
@@ -265,8 +297,9 @@ function SceneResult({ active }: { active: boolean }) {
 }
 
 /* ═══════════════════════════════════════════
-   SCENE 3 — Live Feast (Toast Card Layout)
-   Smooth progress + scale pulse on card swap
+   SCENE 3 — Live Feast
+   — Item 7: Progress bar fade-in
+   — Item 11: Spring physics on progress
    ═══════════════════════════════════════════ */
 function SceneLiveFeast({ active }: { active: boolean }) {
   const [progress, setProgress] = useState(28);
@@ -280,7 +313,6 @@ function SceneLiveFeast({ active }: { active: boolean }) {
 
   useEffect(() => {
     if (!active) { setProgress(28); setTimer("12:45"); setToastIdx(0); return; }
-    // Smooth intermediate progress steps
     const t0 = setTimeout(() => setProgress(34), 800);
     const t1 = setTimeout(() => { setProgress(42); setTimer("12:51"); }, 1600);
     const t1b = setTimeout(() => setProgress(48), 2400);
@@ -292,8 +324,7 @@ function SceneLiveFeast({ active }: { active: boolean }) {
 
   return (
     <motion.div variants={sceneVariants} initial="initial" animate="animate" exit="exit" className="h-full flex flex-col">
-      {/* Header */}
-      <div className="flex items-center gap-2 mb-2">
+      <motion.div variants={staggerChild} className="flex items-center gap-2 mb-2">
         <span className="text-[11px] font-semibold text-foreground">ნიკას ქორწილი</span>
         <motion.div className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-green-500/15 ml-auto"
           animate={{ opacity: [1, 0.5, 1] }} transition={{ duration: 1.5, repeat: Infinity }}>
@@ -301,16 +332,15 @@ function SceneLiveFeast({ active }: { active: boolean }) {
           <span className="text-[8px] font-bold text-green-600 dark:text-green-400">LIVE</span>
         </motion.div>
         <span className="text-[10px] font-mono text-muted-foreground tabular-nums">{timer}</span>
-      </div>
+      </motion.div>
 
-      {/* Current toast card with scale pulse */}
-      <div className="flex-1">
+      <motion.div variants={staggerChild} className="flex-1">
         <AnimatePresence mode="wait">
           <motion.div
             key={toastIdx}
-            initial={{ opacity: 0, y: 6, scale: 0.97 }}
-            animate={{ opacity: 1, y: 0, scale: [0.97, 1.02, 1] }}
-            exit={{ opacity: 0, y: -6, scale: 0.97 }}
+            initial={{ opacity: 0, y: 6, scale: 0.97, filter: "blur(2px)" }}
+            animate={{ opacity: 1, y: 0, scale: [0.97, 1.02, 1], filter: "blur(0px)" }}
+            exit={{ opacity: 0, y: -6, scale: 0.97, filter: "blur(2px)" }}
             transition={{ duration: 0.35, scale: { times: [0, 0.6, 1], duration: 0.4 } }}
             className="rounded-lg border border-wine-muted/25 bg-wine-light/15 overflow-hidden"
           >
@@ -324,31 +354,38 @@ function SceneLiveFeast({ active }: { active: boolean }) {
             </div>
           </motion.div>
         </AnimatePresence>
-      </div>
+      </motion.div>
 
-      {/* Progress */}
-      <div className="space-y-1.5 mt-auto pt-2">
+      {/* Progress — Item 7: fade-in, Item 11: spring physics */}
+      <motion.div
+        variants={staggerChild}
+        className="space-y-1.5 mt-auto pt-2"
+      >
         <div className="h-1.5 w-full bg-surface-2 rounded-full overflow-hidden">
-          <motion.div className="h-full wine-gradient rounded-full" animate={{ width: `${progress}%` }} transition={{ duration: 0.6, ease: "easeOut" }} />
+          <motion.div
+            className="h-full wine-gradient rounded-full"
+            animate={{ width: `${progress}%` }}
+            transition={{ type: "spring", stiffness: 80, damping: 20 }}
+          />
         </div>
         <div className="flex items-center justify-between">
           <span className="text-[9px] text-muted-foreground font-medium">{toastIdx + 1}/7 სადღეგრძელო</span>
           <span className="text-[9px] text-wine-deep font-semibold">{progress}%</span>
         </div>
-      </div>
+      </motion.div>
 
-      {/* Host controls hint */}
-      <div className="flex items-center gap-1.5 pt-1.5">
+      <motion.div variants={staggerChild} className="flex items-center gap-1.5 pt-1.5">
         {["✓ დასრულება", "⏭ გამოტოვება"].map((label) => (
           <span key={label} className="text-[8px] px-2 py-1 rounded-md bg-surface-1 border border-border text-muted-foreground">{label}</span>
         ))}
-      </div>
+      </motion.div>
     </motion.div>
   );
 }
 
 /* ═══════════════════════════════════════════
-   SCENE 4 — Chat Mode (Bubbles + Voice)
+   SCENE 4 — Chat Mode
+   — Item 5: Directional chat bubble entries
    ═══════════════════════════════════════════ */
 function SceneChat({ active }: { active: boolean }) {
   const [step, setStep] = useState(0);
@@ -365,17 +402,22 @@ function SceneChat({ active }: { active: boolean }) {
 
   return (
     <motion.div variants={sceneVariants} initial="initial" animate="animate" exit="exit" className="h-full flex flex-col">
-      <div className="flex items-center gap-2 mb-2">
+      <motion.div variants={staggerChild} className="flex items-center gap-2 mb-2">
         <Sparkles className="h-3.5 w-3.5 text-wine-glow" />
         <span className="text-[11px] font-semibold text-foreground">AI ჩატი</span>
         <span className="text-[8px] px-1.5 py-0.5 rounded-full bg-gold/20 text-gold font-bold ml-auto">PRO</span>
-      </div>
+      </motion.div>
 
       <div className="flex-1 space-y-2.5">
-        {/* User bubble */}
+        {/* User bubble — enters from right */}
         <AnimatePresence>
           {step >= 1 && (
-            <motion.div initial={{ opacity: 0, y: 6, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} className="flex justify-end">
+            <motion.div
+              initial={{ opacity: 0, x: 16, scale: 0.95 }}
+              animate={{ opacity: 1, x: 0, scale: 1 }}
+              transition={{ type: "spring", stiffness: 260, damping: 20 }}
+              className="flex justify-end"
+            >
               <div className="max-w-[80%] px-3 py-2 rounded-2xl rounded-br-md bg-wine-deep text-white text-[10px] leading-relaxed">
                 ქორწილისთვის სადღეგრძელო მინდა
               </div>
@@ -383,16 +425,21 @@ function SceneChat({ active }: { active: boolean }) {
           )}
         </AnimatePresence>
 
-        {/* AI bubble */}
+        {/* AI bubble — enters from left */}
         <AnimatePresence>
           {step >= 2 && (
-            <motion.div initial={{ opacity: 0, y: 6, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ delay: 0.1 }} className="flex justify-start gap-2">
+            <motion.div
+              initial={{ opacity: 0, x: -16, scale: 0.95 }}
+              animate={{ opacity: 1, x: 0, scale: 1 }}
+              transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.1 }}
+              className="flex justify-start gap-2"
+            >
               <div className="w-6 h-6 rounded-full wine-gradient flex items-center justify-center shrink-0">
                 <HornIcon size={10} className="text-white" />
               </div>
               <div className="max-w-[78%] px-3 py-2 rounded-2xl rounded-bl-md bg-surface-1 border border-border text-[10px] text-foreground leading-relaxed">
                 {typedResponse}
-                {step < 3 && <motion.span className="inline-block w-0.5 h-2.5 bg-wine-deep ml-0.5 align-middle" animate={{ opacity: [1, 0, 1] }} transition={{ duration: 0.6, repeat: Infinity }} />}
+                <TypingCursor active={step >= 2 && step < 3} height="h-2.5" />
               </div>
             </motion.div>
           )}
@@ -402,7 +449,7 @@ function SceneChat({ active }: { active: boolean }) {
       {/* Voice chip + input */}
       <AnimatePresence>
         {step >= 3 && (
-          <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-2 mt-auto pt-2">
+          <motion.div initial={{ opacity: 0, y: 4, filter: "blur(2px)" }} animate={{ opacity: 1, y: 0, filter: "blur(0px)" }} className="flex items-center gap-2 mt-auto pt-2">
             <div className="flex-1 flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface-1 border border-border">
               <span className="text-[9px] text-muted-foreground flex-1">დაწერეთ...</span>
               <Send className="h-3 w-3 text-muted-foreground" />
@@ -423,7 +470,6 @@ function SceneChat({ active }: { active: boolean }) {
 
 /* ═══════════════════════════════════════════
    SCENE 5 — Alaverdi (Guest Interaction)
-   With confetti celebration
    ═══════════════════════════════════════════ */
 function SceneAlaverdi({ active }: { active: boolean }) {
   const [count, setCount] = useState(2);
@@ -441,15 +487,14 @@ function SceneAlaverdi({ active }: { active: boolean }) {
 
   return (
     <motion.div variants={sceneVariants} initial="initial" animate="animate" exit="exit" className="h-full flex flex-col">
-      <div className="flex items-center gap-2 mb-2">
+      <motion.div variants={staggerChild} className="flex items-center gap-2 mb-2">
         <Wine className="h-3.5 w-3.5 text-wine-deep" />
         <span className="text-[11px] font-semibold text-foreground">ალავერდი</span>
-      </div>
+      </motion.div>
 
       <div className="space-y-2.5 flex-1">
-        {/* Guest 1 */}
-        <motion.div className="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-wine-light/40 border border-wine-muted/25"
-          initial={{ opacity: 0, x: -8 }} animate={active ? { opacity: 1, x: 0 } : {}} transition={{ delay: 0.2 }}>
+        <motion.div variants={staggerChild} className="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-wine-light/40 border border-wine-muted/25"
+          initial="initial" animate={active ? "animate" : "initial"}>
           <div className="w-7 h-7 rounded-full wine-gradient flex items-center justify-center text-white text-[10px] font-bold">გ</div>
           <div className="flex-1 min-w-0">
             <div className="text-[10px] font-semibold text-foreground">გიორგი მამულაშვილი</div>
@@ -472,11 +517,10 @@ function SceneAlaverdi({ active }: { active: boolean }) {
           </div>
         </motion.div>
 
-        {/* Guest 2 */}
         <AnimatePresence>
           {showSecond && (
             <motion.div className="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-surface-1 border border-border/50"
-              initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
+              initial={{ opacity: 0, y: 6, filter: "blur(2px)" }} animate={{ opacity: 1, y: 0, filter: "blur(0px)" }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
               <div className="w-7 h-7 rounded-full bg-gold/20 flex items-center justify-center text-gold text-[10px] font-bold">ნ</div>
               <div className="flex-1">
                 <div className="text-[10px] font-semibold text-foreground">ნინო ჩხეიძე</div>
@@ -492,26 +536,7 @@ function SceneAlaverdi({ active }: { active: boolean }) {
 }
 
 /* ═══════════════════════════════════════════
-   TRANSITION WIPE OVERLAY
-   ═══════════════════════════════════════════ */
-function TransitionWipe({ show }: { show: boolean }) {
-  return (
-    <AnimatePresence>
-      {show && (
-        <motion.div
-          className="absolute inset-0 z-20 wine-gradient pointer-events-none"
-          initial={{ scaleY: 0, originY: 0 }}
-          animate={{ scaleY: [0, 1, 1, 0], originY: [0, 0, 1, 1] }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.25, times: [0, 0.4, 0.6, 1], ease: "easeInOut" }}
-        />
-      )}
-    </AnimatePresence>
-  );
-}
-
-/* ═══════════════════════════════════════════
-   MAIN — 5-scene story with enhancements
+   MAIN — 5-scene story with all polish
    ═══════════════════════════════════════════ */
 const SCENES = [1, 2, 3, 4, 5] as const;
 type SceneNum = typeof SCENES[number];
@@ -527,7 +552,6 @@ const SCENE_META: { label: string; duration: number }[] = [
 export default function HeroMockupStory({ active = false }: { active?: boolean }) {
   const [scene, setScene] = useState<SceneNum>(1);
   const [paused, setPaused] = useState(false);
-  const [showWipe, setShowWipe] = useState(false);
   const [progressKey, setProgressKey] = useState(0);
   const hoverRef = useRef(false);
 
@@ -536,7 +560,6 @@ export default function HeroMockupStory({ active = false }: { active?: boolean }
     setProgressKey((k) => k + 1);
   }, []);
 
-  // Auto-advance timer
   useEffect(() => {
     if (!active || paused) return;
     const duration = SCENE_META[scene - 1].duration;
@@ -544,7 +567,6 @@ export default function HeroMockupStory({ active = false }: { active?: boolean }
     return () => clearTimeout(id);
   }, [active, scene, paused, advanceScene]);
 
-  // Reset on activate
   useEffect(() => {
     if (active) {
       setScene(1);
@@ -552,7 +574,6 @@ export default function HeroMockupStory({ active = false }: { active?: boolean }
     }
   }, [active]);
 
-  // Hover pause
   const handleMouseEnter = useCallback(() => {
     hoverRef.current = true;
     setPaused(true);
@@ -575,11 +596,15 @@ export default function HeroMockupStory({ active = false }: { active?: boolean }
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      {/* Browser chrome */}
+      {/* Browser chrome — Item 9: green dot pulse */}
       <div className="mockup-browser-bar">
         <div className="mockup-browser-dot bg-red-400/70" />
         <div className="mockup-browser-dot bg-yellow-400/70" />
-        <div className="mockup-browser-dot bg-green-400/70" />
+        <motion.div
+          className="mockup-browser-dot bg-green-400/70"
+          animate={{ opacity: [0.7, 1, 0.7] }}
+          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+        />
         <div className="flex-1 ml-3">
           <motion.div initial={{ opacity: 0 }} animate={active ? { opacity: 1 } : {}} transition={{ duration: 0.3 }}
             className="max-w-[180px] h-5 rounded-md bg-surface-2 flex items-center px-2">
@@ -588,15 +613,25 @@ export default function HeroMockupStory({ active = false }: { active?: boolean }
         </div>
       </div>
 
-      {/* Content */}
-      <div className="p-4 sm:p-5 bg-background min-h-[280px] sm:min-h-[320px] flex flex-col relative">
-        {/* Scene progress bar */}
+      {/* Content — Item 10: pause dimming */}
+      <motion.div
+        className="p-4 sm:p-5 bg-background min-h-[280px] sm:min-h-[320px] flex flex-col relative"
+        animate={{
+          opacity: paused && active ? 0.85 : 1,
+          filter: paused && active ? "saturate(0.85)" : "saturate(1)",
+        }}
+        transition={{ duration: 0.3 }}
+      >
+        {/* Scene progress bar — Item 7: fade-in */}
         <motion.div
           key={progressKey}
           className="absolute top-0 left-0 h-[2px] wine-gradient z-10"
-          initial={{ width: "0%" }}
-          animate={{ width: paused ? undefined : "100%" }}
-          transition={{ duration: paused ? 0 : currentDuration / 1000, ease: "linear" }}
+          initial={{ width: "0%", opacity: 0 }}
+          animate={{ width: paused ? undefined : "100%", opacity: 1 }}
+          transition={{
+            width: { duration: paused ? 0 : currentDuration / 1000, ease: "linear" },
+            opacity: { duration: 0.2, delay: 0.1 },
+          }}
           style={paused ? {} : undefined}
         />
 
@@ -615,8 +650,6 @@ export default function HeroMockupStory({ active = false }: { active?: boolean }
           )}
         </AnimatePresence>
 
-        {/* Wipe removed — soft crossfade only */}
-
         {/* App bar */}
         <motion.div initial={{ opacity: 0 }} animate={active ? { opacity: 1 } : {}} transition={{ duration: 0.3 }}
           className="flex items-center gap-2 mb-3">
@@ -627,7 +660,7 @@ export default function HeroMockupStory({ active = false }: { active?: boolean }
           <div className="ml-auto h-5 w-5 rounded-full bg-wine-light flex items-center justify-center text-[9px] font-bold text-wine-deep">ნ</div>
         </motion.div>
 
-        {/* Scenes — fixed height container */}
+        {/* Scenes */}
         <div className="flex-1 relative min-h-[200px]">
           <AnimatePresence mode="wait">
             {scene === 1 && <SceneGenerator key="gen" active={active} />}
@@ -637,9 +670,9 @@ export default function HeroMockupStory({ active = false }: { active?: boolean }
             {scene === 5 && <SceneAlaverdi key="alaverdi" active={active} />}
           </AnimatePresence>
         </div>
-      </div>
+      </motion.div>
 
-      {/* Scene indicators — pill progress + labels */}
+      {/* Scene indicators — Item 8: animated pill widths */}
       <div className="flex items-center justify-center gap-3 py-2.5 border-t border-border/50 bg-surface-1/50">
         {SCENES.map((s, i) => (
           <button
@@ -647,8 +680,11 @@ export default function HeroMockupStory({ active = false }: { active?: boolean }
             onClick={() => handleDotClick(s)}
             className="flex flex-col items-center gap-1 group"
           >
-            <div className="relative h-[5px] overflow-hidden rounded-full" style={{ width: scene === s ? 20 : 6 }}>
-              {/* Background */}
+            <motion.div
+              className="relative h-[5px] overflow-hidden rounded-full"
+              animate={{ width: scene === s ? 20 : 6 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+            >
               <motion.div
                 className="absolute inset-0 rounded-full"
                 animate={{
@@ -658,7 +694,6 @@ export default function HeroMockupStory({ active = false }: { active?: boolean }
                 }}
                 transition={{ duration: 0.2 }}
               />
-              {/* Fill (active scene only) */}
               {scene === s && (
                 <motion.div
                   key={`fill-${progressKey}`}
@@ -668,7 +703,7 @@ export default function HeroMockupStory({ active = false }: { active?: boolean }
                   transition={{ duration: paused ? 0 : currentDuration / 1000, ease: "linear" }}
                 />
               )}
-            </div>
+            </motion.div>
             <span className={`text-[8px] leading-none transition-colors ${
               scene === s ? "text-wine-deep font-semibold" : "text-muted-foreground/50"
             }`}>
