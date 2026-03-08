@@ -64,7 +64,7 @@ const sceneVariants = {
     y: 0,
     filter: "blur(0px)",
     transition: {
-      duration: 0.5,
+      duration: 0.35,
       ease: "easeOut" as const,
       staggerChildren: 0.12,
     },
@@ -72,8 +72,9 @@ const sceneVariants = {
   exit: {
     opacity: 0,
     y: -4,
+    scale: 0.98,
     filter: "blur(2px)",
-    transition: { duration: 0.4, ease: "easeIn" as const },
+    transition: { duration: 0.25, ease: "easeIn" as const },
   },
 };
 
