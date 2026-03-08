@@ -350,7 +350,7 @@ function SceneLiveFeast({ active }: { active: boolean }) {
                 <span className="text-[11px] font-bold text-foreground">{current.title}</span>
                 <span className="text-[8px] px-1.5 py-0.5 rounded-full bg-wine-light text-wine-deep font-semibold">{current.type}</span>
               </div>
-              <p className="text-[10px] text-foreground/70 leading-relaxed line-clamp-2">{current.body}</p>
+              <p className="text-[11px] text-foreground/70 leading-relaxed line-clamp-2">{current.body}</p>
             </div>
           </motion.div>
         </AnimatePresence>
