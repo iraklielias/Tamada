@@ -158,7 +158,7 @@ function SceneGenerator({ active }: { active: boolean }) {
                   initial={{ opacity: 0, scale: 0 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ type: "spring", stiffness: 400, damping: 15, delay: i * 0.1 }}
-                  className="text-[9px] font-semibold px-2 py-0.5 rounded-full bg-wine-light text-wine-deep border border-wine-muted/30"
+                  className="text-[10px] font-semibold px-2.5 py-0.5 rounded-full bg-wine-light text-wine-deep border border-wine-muted/30"
                 >
                   {tag}
                 </motion.span>
