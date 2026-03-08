@@ -1360,10 +1360,10 @@ const Index = () => {
               </motion.div>
             </motion.div>
 
-            {/* Right: product mockup -- 3D tilt on hover, parallax */}
+            {/* Right: product mockup -- 3D tilt on hover, parallax, stronger glow */}
             <motion.div
               ref={mockupContainerRef}
-              className="relative glow-behind hidden lg:block"
+              className="relative glow-behind-strong hidden lg:block"
               style={{
                 perspective: "1200px",
                 y: heroMockupY,
