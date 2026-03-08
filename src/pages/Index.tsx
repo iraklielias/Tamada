@@ -1809,7 +1809,7 @@ const Index = () => {
                   whileInView="onscreen"
                   viewport={{ once: true, margin: "-40px" }}
                   variants={timelineStep(i)}
-                  className="relative pl-20"
+                  className="relative pl-16 md:pl-20"
                 >
                   <div className="absolute left-0 top-4 w-14 h-14 rounded-xl wine-gradient flex items-center justify-center shadow-wine z-10 ring-4 ring-wine-light/50">
                     {item.icon}
