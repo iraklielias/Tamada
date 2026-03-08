@@ -411,7 +411,7 @@ function SceneChat({ active }: { active: boolean }) {
         <span className="text-[8px] px-1.5 py-0.5 rounded-full bg-gold/20 text-gold font-bold ml-auto">PRO</span>
       </motion.div>
 
-      <div className="flex-1 space-y-2.5">
+      <div className="flex-1 space-y-3">
         {/* User bubble — enters from right */}
         <AnimatePresence>
           {step >= 1 && (
