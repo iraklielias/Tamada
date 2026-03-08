@@ -460,6 +460,11 @@ const ToastDetailDialog: React.FC<ToastDetailDialogProps> = ({
             {/* ── Toast body content ── */}
             {hasBody ? (
               <div className="space-y-3">
+                {regenSingleToast.isPending && (
+                  <div className="min-h-[60px] flex items-center justify-center">
+                    <ThinkingFacts isVisible={true} language={isEnLang ? "en" : "ka"} />
+                  </div>
+                )}
                 {(() => {
                   const primaryBody = isEnLang ? (bodyEn || bodyKa) : bodyKa;
                   const secondaryBody = isEnLang ? bodyKa : bodyEn;
