@@ -1092,7 +1092,16 @@ async function handleChatMessageVoice(body: Record<string, unknown>, apiKeyData:
   const messageType = isToast ? "toast" : "text";
 
   // TTS Stage (gracefully degrades if ElevenLabs is unavailable)
-  const audioBytes = await synthesizeSpeech(cleanContent.replace(/---/g, "").replace(/===TOAST_START===|===TOAST_END===/g, "").trim(), language);
+  // For toasts, extract only the toast body for TTS to reduce character count
+  let ttsText = cleanContent.replace(/---/g, "").replace(/===TOAST_START===|===TOAST_END===/g, "").trim();
+  if (isToast) {
+    const toastMatch = cleanContent.match(/===TOAST_START===([\s\S]*?)===TOAST_END===/);
+    if (toastMatch?.[1]?.trim()) {
+      ttsText = toastMatch[1].replace(/---/g, "").trim();
+      console.log("Extracted toast body for TTS, reduced from", cleanContent.length, "to", ttsText.length, "chars");
+    }
+  }
+  const audioBytes = await synthesizeSpeech(ttsText, language);
 
   // Generate message ID first
   const msgId = crypto.randomUUID();
