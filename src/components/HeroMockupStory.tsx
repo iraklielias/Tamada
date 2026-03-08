@@ -532,12 +532,8 @@ export default function HeroMockupStory({ active = false }: { active?: boolean }
   const hoverRef = useRef(false);
 
   const advanceScene = useCallback(() => {
-    setShowWipe(true);
-    setTimeout(() => {
-      setScene((s) => ((s % 5) + 1) as SceneNum);
-      setProgressKey((k) => k + 1);
-      setShowWipe(false);
-    }, 150);
+    setScene((s) => ((s % 5) + 1) as SceneNum);
+    setProgressKey((k) => k + 1);
   }, []);
 
   // Auto-advance timer
