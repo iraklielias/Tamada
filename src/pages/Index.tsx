@@ -1186,7 +1186,7 @@ const Index = () => {
                   height: size,
                   '--tx': `${tx}px`,
                   '--ty': `${ty}px`,
-                  animationDelay: `${1 + Math.random() * 0.15}s`,
+                  animationDelay: `${1 + Math.random() * 0.3}s`,
                   background: i % 3 === 0
                     ? 'hsl(var(--wine-deep))'
                     : i % 3 === 1
