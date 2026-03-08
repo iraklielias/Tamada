@@ -1583,21 +1583,21 @@ const Index = () => {
         <div className="absolute top-0 left-0 right-0 h-px section-divider" />
         <div className="absolute bottom-0 left-0 right-0 h-px section-divider" />
 
-        <motion.div
-          initial="offscreen"
-          whileInView="onscreen"
-          viewport={{ once: true, margin: "-80px" }}
-          variants={scrollReveal}
-          className="max-w-5xl mx-auto"
-        >
-          <div className="text-center mb-14">
-            <p className="text-sm font-bold uppercase tracking-[0.15em] text-wine-muted mb-3">
+        <div className="max-w-5xl mx-auto">
+          <motion.div
+            initial="offscreen"
+            whileInView="onscreen"
+            viewport={{ once: true, margin: "-80px" }}
+            variants={featureTextStagger}
+            className="text-center mb-14"
+          >
+            <motion.p variants={featureTextChild} className="text-sm font-bold uppercase tracking-[0.15em] text-wine-muted mb-3">
               {isKa ? "შეფასებები" : "Testimonials"}
-            </p>
-            <h2 className="font-display text-heading-1 text-foreground">
+            </motion.p>
+            <motion.h2 variants={deblurReveal} className="font-display text-heading-1 text-foreground">
               {isKa ? "რას ამბობენ მომხმარებლები" : "What Our Users Say"}
-            </h2>
-          </div>
+            </motion.h2>
+          </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
@@ -1628,35 +1628,65 @@ const Index = () => {
             ].map((t, i) => (
               <motion.div
                 key={i}
-                initial={{ opacity: 0, y: 30, rotate: i === 0 ? -1 : i === 2 ? 1 : 0 }}
-                whileInView={{ opacity: 1, y: 0, rotate: 0 }}
+                initial="offscreen"
+                whileInView="onscreen"
+                whileHover="hover"
                 viewport={{ once: true, margin: "-40px" }}
-                transition={{ duration: 0.55, delay: i * 0.15, ease: [0, 0, 0.2, 1] }}
-                className="p-6 md:p-7 rounded-2xl bg-card border border-border hover:border-wine-muted/40 transition-all duration-300 hover:shadow-card-hover group"
+                variants={springScaleIn}
+                transition={{ delay: i * 0.15 }}
+                className="p-6 md:p-7 rounded-2xl bg-card border border-border hover:border-wine-muted/40 transition-colors duration-300 group"
+                style={{ perspective: 800 }}
               >
-                <div className="flex items-center gap-1 mb-4">
-                  {[...Array(5)].map((_, si) => (
-                    <Star key={si} className="h-4 w-4 fill-gold text-gold" />
-                  ))}
-                </div>
-                <Quote className="h-5 w-5 text-wine-muted/40 mb-3" />
-                <p className="text-foreground/80 leading-relaxed mb-6 italic">
-                  "{t.quote}"
-                </p>
-                <div className="h-px bg-border mb-4" />
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full wine-gradient flex items-center justify-center text-sm font-bold text-white">
-                    {t.initial}
+                <motion.div
+                  variants={hoverLift}
+                  initial="rest"
+                  whileHover="hover"
+                >
+                  <div className="flex items-center gap-1 mb-4">
+                    {[...Array(5)].map((_, si) => (
+                      <motion.div
+                        key={si}
+                        initial="offscreen"
+                        whileInView="onscreen"
+                        viewport={{ once: true }}
+                        variants={starFill(si + i * 5)}
+                      >
+                        <Star className="h-4 w-4 fill-gold text-gold" />
+                      </motion.div>
+                    ))}
                   </div>
-                  <div>
-                    <div className="text-sm font-semibold text-foreground">{t.name}</div>
-                    <div className="text-xs text-muted-foreground">{t.role}</div>
+                  <motion.div
+                    initial="offscreen"
+                    whileInView="onscreen"
+                    viewport={{ once: true }}
+                    variants={quoteIconReveal}
+                  >
+                    <Quote className="h-5 w-5 text-wine-muted/40 mb-3" />
+                  </motion.div>
+                  <p className="text-foreground/80 leading-relaxed mb-6 italic">
+                    "{t.quote}"
+                  </p>
+                  <div className="h-px bg-border mb-4" />
+                  <div className="flex items-center gap-3">
+                    <motion.div
+                      initial="offscreen"
+                      whileInView="onscreen"
+                      viewport={{ once: true }}
+                      variants={springScaleIn}
+                      className="w-10 h-10 rounded-full wine-gradient flex items-center justify-center text-sm font-bold text-white"
+                    >
+                      {t.initial}
+                    </motion.div>
+                    <div>
+                      <div className="text-sm font-semibold text-foreground">{t.name}</div>
+                      <div className="text-xs text-muted-foreground">{t.role}</div>
+                    </div>
                   </div>
-                </div>
+                </motion.div>
               </motion.div>
             ))}
           </div>
-        </motion.div>
+        </div>
       </section>
 
       {/* ═══════════════ HOW IT WORKS ═══════════════ */}
