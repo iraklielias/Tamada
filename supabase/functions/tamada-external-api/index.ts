@@ -876,14 +876,21 @@ async function handleChatMessage(body: Record<string, unknown>, apiKeyData: Reco
 
   // Inject gathered params so AI remembers what it already collected
   const gatheredContext = session.gathered_params && Object.keys(session.gathered_params).length > 0
-    ? [{ role: "system", content: `[ALREADY_GATHERED_PARAMS: ${JSON.stringify(session.gathered_params)}]\nDo NOT re-ask for information that is already gathered above. Use these values directly when generating toasts.` }]
+    ? [{ role: "system", content: `[ALREADY_GATHERED_PARAMS: ${JSON.stringify(session.gathered_params)}]\nDo NOT re-ask for information that is already gathered above. Use these values directly when generating toasts.\nIMPORTANT: NEVER respond with ONLY a ===PARAMS=== block. You MUST always include a conversational message alongside any parameter extraction.` }]
     : [];
 
   // Generate AI response
   const { content: aiContent, tokensUsed, durationMs } = await generateAIResponse([...gatheredContext, ...recentMessages]);
 
   // Extract params from AI response
-  const { cleanContent, params: extractedParams } = extractParams(aiContent);
+  let { cleanContent, params: extractedParams } = extractParams(aiContent);
+
+  // Guard: if AI responded with only a params block, provide fallback text
+  if (!cleanContent.replace(/[\s\-=_*#`~>|.,:;!?"""''()\[\]{}]/g, "").trim()) {
+    cleanContent = language === "ka"
+      ? "მადლობა, ინფორმაცია მივიღე! ახლა მოვამზადებ სადღეგრძელოს..."
+      : "Thanks, got it! Let me prepare the toast now...";
+  }
 
   // Store gathered params on session
   if (extractedParams) {
@@ -990,7 +997,7 @@ async function handleChatMessageVoice(body: Record<string, unknown>, apiKeyData:
 
   // Inject gathered params so AI remembers what it already collected
   const gatheredContext = session.gathered_params && Object.keys(session.gathered_params).length > 0
-    ? [{ role: "system", content: `[ALREADY_GATHERED_PARAMS: ${JSON.stringify(session.gathered_params)}]\nDo NOT re-ask for information that is already gathered above. Use these values directly when generating toasts.` }]
+    ? [{ role: "system", content: `[ALREADY_GATHERED_PARAMS: ${JSON.stringify(session.gathered_params)}]\nDo NOT re-ask for information that is already gathered above. Use these values directly when generating toasts.\nIMPORTANT: NEVER respond with ONLY a ===PARAMS=== block. You MUST always include a conversational message alongside any parameter extraction.` }]
     : [];
 
   // AI Generation
@@ -1002,7 +1009,14 @@ async function handleChatMessageVoice(body: Record<string, unknown>, apiKeyData:
   );
 
   // Extract params from AI response
-  const { cleanContent, params: extractedParams } = extractParams(aiContent);
+  let { cleanContent, params: extractedParams } = extractParams(aiContent);
+
+  // Guard: if AI responded with only a params block, provide fallback text
+  if (!cleanContent.replace(/[\s\-=_*#`~>|.,:;!?"""''()\[\]{}]/g, "").trim()) {
+    cleanContent = language === "ka"
+      ? "მადლობა, ინფორმაცია მივიღე! ახლა მოვამზადებ სადღეგრძელოს..."
+      : "Thanks, got it! Let me prepare the toast now...";
+  }
 
   // Store gathered params on session
   if (extractedParams) {
