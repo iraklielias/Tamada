@@ -984,6 +984,29 @@ const AIGeneratePage = () => {
 
       <ProUpsellModal open={showUpsell} onOpenChange={setShowUpsell} message={upsellMessage} />
     </div>
+
+    {/* Chat/Voice overlays (PRO) */}
+    <AnimatePresence>
+      {chatModeOpen && (
+        <AIChatPanel
+          language={(localStorage.getItem('tamada-lang') === 'en' ? 'en' : 'ka') as "ka" | "en"}
+          onClose={() => setChatModeOpen(false)}
+          onVoiceMode={() => { setChatModeOpen(false); setVoiceModeOpen(true); }}
+          onToastGenerated={handleToastFromChat}
+        />
+      )}
+    </AnimatePresence>
+    <AnimatePresence>
+      {voiceModeOpen && (
+        <AIVoiceMode
+          language={(localStorage.getItem('tamada-lang') === 'en' ? 'en' : 'ka') as "ka" | "en"}
+          onClose={() => setVoiceModeOpen(false)}
+          onMessage={() => {}}
+          onToastGenerated={handleToastFromChat}
+        />
+      )}
+    </AnimatePresence>
+    </>
   );
 };
 
