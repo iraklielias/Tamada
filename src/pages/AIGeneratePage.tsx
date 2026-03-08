@@ -1012,20 +1012,22 @@ const AIGeneratePage = () => {
     <AnimatePresence>
       {chatModeOpen && (
         <AIChatPanel
-          language={(localStorage.getItem('tamada-lang') === 'en' ? 'en' : 'ka') as "ka" | "en"}
+          language={currentLang}
           onClose={() => setChatModeOpen(false)}
           onVoiceMode={() => { setChatModeOpen(false); setVoiceModeOpen(true); }}
           onToastGenerated={handleToastFromChat}
+          chat={chat}
         />
       )}
     </AnimatePresence>
     <AnimatePresence>
       {voiceModeOpen && (
         <AIVoiceMode
-          language={(localStorage.getItem('tamada-lang') === 'en' ? 'en' : 'ka') as "ka" | "en"}
+          language={currentLang}
           onClose={() => setVoiceModeOpen(false)}
           onMessage={() => {}}
           onToastGenerated={handleToastFromChat}
+          chat={chat}
         />
       )}
     </AnimatePresence>
