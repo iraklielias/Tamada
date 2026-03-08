@@ -34,6 +34,7 @@ import {
 import { toast as sonnerToast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import SystemIcon from "@/components/SystemIcon";
+import { ThinkingFacts } from "@/components/api-testing/ThinkingFacts";
 
 // Simple word-level diff
 function computeWordDiff(original: string, edited: string): { type: "same" | "added" | "removed"; text: string }[] {
@@ -472,6 +473,13 @@ const AIGeneratePage = () => {
               </>
             )}
           </Button>
+
+          {/* ThinkingFacts during generation */}
+          {generate.isPending && (
+            <div className="min-h-[60px] flex items-center justify-center">
+              <ThinkingFacts isVisible={true} language={(localStorage.getItem('tamada-lang') === 'en' ? 'en' : 'ka') as "ka" | "en"} />
+            </div>
+          )}
         </CardContent>
       </Card>
 

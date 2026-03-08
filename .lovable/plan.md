@@ -1,162 +1,109 @@
 
 
-# Master Execution Plan: AI Generator Enhancement — Refinement, Chat/Voice Mode, and Thinking Facts
+## TAMADA — Status Audit & Master Execution Plan
 
-## Scope
+### What Is Built
 
-Three major features across 4 phases:
-1. **Thinking Facts** in AI Generator and Supra mode during loading
-2. **Supra-style Refinement** (collapsible) in AI Generator
-3. **Chat/Voice Mode** (full-page takeover, PRO-only) in AI Generator
-4. Cross-mode state sharing
-
----
-
-## Phase 1: Generalized ThinkingFacts Component + Integration
-
-**Goal:** Show cultural facts during AI loading in AI Generator and Supra (FeastDetailPage) — reuse the existing `ThinkingFacts` component but decouple it from `VoiceStage`.
-
-### Files Changed
-
-| File | Change |
+| Area | Status |
 |------|--------|
-| `src/components/api-testing/ThinkingFacts.tsx` | Generalize props: accept `isVisible: boolean` instead of `stage: VoiceStage`. Keep backward compat by accepting either. |
-| `src/pages/AIGeneratePage.tsx` | Import `ThinkingFacts`. Show it when `generate.isPending` below the generate button or overlaid on the result area. Language from i18n. |
-| `src/pages/FeastDetailPage.tsx` | Import `ThinkingFacts`. Show it in the `ToastDetailDialog` when `regenSingleToast.isPending`, inside the toast body area. |
+| Landing page (`/`) | Done — hero, features, how-it-works, footer |
+| Auth (login, signup, callback) | Done — email/password, onAuthStateChange, protected routes |
+| Onboarding wizard (`/onboarding`) | Done — 4 steps: name, region, experience, occasions |
+| App shell (sidebar + bottom nav) | Done — collapsible sidebar, mobile bottom nav, profile footer |
+| Dashboard (`/dashboard`) | Done — greeting, quick actions, recent feasts, popular toasts |
+| Toasts browse (`/toasts`) | Done — search, occasion/formality filters, favorite toggle |
+| AI Generator (`/ai-generate`) | Done — occasion/formality/topic form, edge function, save to favorites |
+| Favorites (`/favorites`) | Done — list system + custom favorites, remove |
+| Library (`/library`) | Done — reads toast_templates (currently 0 rows) |
+| Profile (`/profile`) | Done — read-only display, logout |
+| Edge function: `generate-toast` | Done — Lovable AI gateway, JSON parse |
+| Database schema + RLS | Done — all 11 tables, policies in place |
+| Seed data: toasts | Done — 11 system toasts |
 
-### Risks & Mitigations
-- **ThinkingFacts currently imports `VoiceStage` type** — we'll make the `stage` prop optional and add an `isVisible` boolean prop. The existing FullVoiceMode usage stays unchanged.
-- **Layout shift during loading** — use a fixed-height container (`min-h-[60px]`) to prevent content jumping.
+### What Is NOT Built
 
----
-
-## Phase 2: Supra-style Refinement in AI Generator
-
-**Goal:** After a toast is generated, add a collapsed "Customize & Retry" section with free-text instructions + tone/length/style chips — same UX as `FeastDetailPage`'s `ToastDetailDialog`.
-
-### Files Changed
-
-| File | Change |
-|------|--------|
-| `src/pages/AIGeneratePage.tsx` | Add refinement UI (Collapsible) after the generated toast card. State: `refinementOpen`, `refinementComment`, `selectedRefineTone`, `selectedRefineLength`, `selectedRefineStyle`. New mutation `refineMutation` that calls `tamada-ai` with action `refine_toast`. |
-| `supabase/functions/tamada-ai/index.ts` | Add `refine_toast` action handler (distinct from existing `regenerate`/`refine`). Accepts `current_toast` (the full body), `instructions` (free text), `style_overrides` (tone/length/style), and original `generation_params`. Sends the current toast + instructions to AI, returns refined version in same JSON format. |
-
-### Detailed Implementation
-
-**Backend (`tamada-ai`):**
-- New action `refine_toast` between `regenerate` handler (line 966) and `feast_advisory` (line 977)
-- User message includes: the current toast body, the user's refinement instructions, style overrides
-- Still returns same JSON structure: `{ title_ka, body_ka, title_en, body_en, metadata, delivery_guidance }`
-- Counts as an AI generation (logged, counts toward daily limit)
-
-**Frontend (`AIGeneratePage`):**
-- Refinement section appears only when `result` exists, collapsed by default
-- Chips: tone (traditional/humorous/emotional/philosophical), length (shorter/longer), style (poetic/storytelling/proverbial/direct)
-- "Refine" button triggers `refineMutation`
-- On success: updates `result` and `editedBody`/`editedTitle`, preserves `originalResult` for diff
-- ThinkingFacts shows during refinement loading too
-
-### Risks & Mitigations
-- **Refinement resets edit state** — intentional: refined output replaces current `editedBody`, but `originalResult` stays as the first generation for diff
-- **Daily limit** — refinement counts as a generation. UI shows updated count after refine.
+| Area | Spec Section |
+|------|-------------|
+| **Feast CRUD** — `/feasts`, `/feasts/new`, `/feasts/:id` | Sections 3, 4, 5 |
+| **Live Feast Mode** — `/feasts/:id/live` with timer, toast progression, alerts, audio | Section 6 |
+| **Alaverdi tracking** — FAB, guest assignment, count increment | Section 6 |
+| **Co-Tamada / Realtime** — share code, join link, Supabase Realtime sync | Section 6 + Realtime spec |
+| **Toast template seeding** — 7 templates with JSONB sequences | Seed Data |
+| **More sample toasts** — spec calls for 50-100; we have 11 | Seed Data |
+| **Feast plan from template** — selecting a template populates feast_toasts | Section 4 |
+| **AI Feast Plan generator** — `generate-feast-plan` edge function | AI Integration |
+| **Pro gating / useProGate hook** — daily limits, feature locks, upsell modals | Free vs Pro |
+| **Upgrade page** (`/upgrade`) — comparison table, Stripe checkout | Section 11 |
+| **Stripe integration** — checkout session, webhook, subscription management | Edge Functions |
+| **Profile editing** — avatar upload, edit name/region/experience/language | Section 10 |
+| **PDF export** — jsPDF feast plan export (Pro) | Section 5 |
+| **i18n** — i18next setup, language toggle, all strings externalized | i18n spec |
+| **Dark mode** | Design System |
+| **Keyboard shortcuts** | Desktop spec |
+| **Additional occasion types** in filters (christening, guest_reception, friendly_gathering) | Throughout |
+| **config.toml** — `generate-toast` function entry with `verify_jwt = false` | Edge function config |
 
 ---
 
-## Phase 3: Internal Chat/Voice Mode in AI Generator (PRO-only)
+### Master Execution Plan (8 Phases)
 
-**Goal:** Full-page voice/chat takeover accessible from AI Generator, using authenticated Supabase session (no API key), PRO-gated.
+#### Phase 8 — Seed Data & Config Fixes
+- Seed 7 toast templates into `toast_templates` table (wedding, birthday, memorial, guest reception, holiday, corporate, friendly gathering) with proper `toast_sequence` JSONB arrays
+- Add `[functions.generate-toast]` with `verify_jwt = false` to `supabase/config.toml`
+- Add missing occasion types to all filter dropdowns across pages (christening, guest_reception, friendly_gathering, other)
 
-### Architecture Decision
-Instead of duplicating the external API's session management, we create a **lightweight internal chat mode** that:
-- Uses the `tamada-ai` edge function with a new `chat_generate` action
-- Stores conversation in client-side state only (no DB persistence needed for internal chat)
-- Reuses `useVoiceConversation` hook but with an adapter that calls `tamada-ai` instead of `tamada-external-api`
-- Reuses `FullVoiceMode` component with minimal prop changes
+#### Phase 9 — Feast CRUD (Core)
+- Create `/feasts` page — list user's feasts with status filter pills + search
+- Create `/feasts/new` page — multi-section form: basic info, details (guest count, formality, region, duration), template selection, optional guest list
+- Create `/feasts/:id` page — tabbed view (Plan, Guests, Details) with toast timeline, guest management, edit metadata, delete
+- Add routes to `App.tsx`, add "სუფრები" nav item to sidebar and bottom nav
+- Dashboard "ახალი სუფრა" quick action routes to `/feasts/new`; feast cards link to `/feasts/:id`
 
-### Files Changed
+#### Phase 10 — Live Feast Mode
+- Create `/feasts/:id/live` — full-screen immersive view
+- Current toast display with complete text, toast number, type
+- Next-up preview (2 upcoming toasts)
+- Elapsed time tracker + progress bar
+- "Completed" and "Skip" buttons that update `feast_toasts` status
+- Pause/Resume/End feast controls updating `feasts.status`
+- Timer alert system: amber glow + audio chime at configurable intervals before next toast (Web Audio API)
+- Alaverdi FAB: bottom sheet with guest list, tap to assign, increment `alaverdi_count` via `increment_alaverdi` RPC
 
-| File | Change |
-|------|--------|
-| `supabase/functions/tamada-ai/index.ts` | Add `chat_generate` action: accepts `messages` array (conversation history), `language`, optional `style_overrides`. Returns `{ content, extracted_params?, title_ka?, body_ka?, ... }`. When AI produces a complete toast (detected by `===TOAST===` markers or JSON), includes structured toast data. |
-| `src/hooks/useInternalTamadaChat.ts` | **New file.** Adapter hook that wraps `tamada-ai` calls to match the interface expected by `useVoiceConversation`. Provides `sendVoiceMessage()` that: (1) sends audio base64 to a new `chat_voice` action on `tamada-ai` for STT+AI, (2) returns `VoiceChatResponse`. Also provides `sendTextMessage()` for text chat. Uses Supabase auth JWT, not API key. |
-| `src/components/ai-chat/AIVoiceMode.tsx` | **New file.** Thin wrapper around `FullVoiceMode` that passes the internal API adapter instead of external API. Adds PRO gate check. |
-| `src/components/ai-chat/AIChatPanel.tsx` | **New file.** Simplified chat UI (no API key setup, no developer tools). Shows messages, text input, voice mode toggle. Receives `onToastGenerated` callback to pass completed toasts back to AIGeneratePage. |
-| `src/pages/AIGeneratePage.tsx` | Add "Chat with Tamada" button (PRO badge, mic icon). Opens full-page chat/voice overlay. `onToastGenerated` callback populates the form result with the AI-generated toast. PRO gate via `useProGate`. |
+#### Phase 11 — Co-Tamada & Realtime
+- Generate `share_code` on feast, build `/feasts/:id/join/:shareCode` route
+- Add user as `feast_collaborator` on join
+- Subscribe to Supabase Realtime channels for `feast_toasts`, `feast_guests`, `feasts` changes
+- Enable realtime publication on relevant tables (`ALTER PUBLICATION supabase_realtime ADD TABLE ...`)
+- Co-Tamada sees live view with read-only controls (can assign alaverdi, cannot pause/end)
+- Online indicator for connected collaborators
 
-### Backend: `chat_generate` action in `tamada-ai`
+#### Phase 12 — Profile Editing & Pro Gating
+- Make profile page editable: avatar upload (to `avatars` bucket), display name, region, experience, language
+- Build `useProGate` hook checking `is_pro` + `pro_expires_at`
+- Enforce free limits: 5 AI generations/day (server + client), 10 favorites, 1 active feast
+- Add server-side rate limit check in `generate-toast` edge function using `get_daily_ai_count`
+- Soft upsell modals when limits reached; gold lock icons on Pro features
+- Create `/upgrade` page with feature comparison table and pricing
 
-```text
-Input: { action: "chat_generate", messages: [...], language: "ka"|"en", style_overrides?: {...} }
-Output: { content: "...", toast?: { title_ka, body_ka, ... }, extracted_params?: {...} }
-```
+#### Phase 13 — Stripe & Subscriptions
+- Enable Stripe integration
+- Create `create-checkout-session` edge function
+- Create `stripe-webhook` edge function handling subscription lifecycle events
+- Wire `/upgrade` page CTA to checkout session
+- Add `/profile/subscription` route for managing active subscription
 
-- Uses the same system prompt + user context
-- Messages array sent directly to AI (client manages history)
-- No server-side session persistence (unlike external API)
-- Still rate-limited by daily AI count
+#### Phase 14 — i18n & Polish
+- Set up i18next with `ka` (default) and `en` locales
+- Extract all hardcoded Georgian strings to locale JSON files
+- Add language toggle to sidebar footer and profile settings
+- Persist language choice to `profiles.preferred_language`
+- Toast content displays `_ka` or `_en` based on selected language
 
-### Backend: `chat_voice` action in `tamada-ai`
-
-```text
-Input: { action: "chat_voice", audio_base64: "...", language: "ka"|"en", messages: [...] }
-Output: { success, transcription, message: { content, audio_url }, extracted_params? }
-```
-
-- STT via ElevenLabs (same as external API)
-- AI generation via same system prompt
-- TTS via ElevenLabs (same as external API)
-- Audio stored in `chat-audio` bucket
-
-### Risks & Mitigations
-- **Code duplication with external API** — acceptable because internal mode is simpler (no session DB, no API key auth). The shared parts are: STT/TTS calls, system prompt, AI gateway call. We extract STT/TTS helpers if they grow.
-- **Voice mode AudioContext** — reused from `useVoiceConversation` which already handles mobile Safari.
-- **PRO gate bypass** — enforced both client-side (UI hidden) and server-side (daily limit check in edge function).
-- **Empty AI responses** — same fallback guard as external API (if cleanContent empty after param extraction, insert acknowledgment).
-
----
-
-## Phase 4: Cross-Mode State Sharing
-
-**Goal:** When a toast is generated via chat/voice, it populates the AI Generator result area. When form generates a toast, chat mode can refine it.
-
-### Files Changed
-
-| File | Change |
-|------|--------|
-| `src/pages/AIGeneratePage.tsx` | `onToastGenerated` callback from chat/voice mode sets `result`, `editedBody`, `editedTitle`, `originalResult`. When entering chat mode, pass current `result` as initial context if exists. |
-
-### Risks & Mitigations
-- **State sync complexity** — kept simple: one-directional callbacks. Chat produces toast → form displays it. No bidirectional real-time sync.
-
----
-
-## File Impact Summary
-
-| File | Phase | Type |
-|------|-------|------|
-| `src/components/api-testing/ThinkingFacts.tsx` | 1 | Edit (generalize props) |
-| `src/pages/AIGeneratePage.tsx` | 1,2,3,4 | Edit (facts, refinement, chat/voice entry) |
-| `src/pages/FeastDetailPage.tsx` | 1 | Edit (facts during regen) |
-| `supabase/functions/tamada-ai/index.ts` | 2,3 | Edit (refine_toast, chat_generate, chat_voice actions) |
-| `src/hooks/useInternalTamadaChat.ts` | 3 | New |
-| `src/components/ai-chat/AIVoiceMode.tsx` | 3 | New |
-| `src/components/ai-chat/AIChatPanel.tsx` | 3 | New |
-
-**Files NOT touched** (preserving working functionality):
-- `supabase/functions/tamada-external-api/index.ts` — no changes
-- `src/hooks/useVoiceConversation.ts` — reused as-is
-- `src/components/api-testing/FullVoiceMode.tsx` — reused as-is (or imported by AIVoiceMode)
-- `src/hooks/useTamadaExternalApi.ts` — no changes
-- All existing chat simulator components — no changes
-
----
-
-## Execution Order
-
-1. **Phase 1 first** — smallest scope, no risk, immediately visible improvement
-2. **Phase 2 second** — standalone feature, no PRO gate needed, builds refinement backend
-3. **Phase 3 third** — largest scope, PRO-gated, builds on Phase 2's backend patterns
-4. **Phase 4 last** — wiring, minimal code
-
-Each phase is independently deployable and testable.
+#### Phase 15 — Advanced Features & Hardening
+- `generate-feast-plan` edge function — AI-generated toast schedule based on occasion/duration/formality
+- PDF export of feast plan using jsPDF (Pro only)
+- Dark mode support
+- Keyboard shortcuts in live feast mode (Space = complete, Esc = pause)
+- Additional seed toasts (expand from 11 to 50+)
+- Error boundary components, offline queue for failed writes, optimistic updates throughout
 

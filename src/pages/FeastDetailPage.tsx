@@ -32,6 +32,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast as sonnerToast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
+import { ThinkingFacts } from "@/components/api-testing/ThinkingFacts";
 import {
   DndContext, closestCenter, KeyboardSensor, PointerSensor, TouchSensor,
   useSensor, useSensors, type DragEndEvent,
@@ -459,6 +460,11 @@ const ToastDetailDialog: React.FC<ToastDetailDialogProps> = ({
             {/* ── Toast body content ── */}
             {hasBody ? (
               <div className="space-y-3">
+                {regenSingleToast.isPending && (
+                  <div className="min-h-[60px] flex items-center justify-center">
+                    <ThinkingFacts isVisible={true} language={isEnLang ? "en" : "ka"} />
+                  </div>
+                )}
                 {(() => {
                   const primaryBody = isEnLang ? (bodyEn || bodyKa) : bodyKa;
                   const secondaryBody = isEnLang ? bodyKa : bodyEn;
@@ -524,6 +530,11 @@ const ToastDetailDialog: React.FC<ToastDetailDialogProps> = ({
                       {regenSingleToast.isPending ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5 mr-1.5" />}
                       {t("feastDetail.generateBody")}
                     </Button>
+                    {regenSingleToast.isPending && (
+                      <div className="min-h-[60px] flex items-center justify-center">
+                        <ThinkingFacts isVisible={true} language={isEnLang ? "en" : "ka"} />
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <>
