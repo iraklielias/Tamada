@@ -246,7 +246,7 @@ function SceneResult({ active }: { active: boolean }) {
           style={{ backgroundColor: "hsl(var(--wine-light) / 0.2)" }}
         >
           <div className="h-0.5 wine-gradient" />
-          <div className="p-3 space-y-2">
+          <div className="p-3.5 space-y-2">
             {phase < 1 ? (
               <div className="space-y-2">
                 {[100, 70].map((w, i) => (
@@ -256,12 +256,12 @@ function SceneResult({ active }: { active: boolean }) {
               </div>
             ) : (
               <>
-                <p className="text-[11px] font-bold text-foreground leading-tight">
+                <p className="text-[12px] font-bold text-foreground leading-tight">
                   {typedTitle}
                   <TypingCursor active={phase >= 1 && phase < 2} height="h-3" />
                 </p>
                 {phase >= 2 && (
-                  <p className="text-[10px] text-foreground/80 leading-relaxed">
+                  <p className="text-[11px] text-foreground/80 leading-relaxed">
                     {typedBody}
                     <TypingCursor active={phase >= 2 && phase < 3} height="h-2.5" />
                   </p>
