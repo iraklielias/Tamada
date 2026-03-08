@@ -1837,29 +1837,38 @@ const Index = () => {
                   initial="offscreen"
                   whileInView="onscreen"
                   viewport={{ once: true, margin: "-40px" }}
-                  variants={timelineStep(i)}
+                  variants={timelineCardStagger}
                   className="relative pl-16 md:pl-20"
                 >
-                  <div className="absolute left-0 top-4 w-14 h-14 rounded-xl wine-gradient flex items-center justify-center shadow-wine z-10 ring-4 ring-wine-light/50">
+                  <motion.div
+                    variants={timelineIconReveal}
+                    className="absolute left-0 top-4 w-14 h-14 rounded-xl wine-gradient flex items-center justify-center shadow-wine z-10 ring-4 ring-wine-light/50"
+                  >
                     {item.icon}
-                  </div>
-                  <div className="p-6 md:p-7 rounded-2xl bg-card border border-border hover:border-wine-muted/30 transition-all duration-200 hover:shadow-card-hover">
-                    <div className="flex items-center gap-3 mb-1">
+                  </motion.div>
+                  <motion.div
+                    variants={springScaleIn}
+                    whileHover={{ y: -3, boxShadow: "var(--shadow-md)", transition: { type: "spring", stiffness: 300, damping: 24 } }}
+                    className="p-6 md:p-7 rounded-2xl bg-card border border-border hover:border-wine-muted/30 transition-colors duration-200"
+                  >
+                    <motion.div variants={featureTextChild} className="flex items-center gap-3 mb-1">
                       <span className="text-[10px] font-bold uppercase tracking-widest text-wine-muted">
                         {isKa ? "ნაბიჯი" : "Step"} {item.step}
                       </span>
-                      <span className="px-2 py-0.5 rounded-full bg-wine-light/60 text-[9px] font-bold text-wine-deep tracking-wide">
+                      <motion.span variants={springScaleIn} className="px-2 py-0.5 rounded-full bg-wine-light/60 text-[9px] font-bold text-wine-deep tracking-wide">
                         {item.badge}
-                      </span>
-                    </div>
-                    <h3 className="text-heading-3 text-foreground mt-1 mb-2">
+                      </motion.span>
+                    </motion.div>
+                    <motion.h3 variants={featureTextChild} className="text-heading-3 text-foreground mt-1 mb-2">
                       {item.title}
-                    </h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed max-w-md">
+                    </motion.h3>
+                    <motion.p variants={featureTextChild} className="text-sm text-muted-foreground leading-relaxed max-w-md">
                       {item.desc}
-                    </p>
-                    {item.mini}
-                  </div>
+                    </motion.p>
+                    <motion.div variants={featureTextChild}>
+                      {item.mini}
+                    </motion.div>
+                  </motion.div>
                 </motion.div>
               ))}
             </div>
