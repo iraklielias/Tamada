@@ -1008,12 +1008,12 @@ function PricingSection({ isKa }: { isKa: boolean }) {
           variants={featureTextStagger}
           className="text-center mb-10"
         >
-          <p className="text-sm font-bold uppercase tracking-[0.15em] text-wine-muted mb-3">
+          <motion.p variants={featureTextChild} className="text-sm font-bold uppercase tracking-[0.15em] text-wine-muted mb-3">
             {isKa ? "ფასები" : "Pricing"}
-          </p>
-          <h2 className="font-display text-heading-1 text-foreground mb-3">
+          </motion.p>
+          <motion.h2 variants={deblurReveal} className="font-display text-heading-1 text-foreground mb-3">
             {isKa ? "დაიწყე უფასოდ. გააძლიერე, როცა სუფრა მოითხოვს." : "Start free. Upgrade when your supra demands it."}
-          </h2>
+          </motion.h2>
 
           {/* Monthly/Annual toggle */}
           <div className="inline-flex items-center gap-3 p-1.5 rounded-xl bg-surface-1 border border-border">
