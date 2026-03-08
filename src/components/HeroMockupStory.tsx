@@ -630,11 +630,11 @@ export default function HeroMockupStory({ active = false }: { active?: boolean }
         {/* Scenes — fixed height container */}
         <div className="flex-1 relative min-h-[200px]">
           <AnimatePresence mode="wait">
-            {scene === 1 && <SceneGenerator key="gen" active={active && !showWipe} />}
-            {scene === 2 && <SceneResult key="result" active={active && !showWipe} />}
-            {scene === 3 && <SceneLiveFeast key="live" active={active && !showWipe} />}
-            {scene === 4 && <SceneChat key="chat" active={active && !showWipe} />}
-            {scene === 5 && <SceneAlaverdi key="alaverdi" active={active && !showWipe} />}
+            {scene === 1 && <SceneGenerator key="gen" active={active} />}
+            {scene === 2 && <SceneResult key="result" active={active} />}
+            {scene === 3 && <SceneLiveFeast key="live" active={active} />}
+            {scene === 4 && <SceneChat key="chat" active={active} />}
+            {scene === 5 && <SceneAlaverdi key="alaverdi" active={active} />}
           </AnimatePresence>
         </div>
       </div>
