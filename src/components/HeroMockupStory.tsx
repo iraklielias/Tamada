@@ -433,9 +433,9 @@ function SceneAlaverdi({ active }: { active: boolean }) {
 
   useEffect(() => {
     if (!active) { setCount(2); setShowPlus(false); setShowConfetti(false); setShowSecond(false); return; }
-    const t1 = setTimeout(() => { setCount(3); setShowPlus(true); setShowConfetti(true); }, 600);
-    const t2 = setTimeout(() => { setShowPlus(false); setShowConfetti(false); }, 1200);
-    const t3 = setTimeout(() => setShowSecond(true), 1000);
+    const t1 = setTimeout(() => { setCount(3); setShowPlus(true); setShowConfetti(true); }, 1200);
+    const t2 = setTimeout(() => { setShowPlus(false); setShowConfetti(false); }, 1800);
+    const t3 = setTimeout(() => setShowSecond(true), 2000);
     return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
   }, [active]);
 
