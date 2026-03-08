@@ -64,10 +64,10 @@ function SceneGenerator({ active }: { active: boolean }) {
 
   useEffect(() => {
     if (!active) { setStep(0); return; }
-    const t1 = setTimeout(() => setStep(1), 300);
-    const t2 = setTimeout(() => setStep(2), 600);
-    const t3 = setTimeout(() => setStep(3), 900);
-    const t4 = setTimeout(() => setStep(4), 1400);
+    const t1 = setTimeout(() => setStep(1), 600);
+    const t2 = setTimeout(() => setStep(2), 1200);
+    const t3 = setTimeout(() => setStep(3), 1800);
+    const t4 = setTimeout(() => setStep(4), 2800);
     return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4); };
   }, [active]);
 
