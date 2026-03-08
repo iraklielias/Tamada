@@ -1133,7 +1133,7 @@ const Index = () => {
   const heroMockupY = useTransform(scrollYProgress, [0, 0.8], [0, 50]);
   // Multi-layer parallax within hero — each layer at a different speed for depth
   const heroBadgeY = useTransform(scrollYProgress, [0, 0.6], [0, -30]);
-  const heroHeadlineY = useTransform(scrollYProgress, [0, 0.6], [0, -12]);
+  
   const heroSubY = useTransform(scrollYProgress, [0, 0.6], [0, 18]);
   const heroCTAY = useTransform(scrollYProgress, [0, 0.6], [0, 28]);
 
@@ -1166,6 +1166,36 @@ const Index = () => {
             background: "radial-gradient(circle, hsla(353,55%,40%,0.35) 0%, hsla(353,55%,40%,0) 70%)",
           }}
         />
+
+        {/* Particle burst at ~1s climax */}
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+          {Array.from({ length: 16 }).map((_, i) => {
+            const angle = (i / 16) * 360;
+            const distance = 120 + Math.random() * 100;
+            const rad = (angle * Math.PI) / 180;
+            const tx = Math.cos(rad) * distance;
+            const ty = Math.sin(rad) * distance;
+            const size = 3 + Math.random() * 4;
+            return (
+              <span
+                key={i}
+                className="particle-burst-dot"
+                style={{
+                  width: size,
+                  height: size,
+                  '--tx': `${tx}px`,
+                  '--ty': `${ty}px`,
+                  animationDelay: `${1 + Math.random() * 0.15}s`,
+                  background: i % 3 === 0
+                    ? 'hsl(var(--wine-deep))'
+                    : i % 3 === 1
+                    ? 'hsl(43, 53%, 55%)'
+                    : 'hsl(350, 60%, 50%)',
+                } as React.CSSProperties}
+              />
+            );
+          })}
+        </div>
 
         {/* Animated breathing orbs -- higher opacity, faster cycles */}
         <motion.div
@@ -1231,7 +1261,7 @@ const Index = () => {
               <motion.h1
                 variants={heroHeadlineReveal}
                 className="font-display text-foreground mb-5"
-                style={{ y: heroHeadlineY, fontSize: "clamp(2.6rem, 5.5vw, 4.2rem)", lineHeight: 1.08, letterSpacing: "-0.03em" }}
+                style={{ fontSize: "clamp(2.6rem, 5.5vw, 4.2rem)", lineHeight: 1.08, letterSpacing: "-0.03em" }}
               >
                 {isKa ? (
                   <>
