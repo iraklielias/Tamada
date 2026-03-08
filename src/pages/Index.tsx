@@ -1699,17 +1699,17 @@ const Index = () => {
             initial="offscreen"
             whileInView="onscreen"
             viewport={{ once: true, margin: "-80px" }}
-            variants={scrollReveal}
+            variants={featureTextStagger}
             className="mb-14"
           >
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-wine-muted mb-3">
+            <motion.p variants={featureTextChild} className="text-xs font-bold uppercase tracking-[0.2em] text-wine-muted mb-3">
               {isKa ? "როგორ მუშაობს" : "How It Works"}
-            </p>
-            <h2 className="font-display text-heading-1 text-foreground">
+            </motion.p>
+            <motion.h2 variants={deblurReveal} className="font-display text-heading-1 text-foreground">
               {isKa
                 ? "სუფრამდე ოთხი ნაბიჯია"
                 : "Four steps to a flawless supra"}
-            </h2>
+            </motion.h2>
           </motion.div>
 
           <div className="relative" ref={timelineRef}>
