@@ -357,9 +357,9 @@ function SceneChat({ active }: { active: boolean }) {
 
   useEffect(() => {
     if (!active) { setStep(0); return; }
-    const t1 = setTimeout(() => setStep(1), 400);
-    const t2 = setTimeout(() => setStep(2), 1000);
-    const t3 = setTimeout(() => setStep(3), 2600);
+    const t1 = setTimeout(() => setStep(1), 800);
+    const t2 = setTimeout(() => setStep(2), 1800);
+    const t3 = setTimeout(() => setStep(3), 4500);
     return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
   }, [active]);
 
