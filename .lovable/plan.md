@@ -1,66 +1,109 @@
 
 
-## Hero Animation UX Fix — Slow Down & Let It Breathe
+## TAMADA — Status Audit & Master Execution Plan
 
-### Core Problems
+### What Is Built
 
-1. **Scene durations are 2.8–3.5s** — way too fast. A viewer needs ~2s just to recognize what they're looking at, leaving only 0.8s to absorb the content before it vanishes.
+| Area | Status |
+|------|--------|
+| Landing page (`/`) | Done — hero, features, how-it-works, footer |
+| Auth (login, signup, callback) | Done — email/password, onAuthStateChange, protected routes |
+| Onboarding wizard (`/onboarding`) | Done — 4 steps: name, region, experience, occasions |
+| App shell (sidebar + bottom nav) | Done — collapsible sidebar, mobile bottom nav, profile footer |
+| Dashboard (`/dashboard`) | Done — greeting, quick actions, recent feasts, popular toasts |
+| Toasts browse (`/toasts`) | Done — search, occasion/formality filters, favorite toggle |
+| AI Generator (`/ai-generate`) | Done — occasion/formality/topic form, edge function, save to favorites |
+| Favorites (`/favorites`) | Done — list system + custom favorites, remove |
+| Library (`/library`) | Done — reads toast_templates (currently 0 rows) |
+| Profile (`/profile`) | Done — read-only display, logout |
+| Edge function: `generate-toast` | Done — Lovable AI gateway, JSON parse |
+| Database schema + RLS | Done — all 11 tables, policies in place |
+| Seed data: toasts | Done — 11 system toasts |
 
-2. **The wine-gradient "wipe" transition is visually aggressive** — a full-screen color flash between scenes is disorienting. The viewer loses spatial context.
+### What Is NOT Built
 
-3. **Internal scene steps fire too fast** — Scene 1 fills all 3 selects in 900ms. That's faster than a human eye can track. The tags appear at 1400ms. The viewer has only ~1.4s to see the completed form before the scene changes.
-
-4. **Scene exit is abrupt** — 250ms exit animation means content disappears almost instantly. The eye hasn't finished reading.
-
-5. **No "settle" time** — each scene constantly animates right up to the transition. There's no quiet beat where the viewer can absorb the final state.
-
----
-
-### Fix Plan
-
-#### A. Double All Scene Durations
-```
-Generator:  2800 → 5500ms
-Result:     3500 → 7000ms  
-Live Feast: 3200 → 6000ms
-Chat:       3500 → 7000ms
-Alaverdi:   2800 → 5000ms
-```
-Total loop: ~30s instead of ~16s. This gives 2–3 seconds of "settle" time per scene after all animations complete.
-
-#### B. Remove the Wipe Transition
-Replace the aggressive wine-gradient wipe with a soft 500ms crossfade. Remove `TransitionWipe` component entirely. Just let `AnimatePresence mode="wait"` handle the transition with a gentler exit (400ms fade-out) and entry (500ms fade-in with subtle y:8 slide).
-
-#### C. Slow Down Internal Scene Steps
-
-**Scene 1 (Generator)**: Space selects at 600ms, 1200ms, 1800ms (instead of 300/600/900). Tags at 2800ms. Button at 3500ms. Viewer has ~2s to see completed form.
-
-**Scene 2 (Result)**: Shimmer phase lasts 1200ms (not 600ms). Title typing starts at 1200ms. Body at 2500ms. Guidance at 5000ms. ~2s settle.
-
-**Scene 3 (Live Feast)**: First progress update at 800ms, card swap at 3000ms (not 1800ms). ~3s settle.
-
-**Scene 4 (Chat)**: User bubble at 800ms, AI response at 1800ms, voice chip at 4500ms. ~2.5s settle.
-
-**Scene 5 (Alaverdi)**: Count increment at 1200ms, second guest at 2000ms. ~3s settle.
-
-#### D. Soften Scene Transitions
-Change `sceneVariants`:
-- Entry: `duration: 0.5` (from 0.35), `y: 8` (from 12), remove `scale`
-- Exit: `duration: 0.4` (from 0.25), `y: -4` (from -8), remove `scale`
-
-The scale bounce on entry/exit is part of what makes transitions feel jarring.
-
-#### E. Remove advanceScene Wipe Logic
-Simplify `advanceScene` to just `setScene(next)` — no wipe state, no setTimeout wrapper. Scene change is handled purely by AnimatePresence crossfade.
+| Area | Spec Section |
+|------|-------------|
+| **Feast CRUD** — `/feasts`, `/feasts/new`, `/feasts/:id` | Sections 3, 4, 5 |
+| **Live Feast Mode** — `/feasts/:id/live` with timer, toast progression, alerts, audio | Section 6 |
+| **Alaverdi tracking** — FAB, guest assignment, count increment | Section 6 |
+| **Co-Tamada / Realtime** — share code, join link, Supabase Realtime sync | Section 6 + Realtime spec |
+| **Toast template seeding** — 7 templates with JSONB sequences | Seed Data |
+| **More sample toasts** — spec calls for 50-100; we have 11 | Seed Data |
+| **Feast plan from template** — selecting a template populates feast_toasts | Section 4 |
+| **AI Feast Plan generator** — `generate-feast-plan` edge function | AI Integration |
+| **Pro gating / useProGate hook** — daily limits, feature locks, upsell modals | Free vs Pro |
+| **Upgrade page** (`/upgrade`) — comparison table, Stripe checkout | Section 11 |
+| **Stripe integration** — checkout session, webhook, subscription management | Edge Functions |
+| **Profile editing** — avatar upload, edit name/region/experience/language | Section 10 |
+| **PDF export** — jsPDF feast plan export (Pro) | Section 5 |
+| **i18n** — i18next setup, language toggle, all strings externalized | i18n spec |
+| **Dark mode** | Design System |
+| **Keyboard shortcuts** | Desktop spec |
+| **Additional occasion types** in filters (christening, guest_reception, friendly_gathering) | Throughout |
+| **config.toml** — `generate-toast` function entry with `verify_jwt = false` | Edge function config |
 
 ---
 
-### Files to Edit
+### Master Execution Plan (8 Phases)
 
-| File | Changes |
-|------|---------|
-| `src/components/HeroMockupStory.tsx` | Update SCENE_META durations, remove TransitionWipe, soften sceneVariants, slow all internal setTimeout timings, simplify advanceScene |
+#### Phase 8 — Seed Data & Config Fixes
+- Seed 7 toast templates into `toast_templates` table (wedding, birthday, memorial, guest reception, holiday, corporate, friendly gathering) with proper `toast_sequence` JSONB arrays
+- Add `[functions.generate-toast]` with `verify_jwt = false` to `supabase/config.toml`
+- Add missing occasion types to all filter dropdowns across pages (christening, guest_reception, friendly_gathering, other)
 
-### Result
-Each scene will have a clear rhythm: **build up (2-3s) → settle (2-3s) → gentle fade to next**. The viewer can understand what they're looking at before it changes.
+#### Phase 9 — Feast CRUD (Core)
+- Create `/feasts` page — list user's feasts with status filter pills + search
+- Create `/feasts/new` page — multi-section form: basic info, details (guest count, formality, region, duration), template selection, optional guest list
+- Create `/feasts/:id` page — tabbed view (Plan, Guests, Details) with toast timeline, guest management, edit metadata, delete
+- Add routes to `App.tsx`, add "სუფრები" nav item to sidebar and bottom nav
+- Dashboard "ახალი სუფრა" quick action routes to `/feasts/new`; feast cards link to `/feasts/:id`
+
+#### Phase 10 — Live Feast Mode
+- Create `/feasts/:id/live` — full-screen immersive view
+- Current toast display with complete text, toast number, type
+- Next-up preview (2 upcoming toasts)
+- Elapsed time tracker + progress bar
+- "Completed" and "Skip" buttons that update `feast_toasts` status
+- Pause/Resume/End feast controls updating `feasts.status`
+- Timer alert system: amber glow + audio chime at configurable intervals before next toast (Web Audio API)
+- Alaverdi FAB: bottom sheet with guest list, tap to assign, increment `alaverdi_count` via `increment_alaverdi` RPC
+
+#### Phase 11 — Co-Tamada & Realtime
+- Generate `share_code` on feast, build `/feasts/:id/join/:shareCode` route
+- Add user as `feast_collaborator` on join
+- Subscribe to Supabase Realtime channels for `feast_toasts`, `feast_guests`, `feasts` changes
+- Enable realtime publication on relevant tables (`ALTER PUBLICATION supabase_realtime ADD TABLE ...`)
+- Co-Tamada sees live view with read-only controls (can assign alaverdi, cannot pause/end)
+- Online indicator for connected collaborators
+
+#### Phase 12 — Profile Editing & Pro Gating
+- Make profile page editable: avatar upload (to `avatars` bucket), display name, region, experience, language
+- Build `useProGate` hook checking `is_pro` + `pro_expires_at`
+- Enforce free limits: 5 AI generations/day (server + client), 10 favorites, 1 active feast
+- Add server-side rate limit check in `generate-toast` edge function using `get_daily_ai_count`
+- Soft upsell modals when limits reached; gold lock icons on Pro features
+- Create `/upgrade` page with feature comparison table and pricing
+
+#### Phase 13 — Stripe & Subscriptions
+- Enable Stripe integration
+- Create `create-checkout-session` edge function
+- Create `stripe-webhook` edge function handling subscription lifecycle events
+- Wire `/upgrade` page CTA to checkout session
+- Add `/profile/subscription` route for managing active subscription
+
+#### Phase 14 — i18n & Polish
+- Set up i18next with `ka` (default) and `en` locales
+- Extract all hardcoded Georgian strings to locale JSON files
+- Add language toggle to sidebar footer and profile settings
+- Persist language choice to `profiles.preferred_language`
+- Toast content displays `_ka` or `_en` based on selected language
+
+#### Phase 15 — Advanced Features & Hardening
+- `generate-feast-plan` edge function — AI-generated toast schedule based on occasion/duration/formality
+- PDF export of feast plan using jsPDF (Pro only)
+- Dark mode support
+- Keyboard shortcuts in live feast mode (Space = complete, Esc = pause)
+- Additional seed toasts (expand from 11 to 50+)
+- Error boundary components, offline queue for failed writes, optimistic updates throughout
 

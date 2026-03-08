@@ -51,9 +51,9 @@ function ConfettiDots({ show }: { show: boolean }) {
    SHARED ANIMATION VARIANTS
    ═══════════════════════════════════════════ */
 const sceneVariants = {
-  initial: { opacity: 0, y: 12, scale: 0.98 },
-  animate: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.35, ease: "easeOut" as const } },
-  exit: { opacity: 0, y: -8, scale: 0.98, transition: { duration: 0.25 } },
+  initial: { opacity: 0, y: 8 },
+  animate: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" as const } },
+  exit: { opacity: 0, y: -4, transition: { duration: 0.4, ease: "easeIn" as const } },
 };
 
 /* ═══════════════════════════════════════════
@@ -64,10 +64,10 @@ function SceneGenerator({ active }: { active: boolean }) {
 
   useEffect(() => {
     if (!active) { setStep(0); return; }
-    const t1 = setTimeout(() => setStep(1), 300);
-    const t2 = setTimeout(() => setStep(2), 600);
-    const t3 = setTimeout(() => setStep(3), 900);
-    const t4 = setTimeout(() => setStep(4), 1400);
+    const t1 = setTimeout(() => setStep(1), 600);
+    const t2 = setTimeout(() => setStep(2), 1200);
+    const t3 = setTimeout(() => setStep(3), 1800);
+    const t4 = setTimeout(() => setStep(4), 2800);
     return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4); };
   }, [active]);
 
@@ -164,10 +164,10 @@ function SceneResult({ active }: { active: boolean }) {
 
   useEffect(() => {
     if (!active) { setPhase(0); setShowGlow(false); return; }
-    const t0 = setTimeout(() => { setPhase(1); setShowGlow(true); }, 600);
-    const t0b = setTimeout(() => setShowGlow(false), 900);
-    const t2 = setTimeout(() => setPhase(2), 1400);
-    const t3 = setTimeout(() => setPhase(3), 2800);
+    const t0 = setTimeout(() => { setPhase(1); setShowGlow(true); }, 1200);
+    const t0b = setTimeout(() => setShowGlow(false), 1600);
+    const t2 = setTimeout(() => setPhase(2), 2500);
+    const t3 = setTimeout(() => setPhase(3), 5000);
     return () => { clearTimeout(t0); clearTimeout(t0b); clearTimeout(t2); clearTimeout(t3); };
   }, [active]);
 
@@ -281,10 +281,10 @@ function SceneLiveFeast({ active }: { active: boolean }) {
   useEffect(() => {
     if (!active) { setProgress(28); setTimer("12:45"); setToastIdx(0); return; }
     // Smooth intermediate progress steps
-    const t0 = setTimeout(() => setProgress(34), 400);
-    const t1 = setTimeout(() => { setProgress(42); setTimer("12:51"); }, 800);
-    const t1b = setTimeout(() => setProgress(48), 1200);
-    const t2 = setTimeout(() => { setToastIdx(1); setProgress(57); setTimer("12:58"); }, 1800);
+    const t0 = setTimeout(() => setProgress(34), 800);
+    const t1 = setTimeout(() => { setProgress(42); setTimer("12:51"); }, 1600);
+    const t1b = setTimeout(() => setProgress(48), 2400);
+    const t2 = setTimeout(() => { setToastIdx(1); setProgress(57); setTimer("12:58"); }, 3000);
     return () => { clearTimeout(t0); clearTimeout(t1); clearTimeout(t1b); clearTimeout(t2); };
   }, [active]);
 
@@ -357,9 +357,9 @@ function SceneChat({ active }: { active: boolean }) {
 
   useEffect(() => {
     if (!active) { setStep(0); return; }
-    const t1 = setTimeout(() => setStep(1), 400);
-    const t2 = setTimeout(() => setStep(2), 1000);
-    const t3 = setTimeout(() => setStep(3), 2600);
+    const t1 = setTimeout(() => setStep(1), 800);
+    const t2 = setTimeout(() => setStep(2), 1800);
+    const t3 = setTimeout(() => setStep(3), 4500);
     return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
   }, [active]);
 
@@ -433,9 +433,9 @@ function SceneAlaverdi({ active }: { active: boolean }) {
 
   useEffect(() => {
     if (!active) { setCount(2); setShowPlus(false); setShowConfetti(false); setShowSecond(false); return; }
-    const t1 = setTimeout(() => { setCount(3); setShowPlus(true); setShowConfetti(true); }, 600);
-    const t2 = setTimeout(() => { setShowPlus(false); setShowConfetti(false); }, 1200);
-    const t3 = setTimeout(() => setShowSecond(true), 1000);
+    const t1 = setTimeout(() => { setCount(3); setShowPlus(true); setShowConfetti(true); }, 1200);
+    const t2 = setTimeout(() => { setShowPlus(false); setShowConfetti(false); }, 1800);
+    const t3 = setTimeout(() => setShowSecond(true), 2000);
     return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
   }, [active]);
 
@@ -517,11 +517,11 @@ const SCENES = [1, 2, 3, 4, 5] as const;
 type SceneNum = typeof SCENES[number];
 
 const SCENE_META: { label: string; duration: number }[] = [
-  { label: "გენერატორი", duration: 2800 },
-  { label: "შედეგი",     duration: 3500 },
-  { label: "ლაივ სუფრა", duration: 3200 },
-  { label: "AI ჩატი",    duration: 3500 },
-  { label: "ალავერდი",   duration: 2800 },
+  { label: "გენერატორი", duration: 5500 },
+  { label: "შედეგი",     duration: 7000 },
+  { label: "ლაივ სუფრა", duration: 6000 },
+  { label: "AI ჩატი",    duration: 7000 },
+  { label: "ალავერდი",   duration: 5000 },
 ];
 
 export default function HeroMockupStory({ active = false }: { active?: boolean }) {
@@ -532,12 +532,8 @@ export default function HeroMockupStory({ active = false }: { active?: boolean }
   const hoverRef = useRef(false);
 
   const advanceScene = useCallback(() => {
-    setShowWipe(true);
-    setTimeout(() => {
-      setScene((s) => ((s % 5) + 1) as SceneNum);
-      setProgressKey((k) => k + 1);
-      setShowWipe(false);
-    }, 150);
+    setScene((s) => ((s % 5) + 1) as SceneNum);
+    setProgressKey((k) => k + 1);
   }, []);
 
   // Auto-advance timer
@@ -567,12 +563,8 @@ export default function HeroMockupStory({ active = false }: { active?: boolean }
   }, []);
 
   const handleDotClick = useCallback((s: SceneNum) => {
-    setShowWipe(true);
-    setTimeout(() => {
-      setScene(s);
-      setProgressKey((k) => k + 1);
-      setShowWipe(false);
-    }, 150);
+    setScene(s);
+    setProgressKey((k) => k + 1);
   }, []);
 
   const currentDuration = SCENE_META[scene - 1].duration;
@@ -623,8 +615,7 @@ export default function HeroMockupStory({ active = false }: { active?: boolean }
           )}
         </AnimatePresence>
 
-        {/* Transition wipe overlay */}
-        <TransitionWipe show={showWipe} />
+        {/* Wipe removed — soft crossfade only */}
 
         {/* App bar */}
         <motion.div initial={{ opacity: 0 }} animate={active ? { opacity: 1 } : {}} transition={{ duration: 0.3 }}
@@ -639,11 +630,11 @@ export default function HeroMockupStory({ active = false }: { active?: boolean }
         {/* Scenes — fixed height container */}
         <div className="flex-1 relative min-h-[200px]">
           <AnimatePresence mode="wait">
-            {scene === 1 && <SceneGenerator key="gen" active={active && !showWipe} />}
-            {scene === 2 && <SceneResult key="result" active={active && !showWipe} />}
-            {scene === 3 && <SceneLiveFeast key="live" active={active && !showWipe} />}
-            {scene === 4 && <SceneChat key="chat" active={active && !showWipe} />}
-            {scene === 5 && <SceneAlaverdi key="alaverdi" active={active && !showWipe} />}
+            {scene === 1 && <SceneGenerator key="gen" active={active} />}
+            {scene === 2 && <SceneResult key="result" active={active} />}
+            {scene === 3 && <SceneLiveFeast key="live" active={active} />}
+            {scene === 4 && <SceneChat key="chat" active={active} />}
+            {scene === 5 && <SceneAlaverdi key="alaverdi" active={active} />}
           </AnimatePresence>
         </div>
       </div>
