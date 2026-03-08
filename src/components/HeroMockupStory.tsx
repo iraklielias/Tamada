@@ -615,8 +615,7 @@ export default function HeroMockupStory({ active = false }: { active?: boolean }
           )}
         </AnimatePresence>
 
-        {/* Transition wipe overlay */}
-        <TransitionWipe show={showWipe} />
+        {/* Wipe removed — soft crossfade only */}
 
         {/* App bar */}
         <motion.div initial={{ opacity: 0 }} animate={active ? { opacity: 1 } : {}} transition={{ duration: 0.3 }}
