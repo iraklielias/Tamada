@@ -281,10 +281,10 @@ function SceneLiveFeast({ active }: { active: boolean }) {
   useEffect(() => {
     if (!active) { setProgress(28); setTimer("12:45"); setToastIdx(0); return; }
     // Smooth intermediate progress steps
-    const t0 = setTimeout(() => setProgress(34), 400);
-    const t1 = setTimeout(() => { setProgress(42); setTimer("12:51"); }, 800);
-    const t1b = setTimeout(() => setProgress(48), 1200);
-    const t2 = setTimeout(() => { setToastIdx(1); setProgress(57); setTimer("12:58"); }, 1800);
+    const t0 = setTimeout(() => setProgress(34), 800);
+    const t1 = setTimeout(() => { setProgress(42); setTimer("12:51"); }, 1600);
+    const t1b = setTimeout(() => setProgress(48), 2400);
+    const t2 = setTimeout(() => { setToastIdx(1); setProgress(57); setTimer("12:58"); }, 3000);
     return () => { clearTimeout(t0); clearTimeout(t1); clearTimeout(t1b); clearTimeout(t2); };
   }, [active]);
 
