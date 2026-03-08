@@ -115,7 +115,7 @@ const refineLengthKeys = ["shorter", "longer"];
 const refineStyleKeys = ["poetic", "storytelling", "proverbial", "direct"];
 
 const AIGeneratePage = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [occasion, setOccasion] = useState("supra");
   const [formality, setFormality] = useState("formal");
   const [tone, setTone] = useState("traditional");
@@ -147,6 +147,8 @@ const AIGeneratePage = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { checkFeature, dailyAICount, limits, canGenerateAI, isPro } = useProGate();
+  const chat = useInternalTamadaChat();
+  const currentLang = (i18n.language === "en" ? "en" : "ka") as "ka" | "en";
 
   const generate = useMutation({
     mutationFn: async () => {
