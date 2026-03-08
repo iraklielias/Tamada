@@ -1329,7 +1329,7 @@ const Index = () => {
               </motion.div>
 
               {/* Mini-testimonial — compact single-row */}
-              <motion.div variants={heroTestimonialReveal} className="flex items-center gap-3 px-4 py-3 rounded-xl bg-card/50 border border-border/40 backdrop-blur-sm max-w-md">
+              <motion.div variants={heroTestimonialReveal} className="flex items-center gap-3 px-4 py-3 rounded-xl bg-card/50 border border-border/40 backdrop-blur-sm max-w-lg">
                 <div className="flex -space-x-2 shrink-0">
                   {["გ", "ნ", "დ"].map((initial, i) => (
                     <motion.div
