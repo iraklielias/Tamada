@@ -4,8 +4,6 @@ import { X, Send, Mic, Loader2, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useAuth } from "@/hooks/useAuth";
-import { useInternalTamadaChat } from "@/hooks/useInternalTamadaChat";
 import { ThinkingFacts } from "@/components/api-testing/ThinkingFacts";
 import type { ExternalChatMessage } from "@/types/external-api";
 import type { GeneratedToast } from "./types";
@@ -15,6 +13,12 @@ interface AIChatPanelProps {
   onClose: () => void;
   onVoiceMode: () => void;
   onToastGenerated?: (toast: GeneratedToast) => void;
+  chat: {
+    messages: ExternalChatMessage[];
+    isLoading: boolean;
+    sendTextMessage: (text: string, language: "ka" | "en") => Promise<ExternalChatMessage>;
+    clearMessages: () => void;
+  };
 }
 
 function ChatBubble({ message }: { message: ExternalChatMessage }) {
@@ -46,21 +50,17 @@ function ChatBubble({ message }: { message: ExternalChatMessage }) {
   );
 }
 
-export function AIChatPanel({ language, onClose, onVoiceMode, onToastGenerated }: AIChatPanelProps) {
-  const { user } = useAuth();
-  const chat = useInternalTamadaChat();
+export function AIChatPanel({ language, onClose, onVoiceMode, onToastGenerated, chat }: AIChatPanelProps) {
   const [inputText, setInputText] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Auto-scroll on new messages
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [chat.messages, chat.isLoading]);
 
-  // Auto-focus input
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
@@ -72,7 +72,6 @@ export function AIChatPanel({ language, onClose, onVoiceMode, onToastGenerated }
 
     try {
       const response = await chat.sendTextMessage(text, language);
-      // Check if response contains a toast
       const toastData = (response.metadata as any)?.toast;
       if (toastData && onToastGenerated) {
         onToastGenerated(toastData as GeneratedToast);
@@ -140,7 +139,6 @@ export function AIChatPanel({ language, onClose, onVoiceMode, onToastGenerated }
       {/* Messages */}
       <ScrollArea className="flex-1 px-4">
         <div ref={scrollRef} className="py-4 space-y-1">
-          {/* Welcome message */}
           {chat.messages.length === 0 && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
@@ -157,7 +155,6 @@ export function AIChatPanel({ language, onClose, onVoiceMode, onToastGenerated }
             <ChatBubble key={msg.id} message={msg} />
           ))}
 
-          {/* Loading indicator */}
           {chat.isLoading && (
             <div className="flex justify-start mb-3">
               <div className="max-w-[85%] rounded-2xl rounded-bl-md px-4 py-3 bg-surface-1 border border-border/50">

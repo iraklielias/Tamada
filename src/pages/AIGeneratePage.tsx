@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useProGate } from "@/hooks/useProGate";
+import { useInternalTamadaChat } from "@/hooks/useInternalTamadaChat";
 import ProUpsellModal from "@/components/ProUpsellModal";
 import ProBadge from "@/components/ProBadge";
 import { Card, CardContent } from "@/components/ui/card";
