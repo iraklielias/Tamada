@@ -1198,26 +1198,25 @@ const Index = () => {
           })}
         </div>
 
-        {/* Animated breathing orbs -- boosted opacity */}
+        {/* Item 12: Breathing orbs — synchronized inhale/exhale pattern */}
         <motion.div
           className="absolute top-[8%] left-[10%] w-[500px] h-[500px] rounded-full pointer-events-none"
           style={{ background: "radial-gradient(circle, hsla(353,55%,38%,0.40) 0%, transparent 70%)", filter: "blur(50px)" }}
           animate={{ x: [0, 35, 0], y: [0, -25, 0], scale: [1, 1.15, 1] }}
-          transition={{ duration: 5, repeat: Infinity, ease: [0.45, 0.05, 0.55, 0.95] }}
+          transition={{ duration: 6, repeat: Infinity, ease: [0.45, 0.05, 0.55, 0.95] }}
         />
         <motion.div
           className="absolute bottom-[10%] right-[8%] w-[420px] h-[420px] rounded-full pointer-events-none"
           style={{ background: "radial-gradient(circle, hsla(43,60%,50%,0.32) 0%, transparent 70%)", filter: "blur(50px)" }}
           animate={{ x: [0, -25, 0], y: [0, 30, 0], scale: [1, 1.12, 1] }}
-          transition={{ duration: 7, repeat: Infinity, ease: [0.45, 0.05, 0.55, 0.95], delay: 1 }}
+          transition={{ duration: 6, repeat: Infinity, ease: [0.45, 0.05, 0.55, 0.95], delay: 0.5 }}
         />
-        {/* Third orb — smaller, faster, wine-gold blend */}
         <motion.div
           className="absolute top-[40%] right-[30%] w-[280px] h-[280px] rounded-full pointer-events-none"
           style={{ background: "radial-gradient(circle, hsla(350,50%,42%,0.24) 0%, hsla(43,50%,50%,0.12) 50%, transparent 70%)", filter: "blur(40px)" }}
           initial={{ opacity: 0, scale: 0.5 }}
           animate={{ opacity: 1, scale: [0.9, 1.1, 0.9], x: [0, 20, 0], y: [0, -15, 0] }}
-          transition={{ opacity: { delay: 1, duration: 0.8 }, scale: { duration: 4, repeat: Infinity, delay: 1.5 }, x: { duration: 4, repeat: Infinity, delay: 1.5 }, y: { duration: 4, repeat: Infinity, delay: 1.5 } }}
+          transition={{ opacity: { delay: 1, duration: 0.8 }, scale: { duration: 6, repeat: Infinity, delay: 1 }, x: { duration: 6, repeat: Infinity, delay: 1 }, y: { duration: 6, repeat: Infinity, delay: 1 } }}
         />
 
         {/* Floating cultural icons -- boosted opacity + third icon */}
