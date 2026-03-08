@@ -1,49 +1,109 @@
 
 
-## Fix: Toast Text Cut-off, Button Emphasis & Scene Transitions
+## TAMADA — Status Audit & Master Execution Plan
 
-### Issues Found
+### What Is Built
 
-**1. Toast body text gets cut off in Scene 2 (Result)**
-The body string is 82 chars typed at 18ms/char = ~1.5s of typing. Phase 2 starts at 2500ms and phase 3 (which stops the cursor) hits at 5000ms — timing is fine. The real problem: the container uses `line-clamp` and `flex-1` but the card sits inside a flex column with other elements competing for space. The `min-h-[300px]` content area minus the header, title, and footer metadata leaves insufficient room. The body text wraps but the card doesn't grow enough to show it all.
+| Area | Status |
+|------|--------|
+| Landing page (`/`) | Done — hero, features, how-it-works, footer |
+| Auth (login, signup, callback) | Done — email/password, onAuthStateChange, protected routes |
+| Onboarding wizard (`/onboarding`) | Done — 4 steps: name, region, experience, occasions |
+| App shell (sidebar + bottom nav) | Done — collapsible sidebar, mobile bottom nav, profile footer |
+| Dashboard (`/dashboard`) | Done — greeting, quick actions, recent feasts, popular toasts |
+| Toasts browse (`/toasts`) | Done — search, occasion/formality filters, favorite toggle |
+| AI Generator (`/ai-generate`) | Done — occasion/formality/topic form, edge function, save to favorites |
+| Favorites (`/favorites`) | Done — list system + custom favorites, remove |
+| Library (`/library`) | Done — reads toast_templates (currently 0 rows) |
+| Profile (`/profile`) | Done — read-only display, logout |
+| Edge function: `generate-toast` | Done — Lovable AI gateway, JSON parse |
+| Database schema + RLS | Done — all 11 tables, policies in place |
+| Seed data: toasts | Done — 11 system toasts |
 
-**Fix**: Remove the implicit height constraint by giving the result card `overflow-visible`, increase body `leading` to `leading-[1.8]`, and slightly reduce the timing gap so body typing starts sooner (2000ms instead of 2500ms) giving more time to complete.
+### What Is NOT Built
 
-**2. "შექმნა" button too subtle**
-Currently: `text-[10px]` pill with `px-3.5 py-1.5`. It blends in as a tag rather than a primary CTA.
+| Area | Spec Section |
+|------|-------------|
+| **Feast CRUD** — `/feasts`, `/feasts/new`, `/feasts/:id` | Sections 3, 4, 5 |
+| **Live Feast Mode** — `/feasts/:id/live` with timer, toast progression, alerts, audio | Section 6 |
+| **Alaverdi tracking** — FAB, guest assignment, count increment | Section 6 |
+| **Co-Tamada / Realtime** — share code, join link, Supabase Realtime sync | Section 6 + Realtime spec |
+| **Toast template seeding** — 7 templates with JSONB sequences | Seed Data |
+| **More sample toasts** — spec calls for 50-100; we have 11 | Seed Data |
+| **Feast plan from template** — selecting a template populates feast_toasts | Section 4 |
+| **AI Feast Plan generator** — `generate-feast-plan` edge function | AI Integration |
+| **Pro gating / useProGate hook** — daily limits, feature locks, upsell modals | Free vs Pro |
+| **Upgrade page** (`/upgrade`) — comparison table, Stripe checkout | Section 11 |
+| **Stripe integration** — checkout session, webhook, subscription management | Edge Functions |
+| **Profile editing** — avatar upload, edit name/region/experience/language | Section 10 |
+| **PDF export** — jsPDF feast plan export (Pro) | Section 5 |
+| **i18n** — i18next setup, language toggle, all strings externalized | i18n spec |
+| **Dark mode** | Design System |
+| **Keyboard shortcuts** | Desktop spec |
+| **Additional occasion types** in filters (christening, guest_reception, friendly_gathering) | Throughout |
+| **config.toml** — `generate-toast` function entry with `verify_jwt = false` | Edge function config |
 
-**Fix**: Make it a full-width button at bottom with `w-full py-2 text-[11px]`, stronger shadow pulse, and add a shimmer sweep animation. The text should read "🍷 შექმენი სადღეგრძელო" (more descriptive + emoji).
+---
 
-**3. Scene-to-scene transitions feel choppy**
-`AnimatePresence mode="wait"` causes a 0.4s exit + 0.5s enter = 0.9s gap where content is partially invisible. This creates a "blink" feeling.
+### Master Execution Plan (8 Phases)
 
-**Fix**: Reduce exit to 0.25s, entry to 0.35s. Add `mode="wait"` with crossfade overlap by using `exitBeforeEnter` timing reduction. Also add a subtle `scale: 0.98` on exit for depth.
+#### Phase 8 — Seed Data & Config Fixes
+- Seed 7 toast templates into `toast_templates` table (wedding, birthday, memorial, guest reception, holiday, corporate, friendly gathering) with proper `toast_sequence` JSONB arrays
+- Add `[functions.generate-toast]` with `verify_jwt = false` to `supabase/config.toml`
+- Add missing occasion types to all filter dropdowns across pages (christening, guest_reception, friendly_gathering, other)
 
-### Files to Edit
+#### Phase 9 — Feast CRUD (Core)
+- Create `/feasts` page — list user's feasts with status filter pills + search
+- Create `/feasts/new` page — multi-section form: basic info, details (guest count, formality, region, duration), template selection, optional guest list
+- Create `/feasts/:id` page — tabbed view (Plan, Guests, Details) with toast timeline, guest management, edit metadata, delete
+- Add routes to `App.tsx`, add "სუფრები" nav item to sidebar and bottom nav
+- Dashboard "ახალი სუფრა" quick action routes to `/feasts/new`; feast cards link to `/feasts/:id`
 
-| File | Changes |
-|------|---------|
-| `src/components/HeroMockupStory.tsx` | Fix Scene 2 typing timing and card overflow; redesign Scene 1 CTA button; tune scene transition durations |
+#### Phase 10 — Live Feast Mode
+- Create `/feasts/:id/live` — full-screen immersive view
+- Current toast display with complete text, toast number, type
+- Next-up preview (2 upcoming toasts)
+- Elapsed time tracker + progress bar
+- "Completed" and "Skip" buttons that update `feast_toasts` status
+- Pause/Resume/End feast controls updating `feasts.status`
+- Timer alert system: amber glow + audio chime at configurable intervals before next toast (Web Audio API)
+- Alaverdi FAB: bottom sheet with guest list, tap to assign, increment `alaverdi_count` via `increment_alaverdi` RPC
 
-### Specific Changes
+#### Phase 11 — Co-Tamada & Realtime
+- Generate `share_code` on feast, build `/feasts/:id/join/:shareCode` route
+- Add user as `feast_collaborator` on join
+- Subscribe to Supabase Realtime channels for `feast_toasts`, `feast_guests`, `feasts` changes
+- Enable realtime publication on relevant tables (`ALTER PUBLICATION supabase_realtime ADD TABLE ...`)
+- Co-Tamada sees live view with read-only controls (can assign alaverdi, cannot pause/end)
+- Online indicator for connected collaborators
 
-**Scene transitions (line 60-78)**:
-- Exit: `duration: 0.25`, add `scale: 0.98`
-- Entry: `duration: 0.35`
-- This cuts total transition from 0.9s to 0.6s
+#### Phase 12 — Profile Editing & Pro Gating
+- Make profile page editable: avatar upload (to `avatars` bucket), display name, region, experience, language
+- Build `useProGate` hook checking `is_pro` + `pro_expires_at`
+- Enforce free limits: 5 AI generations/day (server + client), 10 favorites, 1 active feast
+- Add server-side rate limit check in `generate-toast` edge function using `get_daily_ai_count`
+- Soft upsell modals when limits reached; gold lock icons on Pro features
+- Create `/upgrade` page with feature comparison table and pricing
 
-**Scene 1 button (line 171-184)**:
-- Full-width `w-full`, `py-2`, `text-[11px]`
-- Text: "🍷 შექმენი სადღეგრძელო" with ArrowRight icon
-- Stronger glow pulse and shimmer overlay
+#### Phase 13 — Stripe & Subscriptions
+- Enable Stripe integration
+- Create `create-checkout-session` edge function
+- Create `stripe-webhook` edge function handling subscription lifecycle events
+- Wire `/upgrade` page CTA to checkout session
+- Add `/profile/subscription` route for managing active subscription
 
-**Scene 2 timing (line 200-206)**:
-- Move body typing start from 2500ms to 1800ms
-- Move phase 3 (complete) from 5000ms to 5500ms
-- This gives 3700ms for body typing vs current 2500ms
-- Increase scene duration from 7000ms to 7500ms
+#### Phase 14 — i18n & Polish
+- Set up i18next with `ka` (default) and `en` locales
+- Extract all hardcoded Georgian strings to locale JSON files
+- Add language toggle to sidebar footer and profile settings
+- Persist language choice to `profiles.preferred_language`
+- Toast content displays `_ka` or `_en` based on selected language
 
-**Scene 2 card (line 248-272)**:
-- Remove implicit height clipping
-- Body text `leading-[1.8]` for readability
+#### Phase 15 — Advanced Features & Hardening
+- `generate-feast-plan` edge function — AI-generated toast schedule based on occasion/duration/formality
+- PDF export of feast plan using jsPDF (Pro only)
+- Dark mode support
+- Keyboard shortcuts in live feast mode (Space = complete, Esc = pause)
+- Additional seed toasts (expand from 11 to 50+)
+- Error boundary components, offline queue for failed writes, optimistic updates throughout
 

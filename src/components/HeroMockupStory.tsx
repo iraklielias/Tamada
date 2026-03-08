@@ -64,7 +64,7 @@ const sceneVariants = {
     y: 0,
     filter: "blur(0px)",
     transition: {
-      duration: 0.5,
+      duration: 0.35,
       ease: "easeOut" as const,
       staggerChildren: 0.12,
     },
@@ -72,8 +72,9 @@ const sceneVariants = {
   exit: {
     opacity: 0,
     y: -4,
+    scale: 0.98,
     filter: "blur(2px)",
-    transition: { duration: 0.4, ease: "easeIn" as const },
+    transition: { duration: 0.25, ease: "easeIn" as const },
   },
 };
 
@@ -172,14 +173,21 @@ function SceneGenerator({ active }: { active: boolean }) {
         variants={staggerChild}
         initial="initial"
         animate={step >= 4 ? "animate" : "initial"}
-        className="mt-auto pt-2"
+        className="mt-auto pt-3"
       >
         <motion.div
-          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg wine-gradient text-white text-[10px] font-semibold"
-          animate={step >= 4 ? { boxShadow: ["0 0 0 0 hsla(353,50%,38%,0)", "0 0 10px 3px hsla(353,50%,38%,0.3)", "0 0 0 0 hsla(353,50%,38%,0)"] } : {}}
+          className="relative w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl wine-gradient text-white text-[11px] font-bold overflow-hidden"
+          animate={step >= 4 ? { boxShadow: ["0 0 0 0 hsla(353,50%,38%,0)", "0 0 16px 4px hsla(353,50%,38%,0.35)", "0 0 0 0 hsla(353,50%,38%,0)"] } : {}}
           transition={{ duration: 1.5, repeat: Infinity, delay: 0.3 }}
         >
-          შექმნა <ArrowRight className="h-3 w-3" />
+          {/* Shimmer sweep */}
+          <motion.div
+            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+            animate={step >= 4 ? { x: ["-100%", "200%"] } : {}}
+            transition={{ duration: 2, repeat: Infinity, repeatDelay: 1, ease: "easeInOut" }}
+          />
+          <span className="relative z-10">🍷 შექმენი სადღეგრძელო</span>
+          <ArrowRight className="h-3.5 w-3.5 relative z-10" />
         </motion.div>
       </motion.div>
     </motion.div>
@@ -201,8 +209,8 @@ function SceneResult({ active }: { active: boolean }) {
     if (!active) { setPhase(0); setShowGlow(false); return; }
     const t0 = setTimeout(() => { setPhase(1); setShowGlow(true); }, 1200);
     const t0b = setTimeout(() => setShowGlow(false), 1600);
-    const t2 = setTimeout(() => setPhase(2), 2500);
-    const t3 = setTimeout(() => setPhase(3), 5000);
+    const t2 = setTimeout(() => setPhase(2), 1800);
+    const t3 = setTimeout(() => setPhase(3), 5500);
     return () => { clearTimeout(t0); clearTimeout(t0b); clearTimeout(t2); clearTimeout(t3); };
   }, [active]);
 
@@ -261,7 +269,7 @@ function SceneResult({ active }: { active: boolean }) {
                   <TypingCursor active={phase >= 1 && phase < 2} height="h-3" />
                 </p>
                 {phase >= 2 && (
-                  <p className="text-[11px] text-foreground/80 leading-relaxed">
+                  <p className="text-[11px] text-foreground/80 leading-[1.8]">
                     {typedBody}
                     <TypingCursor active={phase >= 2 && phase < 3} height="h-2.5" />
                   </p>
@@ -546,7 +554,7 @@ type SceneNum = typeof SCENES[number];
 
 const SCENE_META: { label: string; duration: number }[] = [
   { label: "გენერატორი", duration: 5500 },
-  { label: "შედეგი",     duration: 7000 },
+  { label: "შედეგი",     duration: 7500 },
   { label: "ლაივ სუფრა", duration: 6000 },
   { label: "AI ჩატი",    duration: 7000 },
   { label: "ალავერდი",   duration: 5000 },
