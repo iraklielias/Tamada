@@ -997,7 +997,7 @@ async function handleChatMessageVoice(body: Record<string, unknown>, apiKeyData:
 
   // Inject gathered params so AI remembers what it already collected
   const gatheredContext = session.gathered_params && Object.keys(session.gathered_params).length > 0
-    ? [{ role: "system", content: `[ALREADY_GATHERED_PARAMS: ${JSON.stringify(session.gathered_params)}]\nDo NOT re-ask for information that is already gathered above. Use these values directly when generating toasts.` }]
+    ? [{ role: "system", content: `[ALREADY_GATHERED_PARAMS: ${JSON.stringify(session.gathered_params)}]\nDo NOT re-ask for information that is already gathered above. Use these values directly when generating toasts.\nIMPORTANT: NEVER respond with ONLY a ===PARAMS=== block. You MUST always include a conversational message alongside any parameter extraction.` }]
     : [];
 
   // AI Generation
