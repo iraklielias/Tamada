@@ -243,7 +243,7 @@ function SceneResult({ active }: { active: boolean }) {
           )}
         </AnimatePresence>
 
-        <div
+        <motion.div
           className="rounded-lg border relative"
           animate={{
             borderColor: showGlow
