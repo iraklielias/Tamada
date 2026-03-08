@@ -83,52 +83,64 @@ export const pageTransition: Variants = {
   },
 };
 
-// ─── Hero-specific ───────────────────────────────
+// ─── Hero-specific (v2 — choreographed variety) ──
 export const heroBadgeReveal: Variants = {
-  initial: { opacity: 0, y: 16, scale: 0.9 },
+  initial: { opacity: 0, y: 12, scale: 0.85 },
   animate: {
     opacity: 1,
     y: 0,
     scale: 1,
-    transition: { duration: 0.45, ease: easeOut },
+    transition: {
+      type: "spring",
+      stiffness: 200,
+      damping: 18,
+      mass: 0.8,
+    },
   },
 };
 
 export const heroHeadlineReveal: Variants = {
-  initial: { opacity: 0, y: 48 },
+  initial: { opacity: 0, y: 48, filter: "blur(8px)" },
   animate: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.75, ease: easeOut },
+    filter: "blur(0px)",
+    transition: { duration: 0.8, ease: easeOut },
   },
 };
 
 export const heroSubReveal: Variants = {
-  initial: { opacity: 0, y: 24 },
+  initial: { opacity: 0, y: 20, filter: "blur(4px)" },
   animate: {
     opacity: 1,
     y: 0,
+    filter: "blur(0px)",
     transition: { duration: 0.6, ease: easeOut },
   },
 };
 
 export const heroCTAReveal: Variants = {
-  initial: { opacity: 0, x: -20, y: 12 },
-  animate: {
-    opacity: 1,
-    x: 0,
-    y: 0,
-    transition: { duration: 0.55, ease: easeOut },
-  },
-};
-
-export const heroTestimonialReveal: Variants = {
-  initial: { opacity: 0, scale: 0.94, y: 16 },
+  initial: { opacity: 0, scale: 0.88, y: 8 },
   animate: {
     opacity: 1,
     scale: 1,
     y: 0,
-    transition: { duration: 0.6, ease: easeOut },
+    transition: {
+      type: "spring",
+      stiffness: 180,
+      damping: 16,
+      mass: 0.9,
+    },
+  },
+};
+
+export const heroTestimonialReveal: Variants = {
+  initial: { opacity: 0, y: 24, scale: 0.92 },
+  animate: {
+    opacity: 1,
+    scale: 1,
+    y: 0,
+    transition: { duration: 0.65, ease: easeOut },
   },
 };
 
@@ -145,20 +157,21 @@ export const heroStagger: Variants = {
   initial: {},
   animate: {
     transition: {
-      staggerChildren: 0.14,
-      delayChildren: 0.3,
+      staggerChildren: 0.22,
+      delayChildren: 0.15,
     },
   },
 };
 
 export const heroMockupReveal: Variants = {
-  initial: { opacity: 0, y: 50, rotateX: 12, scale: 0.92 },
+  initial: { opacity: 0, y: 50, rotateX: 12, rotateY: -8, scale: 0.92 },
   animate: {
     opacity: 1,
     y: 0,
     rotateX: 0,
+    rotateY: 0,
     scale: 1,
-    transition: { duration: 1.0, ease: easeOut, delay: 0.5 },
+    transition: { duration: 1.1, ease: easeOut, delay: 0.6 },
   },
 };
 
