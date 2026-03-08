@@ -1317,45 +1317,34 @@ const Index = () => {
                 </Button>
               </motion.div>
 
-              {/* Mini-testimonial social proof */}
-              <motion.div variants={heroTestimonialReveal} className="p-4 rounded-xl bg-card/60 border border-border/50 backdrop-blur-sm max-w-md">
-                <div className="flex items-start gap-3.5">
-                  <div className="flex -space-x-2.5 shrink-0">
-                    {["გ", "ნ", "დ", "მ"].map((initial, i) => (
-                      <motion.div
-                        key={i}
-                        initial={{ opacity: 0, scale: 0 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ type: "spring", stiffness: 300, damping: 15, delay: 1.8 + i * 0.08 }}
-                        className="w-9 h-9 rounded-full border-2 border-background flex items-center justify-center text-[10px] font-bold"
-                        style={{
-                          background: [
-                            "hsl(353,41%,32%)", "hsl(350,60%,45%)",
-                            "hsl(43,53%,55%)", "hsl(349,69%,32%)",
-                          ][i],
-                          color: "white",
-                        }}
-                        whileHover={{ scale: 1.2, y: -4, transition: { type: "spring", stiffness: 400, damping: 12 } }}
-                      >
-                        {initial}
-                      </motion.div>
+              {/* Mini-testimonial — compact single-row */}
+              <motion.div variants={heroTestimonialReveal} className="flex items-center gap-3 px-4 py-3 rounded-xl bg-card/50 border border-border/40 backdrop-blur-sm max-w-md">
+                <div className="flex -space-x-2 shrink-0">
+                  {["გ", "ნ", "დ"].map((initial, i) => (
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 0, scale: 0 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ type: "spring", stiffness: 300, damping: 15, delay: 1.8 + i * 0.08 }}
+                      className="w-7 h-7 rounded-full border-2 border-background flex items-center justify-center text-[9px] font-bold"
+                      style={{
+                        background: ["hsl(353,41%,32%)", "hsl(350,60%,45%)", "hsl(43,53%,55%)"][i],
+                        color: "white",
+                      }}
+                    >
+                      {initial}
+                    </motion.div>
+                  ))}
+                </div>
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <div className="flex items-center gap-0.5 shrink-0">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className="h-2.5 w-2.5 fill-gold text-gold" />
                     ))}
                   </div>
-                  <div>
-                    <div className="flex items-center gap-0.5 mb-1">
-                      {[...Array(5)].map((_, i) => (
-                        <Star key={i} className="h-3 w-3 fill-gold text-gold" />
-                      ))}
-                    </div>
-                    <p className="text-sm text-foreground/80 italic leading-snug">
-                      {isKa
-                        ? `„ძმის ქორწილის სუფრა 10 წუთში დავგეგმე. 12 სადღეგრძელო AI-მ დაწერა. ყველა სტუმარი ტიროდა."`
-                        : "\"Planned my brother's wedding supra in 10 minutes. AI wrote 12 toasts. Every guest cried.\""}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1.5 font-medium">
-                      {isKa ? "გიორგი კ., ქორწილის თამადა" : "Giorgi K., Wedding Host"}
-                    </p>
-                  </div>
+                  <p className="text-xs text-foreground/70 italic truncate">
+                    {isKa ? "„სუფრა 10 წუთში დავგეგმე. ყველა ტიროდა."" : "\"Planned a supra in 10 min. Everyone cried.\""}
+                  </p>
                 </div>
               </motion.div>
             </motion.div>
