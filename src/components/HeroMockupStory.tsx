@@ -51,9 +51,9 @@ function ConfettiDots({ show }: { show: boolean }) {
    SHARED ANIMATION VARIANTS
    ═══════════════════════════════════════════ */
 const sceneVariants = {
-  initial: { opacity: 0, y: 12, scale: 0.98 },
-  animate: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.35, ease: "easeOut" as const } },
-  exit: { opacity: 0, y: -8, scale: 0.98, transition: { duration: 0.25 } },
+  initial: { opacity: 0, y: 8 },
+  animate: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" as const } },
+  exit: { opacity: 0, y: -4, transition: { duration: 0.4, ease: "easeIn" as const } },
 };
 
 /* ═══════════════════════════════════════════
