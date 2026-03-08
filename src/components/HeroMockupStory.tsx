@@ -173,14 +173,21 @@ function SceneGenerator({ active }: { active: boolean }) {
         variants={staggerChild}
         initial="initial"
         animate={step >= 4 ? "animate" : "initial"}
-        className="mt-auto pt-2"
+        className="mt-auto pt-3"
       >
         <motion.div
-          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg wine-gradient text-white text-[10px] font-semibold"
-          animate={step >= 4 ? { boxShadow: ["0 0 0 0 hsla(353,50%,38%,0)", "0 0 10px 3px hsla(353,50%,38%,0.3)", "0 0 0 0 hsla(353,50%,38%,0)"] } : {}}
+          className="relative w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl wine-gradient text-white text-[11px] font-bold overflow-hidden"
+          animate={step >= 4 ? { boxShadow: ["0 0 0 0 hsla(353,50%,38%,0)", "0 0 16px 4px hsla(353,50%,38%,0.35)", "0 0 0 0 hsla(353,50%,38%,0)"] } : {}}
           transition={{ duration: 1.5, repeat: Infinity, delay: 0.3 }}
         >
-          შექმნა <ArrowRight className="h-3 w-3" />
+          {/* Shimmer sweep */}
+          <motion.div
+            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+            animate={step >= 4 ? { x: ["-100%", "200%"] } : {}}
+            transition={{ duration: 2, repeat: Infinity, repeatDelay: 1, ease: "easeInOut" }}
+          />
+          <span className="relative z-10">🍷 შექმენი სადღეგრძელო</span>
+          <ArrowRight className="h-3.5 w-3.5 relative z-10" />
         </motion.div>
       </motion.div>
     </motion.div>
