@@ -1377,7 +1377,7 @@ const Index = () => {
               variants={heroMockupReveal}
             >
               <div className="mockup-float-delayed-v2">
-                <HeroMockupStory active={mockupActive} />
+                <HeroInteractiveDemo active={mockupActive} language={isKa ? "ka" : "en"} />
               </div>
             </motion.div>
 
