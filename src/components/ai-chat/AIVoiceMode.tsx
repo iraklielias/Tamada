@@ -1,7 +1,6 @@
 import React, { useCallback } from "react";
 import { FullVoiceMode } from "@/components/api-testing/FullVoiceMode";
 import { useAuth } from "@/hooks/useAuth";
-import { useInternalTamadaChat } from "@/hooks/useInternalTamadaChat";
 import type { ExternalChatMessage } from "@/types/external-api";
 import type { GeneratedToast } from "./types";
 
@@ -10,19 +9,23 @@ interface AIVoiceModeProps {
   onClose: () => void;
   onMessage: (userMsg: ExternalChatMessage | null, assistantMsg: ExternalChatMessage) => void;
   onToastGenerated?: (toast: GeneratedToast) => void;
+  chat: {
+    addMessage: (msg: ExternalChatMessage) => void;
+    voiceApi: {
+      sendVoiceMessage: (...args: any[]) => Promise<any>;
+      apiKey: string;
+    };
+  };
 }
 
-export function AIVoiceMode({ language, onClose, onMessage, onToastGenerated }: AIVoiceModeProps) {
+export function AIVoiceMode({ language, onClose, onMessage, onToastGenerated, chat }: AIVoiceModeProps) {
   const { user } = useAuth();
-  const chat = useInternalTamadaChat();
 
   const handleMessage = useCallback(
     (userMsg: ExternalChatMessage | null, assistantMsg: ExternalChatMessage) => {
-      // Track in chat history
       if (userMsg) chat.addMessage(userMsg);
       chat.addMessage(assistantMsg);
 
-      // Check for toast in response
       if (assistantMsg.content.includes("===TOAST_START===") && onToastGenerated) {
         const toastMatch = assistantMsg.content.match(/===TOAST_START===\s*([\s\S]*?)\s*===TOAST_END===/);
         if (toastMatch) {
@@ -40,7 +43,6 @@ export function AIVoiceMode({ language, onClose, onMessage, onToastGenerated }: 
   );
 
   const handleParamsExtracted = useCallback((params: Record<string, unknown>) => {
-    // Could be used to sync params back to form in future
     console.log("Voice params extracted:", params);
   }, []);
 

@@ -888,6 +888,14 @@ serve(async (req) => {
           new Date(profile.pro_expires_at) > new Date());
       const limit = isPro ? 100 : 5;
 
+      // PRO gate: chat_generate and chat_voice are PRO-only features
+      if (!isPro && (action === "chat_generate" || action === "chat_voice")) {
+        return new Response(
+          JSON.stringify({ error: "Chat and voice modes require a PRO subscription." }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
       if ((count ?? 0) >= limit) {
         return new Response(
           JSON.stringify({

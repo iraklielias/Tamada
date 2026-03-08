@@ -1,89 +1,109 @@
 
 
-# Implementation Review: Potential Leaks and Issues
+## TAMADA — Status Audit & Master Execution Plan
 
-After thorough inspection of all Phase 1-3 files, here are the issues found:
+### What Is Built
 
----
+| Area | Status |
+|------|--------|
+| Landing page (`/`) | Done — hero, features, how-it-works, footer |
+| Auth (login, signup, callback) | Done — email/password, onAuthStateChange, protected routes |
+| Onboarding wizard (`/onboarding`) | Done — 4 steps: name, region, experience, occasions |
+| App shell (sidebar + bottom nav) | Done — collapsible sidebar, mobile bottom nav, profile footer |
+| Dashboard (`/dashboard`) | Done — greeting, quick actions, recent feasts, popular toasts |
+| Toasts browse (`/toasts`) | Done — search, occasion/formality filters, favorite toggle |
+| AI Generator (`/ai-generate`) | Done — occasion/formality/topic form, edge function, save to favorites |
+| Favorites (`/favorites`) | Done — list system + custom favorites, remove |
+| Library (`/library`) | Done — reads toast_templates (currently 0 rows) |
+| Profile (`/profile`) | Done — read-only display, logout |
+| Edge function: `generate-toast` | Done — Lovable AI gateway, JSON parse |
+| Database schema + RLS | Done — all 11 tables, policies in place |
+| Seed data: toasts | Done — 11 system toasts |
 
-## 1. Chat State Not Shared Between Chat and Voice Mode (Critical UX Bug)
+### What Is NOT Built
 
-**Problem:** `AIChatPanel` and `AIVoiceMode` each call `useInternalTamadaChat()` independently, creating **separate** hook instances with separate `messages` and `chatHistoryRef` arrays. When a user switches from chat to voice mode (via the mic button in chat), the conversation history is lost. The voice mode starts fresh with no context.
-
-**Fix:** Lift `useInternalTamadaChat()` to `AIGeneratePage` and pass the shared instance down to both `AIChatPanel` and `AIVoiceMode` as a prop.
-
----
-
-## 2. No PRO Gate on Backend for chat_generate / chat_voice (Security Leak)
-
-**Problem:** The PRO gate for chat/voice is only enforced client-side (checking `isPro` before opening the modal). The edge function's rate limit logic applies the same 5-generation daily cap for free users, but it does NOT explicitly reject non-PRO users from `chat_generate` / `chat_voice` actions. A free user who knows the API can call these actions directly and use them up to their 5-generation limit.
-
-**Fix:** Add an explicit PRO check in the edge function for `chat_generate` and `chat_voice` actions — if the user profile `is_pro` is false, return a 403 with a message.
-
----
-
-## 3. Voice Mode `onMessage` Callback Is a No-Op
-
-**Problem:** In `AIGeneratePage.tsx` line 1024, the voice mode's `onMessage` prop is `() => {}`. This means voice transcription/response text is never surfaced to the user after voice mode closes. If a user has a conversation in voice mode and closes it, there's no record.
-
-**Impact:** Minor — voice mode shows its own transcript. But the `AIVoiceMode` component also calls `chat.addMessage()` inside `handleMessage`, which writes to its own local hook instance (see issue #1), so even the internal tracking is lost.
-
-**Fix:** Resolved by fixing issue #1 (shared chat instance).
-
----
-
-## 4. Audio Files in `chat-audio` Bucket Never Cleaned Up (Storage Leak)
-
-**Problem:** Every voice response generates an MP3 file stored in `chat-audio/internal-chat/{userId}/{msgId}.mp3`. These files are never deleted. Over time this will accumulate significant storage costs.
-
-**Fix:** Add a retention policy or a scheduled cleanup. For now, add a comment/TODO and consider implementing lifecycle rules on the storage bucket. Not urgent for MVP.
-
----
-
-## 5. `chat_generate` Logs Every Message as a Generation (Rate Limit Issue)
-
-**Problem:** Every conversational turn (even "hello", "what's your name?") is logged to `ai_generation_log` and counted toward the daily limit. A PRO user gets 100/day — a 10-turn conversation consumes 10 generations. For text chat this could burn through limits quickly.
-
-**Impact:** Moderate — could frustrate PRO users who have long conversations.
-
-**Fix:** Consider only counting turns that produce a toast (where `isToast === true`) as generations, or count an entire chat session as 1 generation. For now, this is a product decision — flag it but don't change behavior without user input.
+| Area | Spec Section |
+|------|-------------|
+| **Feast CRUD** — `/feasts`, `/feasts/new`, `/feasts/:id` | Sections 3, 4, 5 |
+| **Live Feast Mode** — `/feasts/:id/live` with timer, toast progression, alerts, audio | Section 6 |
+| **Alaverdi tracking** — FAB, guest assignment, count increment | Section 6 |
+| **Co-Tamada / Realtime** — share code, join link, Supabase Realtime sync | Section 6 + Realtime spec |
+| **Toast template seeding** — 7 templates with JSONB sequences | Seed Data |
+| **More sample toasts** — spec calls for 50-100; we have 11 | Seed Data |
+| **Feast plan from template** — selecting a template populates feast_toasts | Section 4 |
+| **AI Feast Plan generator** — `generate-feast-plan` edge function | AI Integration |
+| **Pro gating / useProGate hook** — daily limits, feature locks, upsell modals | Free vs Pro |
+| **Upgrade page** (`/upgrade`) — comparison table, Stripe checkout | Section 11 |
+| **Stripe integration** — checkout session, webhook, subscription management | Edge Functions |
+| **Profile editing** — avatar upload, edit name/region/experience/language | Section 10 |
+| **PDF export** — jsPDF feast plan export (Pro) | Section 5 |
+| **i18n** — i18next setup, language toggle, all strings externalized | i18n spec |
+| **Dark mode** | Design System |
+| **Keyboard shortcuts** | Desktop spec |
+| **Additional occasion types** in filters (christening, guest_reception, friendly_gathering) | Throughout |
+| **config.toml** — `generate-toast` function entry with `verify_jwt = false` | Edge function config |
 
 ---
 
-## 6. `refine_toast` Action Missing User Context Injection
+### Master Execution Plan (8 Phases)
 
-**Problem:** The `refine_toast` action constructs `userMessage` but the AI call uses `fullSystemPrompt` which includes user context. However, the refinement prompt doesn't reference the user's learned preferences for the refinement — it only sends the current toast + instructions. This is actually fine since the system prompt already contains the user context block.
+#### Phase 8 — Seed Data & Config Fixes
+- Seed 7 toast templates into `toast_templates` table (wedding, birthday, memorial, guest reception, holiday, corporate, friendly gathering) with proper `toast_sequence` JSONB arrays
+- Add `[functions.generate-toast]` with `verify_jwt = false` to `supabase/config.toml`
+- Add missing occasion types to all filter dropdowns across pages (christening, guest_reception, friendly_gathering, other)
 
-**Status:** No leak — works correctly.
+#### Phase 9 — Feast CRUD (Core)
+- Create `/feasts` page — list user's feasts with status filter pills + search
+- Create `/feasts/new` page — multi-section form: basic info, details (guest count, formality, region, duration), template selection, optional guest list
+- Create `/feasts/:id` page — tabbed view (Plan, Guests, Details) with toast timeline, guest management, edit metadata, delete
+- Add routes to `App.tsx`, add "სუფრები" nav item to sidebar and bottom nav
+- Dashboard "ახალი სუფრა" quick action routes to `/feasts/new`; feast cards link to `/feasts/:id`
 
----
+#### Phase 10 — Live Feast Mode
+- Create `/feasts/:id/live` — full-screen immersive view
+- Current toast display with complete text, toast number, type
+- Next-up preview (2 upcoming toasts)
+- Elapsed time tracker + progress bar
+- "Completed" and "Skip" buttons that update `feast_toasts` status
+- Pause/Resume/End feast controls updating `feasts.status`
+- Timer alert system: amber glow + audio chime at configurable intervals before next toast (Web Audio API)
+- Alaverdi FAB: bottom sheet with guest list, tap to assign, increment `alaverdi_count` via `increment_alaverdi` RPC
 
-## 7. Language Detection Inconsistency
+#### Phase 11 — Co-Tamada & Realtime
+- Generate `share_code` on feast, build `/feasts/:id/join/:shareCode` route
+- Add user as `feast_collaborator` on join
+- Subscribe to Supabase Realtime channels for `feast_toasts`, `feast_guests`, `feasts` changes
+- Enable realtime publication on relevant tables (`ALTER PUBLICATION supabase_realtime ADD TABLE ...`)
+- Co-Tamada sees live view with read-only controls (can assign alaverdi, cannot pause/end)
+- Online indicator for connected collaborators
 
-**Problem:** Language is read from `localStorage.getItem('tamada-lang')` in three places in `AIGeneratePage.tsx` (lines 605, 995, 1012, 1022). If the value is null or something unexpected, it defaults to `'ka'`. This is consistent but fragile — if i18n language changes and localStorage isn't updated, the chat/voice mode will use the wrong language.
+#### Phase 12 — Profile Editing & Pro Gating
+- Make profile page editable: avatar upload (to `avatars` bucket), display name, region, experience, language
+- Build `useProGate` hook checking `is_pro` + `pro_expires_at`
+- Enforce free limits: 5 AI generations/day (server + client), 10 favorites, 1 active feast
+- Add server-side rate limit check in `generate-toast` edge function using `get_daily_ai_count`
+- Soft upsell modals when limits reached; gold lock icons on Pro features
+- Create `/upgrade` page with feature comparison table and pricing
 
-**Fix:** Minor — use i18n's `i18n.language` directly instead of reading localStorage.
+#### Phase 13 — Stripe & Subscriptions
+- Enable Stripe integration
+- Create `create-checkout-session` edge function
+- Create `stripe-webhook` edge function handling subscription lifecycle events
+- Wire `/upgrade` page CTA to checkout session
+- Add `/profile/subscription` route for managing active subscription
 
----
+#### Phase 14 — i18n & Polish
+- Set up i18next with `ka` (default) and `en` locales
+- Extract all hardcoded Georgian strings to locale JSON files
+- Add language toggle to sidebar footer and profile settings
+- Persist language choice to `profiles.preferred_language`
+- Toast content displays `_ka` or `_en` based on selected language
 
-## Summary of Required Fixes
-
-| Issue | Severity | Fix |
-|-------|----------|-----|
-| 1. Chat/Voice don't share state | High | Lift `useInternalTamadaChat` to parent |
-| 2. No backend PRO gate on chat actions | High (security) | Add PRO check in edge function |
-| 3. Voice onMessage is no-op | Medium | Fixed by #1 |
-| 4. Audio files never cleaned up | Low | TODO/future lifecycle policy |
-| 5. Every chat turn counts as generation | Medium (product) | Product decision needed |
-| 6. Refine toast context | None | Works correctly |
-| 7. Language from localStorage | Low | Use i18n.language instead |
-
-### Files to Change
-
-| File | Changes |
-|------|---------|
-| `src/pages/AIGeneratePage.tsx` | Lift `useInternalTamadaChat` to component level, pass to chat/voice; use `i18n.language` for language |
-| `src/components/ai-chat/AIChatPanel.tsx` | Accept chat instance as prop instead of creating its own |
-| `src/components/ai-chat/AIVoiceMode.tsx` | Accept chat instance as prop instead of creating its own |
-| `supabase/functions/tamada-ai/index.ts` | Add PRO-only guard for `chat_generate` and `chat_voice` actions |
+#### Phase 15 — Advanced Features & Hardening
+- `generate-feast-plan` edge function — AI-generated toast schedule based on occasion/duration/formality
+- PDF export of feast plan using jsPDF (Pro only)
+- Dark mode support
+- Keyboard shortcuts in live feast mode (Space = complete, Esc = pause)
+- Additional seed toasts (expand from 11 to 50+)
+- Error boundary components, offline queue for failed writes, optimistic updates throughout
 

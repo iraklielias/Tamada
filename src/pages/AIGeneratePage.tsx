@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useProGate } from "@/hooks/useProGate";
+import { useInternalTamadaChat } from "@/hooks/useInternalTamadaChat";
 import ProUpsellModal from "@/components/ProUpsellModal";
 import ProBadge from "@/components/ProBadge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -114,7 +115,7 @@ const refineLengthKeys = ["shorter", "longer"];
 const refineStyleKeys = ["poetic", "storytelling", "proverbial", "direct"];
 
 const AIGeneratePage = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [occasion, setOccasion] = useState("supra");
   const [formality, setFormality] = useState("formal");
   const [tone, setTone] = useState("traditional");
@@ -146,6 +147,8 @@ const AIGeneratePage = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { checkFeature, dailyAICount, limits, canGenerateAI, isPro } = useProGate();
+  const chat = useInternalTamadaChat();
+  const currentLang = (i18n.language === "en" ? "en" : "ka") as "ka" | "en";
 
   const generate = useMutation({
     mutationFn: async () => {
@@ -602,7 +605,7 @@ const AIGeneratePage = () => {
           {/* ThinkingFacts during generation */}
           {generate.isPending && (
             <div className="min-h-[60px] flex items-center justify-center">
-              <ThinkingFacts isVisible={true} language={(localStorage.getItem('tamada-lang') === 'en' ? 'en' : 'ka') as "ka" | "en"} />
+              <ThinkingFacts isVisible={true} language={currentLang} />
             </div>
           )}
         </CardContent>
@@ -992,7 +995,7 @@ const AIGeneratePage = () => {
                   </Button>
                   {isRefining && (
                     <div className="min-h-[60px] flex items-center justify-center">
-                      <ThinkingFacts isVisible={true} language={(localStorage.getItem('tamada-lang') === 'en' ? 'en' : 'ka') as "ka" | "en"} />
+                      <ThinkingFacts isVisible={true} language={currentLang} />
                     </div>
                   )}
                 </div>
@@ -1009,20 +1012,22 @@ const AIGeneratePage = () => {
     <AnimatePresence>
       {chatModeOpen && (
         <AIChatPanel
-          language={(localStorage.getItem('tamada-lang') === 'en' ? 'en' : 'ka') as "ka" | "en"}
+          language={currentLang}
           onClose={() => setChatModeOpen(false)}
           onVoiceMode={() => { setChatModeOpen(false); setVoiceModeOpen(true); }}
           onToastGenerated={handleToastFromChat}
+          chat={chat}
         />
       )}
     </AnimatePresence>
     <AnimatePresence>
       {voiceModeOpen && (
         <AIVoiceMode
-          language={(localStorage.getItem('tamada-lang') === 'en' ? 'en' : 'ka') as "ka" | "en"}
+          language={currentLang}
           onClose={() => setVoiceModeOpen(false)}
           onMessage={() => {}}
           onToastGenerated={handleToastFromChat}
+          chat={chat}
         />
       )}
     </AnimatePresence>
