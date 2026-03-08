@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useProGate } from "@/hooks/useProGate";
 import ProUpsellModal from "@/components/ProUpsellModal";
+import ProBadge from "@/components/ProBadge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -27,6 +28,8 @@ import {
   EyeOff,
   ChevronDown,
   Pencil,
+  MessageCircle,
+  Mic,
 } from "lucide-react";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
@@ -35,6 +38,9 @@ import { toast as sonnerToast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import SystemIcon from "@/components/SystemIcon";
 import { ThinkingFacts } from "@/components/api-testing/ThinkingFacts";
+import { AIChatPanel } from "@/components/ai-chat/AIChatPanel";
+import { AIVoiceMode } from "@/components/ai-chat/AIVoiceMode";
+import type { GeneratedToast } from "@/components/ai-chat/types";
 
 // Simple word-level diff
 function computeWordDiff(original: string, edited: string): { type: "same" | "added" | "removed"; text: string }[] {
