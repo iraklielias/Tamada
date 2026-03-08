@@ -1,109 +1,135 @@
 
 
-## TAMADA — Status Audit & Master Execution Plan
+## UX & Animation Polish — Full Execution Strategy
 
-### What Is Built
+### Analysis of Uploaded Images vs Current Code
 
-| Area | Status |
-|------|--------|
-| Landing page (`/`) | Done — hero, features, how-it-works, footer |
-| Auth (login, signup, callback) | Done — email/password, onAuthStateChange, protected routes |
-| Onboarding wizard (`/onboarding`) | Done — 4 steps: name, region, experience, occasions |
-| App shell (sidebar + bottom nav) | Done — collapsible sidebar, mobile bottom nav, profile footer |
-| Dashboard (`/dashboard`) | Done — greeting, quick actions, recent feasts, popular toasts |
-| Toasts browse (`/toasts`) | Done — search, occasion/formality filters, favorite toggle |
-| AI Generator (`/ai-generate`) | Done — occasion/formality/topic form, edge function, save to favorites |
-| Favorites (`/favorites`) | Done — list system + custom favorites, remove |
-| Library (`/library`) | Done — reads toast_templates (currently 0 rows) |
-| Profile (`/profile`) | Done — read-only display, logout |
-| Edge function: `generate-toast` | Done — Lovable AI gateway, JSON parse |
-| Database schema + RLS | Done — all 11 tables, policies in place |
-| Seed data: toasts | Done — 11 system toasts |
-
-### What Is NOT Built
-
-| Area | Spec Section |
-|------|-------------|
-| **Feast CRUD** — `/feasts`, `/feasts/new`, `/feasts/:id` | Sections 3, 4, 5 |
-| **Live Feast Mode** — `/feasts/:id/live` with timer, toast progression, alerts, audio | Section 6 |
-| **Alaverdi tracking** — FAB, guest assignment, count increment | Section 6 |
-| **Co-Tamada / Realtime** — share code, join link, Supabase Realtime sync | Section 6 + Realtime spec |
-| **Toast template seeding** — 7 templates with JSONB sequences | Seed Data |
-| **More sample toasts** — spec calls for 50-100; we have 11 | Seed Data |
-| **Feast plan from template** — selecting a template populates feast_toasts | Section 4 |
-| **AI Feast Plan generator** — `generate-feast-plan` edge function | AI Integration |
-| **Pro gating / useProGate hook** — daily limits, feature locks, upsell modals | Free vs Pro |
-| **Upgrade page** (`/upgrade`) — comparison table, Stripe checkout | Section 11 |
-| **Stripe integration** — checkout session, webhook, subscription management | Edge Functions |
-| **Profile editing** — avatar upload, edit name/region/experience/language | Section 10 |
-| **PDF export** — jsPDF feast plan export (Pro) | Section 5 |
-| **i18n** — i18next setup, language toggle, all strings externalized | i18n spec |
-| **Dark mode** | Design System |
-| **Keyboard shortcuts** | Desktop spec |
-| **Additional occasion types** in filters (christening, guest_reception, friendly_gathering) | Throughout |
-| **config.toml** — `generate-toast` function entry with `verify_jwt = false` | Edge function config |
+The uploaded images show the **hero mockup scenes** (Generator, Live Feast, Chat, Alaverdi). Comparing these to the current code reveals several issues:
 
 ---
 
-### Master Execution Plan (8 Phases)
+### Problem Areas Identified
 
-#### Phase 8 — Seed Data & Config Fixes
-- Seed 7 toast templates into `toast_templates` table (wedding, birthday, memorial, guest reception, holiday, corporate, friendly gathering) with proper `toast_sequence` JSONB arrays
-- Add `[functions.generate-toast]` with `verify_jwt = false` to `supabase/config.toml`
-- Add missing occasion types to all filter dropdowns across pages (christening, guest_reception, friendly_gathering, other)
+**1. Sonner Toast Notifications Are Generic**
+The app uses bare `sonnerToast.success("Copied!")` and `sonnerToast.error(msg)` calls everywhere — plain white rectangles with no brand personality. For a product centered around Georgian toasts (სადღეგრძელო), the notification toasts should feel on-brand with wine-themed styling, icons, and better animation.
 
-#### Phase 9 — Feast CRUD (Core)
-- Create `/feasts` page — list user's feasts with status filter pills + search
-- Create `/feasts/new` page — multi-section form: basic info, details (guest count, formality, region, duration), template selection, optional guest list
-- Create `/feasts/:id` page — tabbed view (Plan, Guests, Details) with toast timeline, guest management, edit metadata, delete
-- Add routes to `App.tsx`, add "სუფრები" nav item to sidebar and bottom nav
-- Dashboard "ახალი სუფრა" quick action routes to `/feasts/new`; feast cards link to `/feasts/:id`
+**2. Hero Mockup Scene Spacing Issues (from images)**
+- **Scene 1 (Generator)**: Labels like "შემთხვევა" are cramped at `text-[9px]` with `w-16` — too tight. Select rows need more breathing room.
+- **Scene 3 (Live Feast)**: The toast card and progress bar are vertically compressed. The `p-3` padding and `text-[10px]` body create a dense block.
+- **Scene 4 (Chat)**: Bubble spacing is minimal (`space-y-2.5`). The AI avatar is only `w-6 h-6` — barely visible.
+- **Scene 5 (Alaverdi)**: Guest cards at `py-2` are too tight. The count number is hard to read.
 
-#### Phase 10 — Live Feast Mode
-- Create `/feasts/:id/live` — full-screen immersive view
-- Current toast display with complete text, toast number, type
-- Next-up preview (2 upcoming toasts)
-- Elapsed time tracker + progress bar
-- "Completed" and "Skip" buttons that update `feast_toasts` status
-- Pause/Resume/End feast controls updating `feasts.status`
-- Timer alert system: amber glow + audio chime at configurable intervals before next toast (Web Audio API)
-- Alaverdi FAB: bottom sheet with guest list, tap to assign, increment `alaverdi_count` via `increment_alaverdi` RPC
+**3. Mockup Scene Copywriting**
+- Scene labels at `text-[8px]` are illegibly small for badge text like "სავალდებულო" and "ტრადიციული"
+- "✓ დასრულება" and "⏭ გამოტოვება" action buttons use raw unicode instead of proper icons
 
-#### Phase 11 — Co-Tamada & Realtime
-- Generate `share_code` on feast, build `/feasts/:id/join/:shareCode` route
-- Add user as `feast_collaborator` on join
-- Subscribe to Supabase Realtime channels for `feast_toasts`, `feast_guests`, `feasts` changes
-- Enable realtime publication on relevant tables (`ALTER PUBLICATION supabase_realtime ADD TABLE ...`)
-- Co-Tamada sees live view with read-only controls (can assign alaverdi, cannot pause/end)
-- Online indicator for connected collaborators
+**4. Landing Page Section Spacing**
+- Feature showcase `gap-12 md:gap-16` is good, but bullet lists use `space-y-2` which is tight for Georgian text
+- Timeline step cards have `pl-20` which leaves the icon hanging on mobile
 
-#### Phase 12 — Profile Editing & Pro Gating
-- Make profile page editable: avatar upload (to `avatars` bucket), display name, region, experience, language
-- Build `useProGate` hook checking `is_pro` + `pro_expires_at`
-- Enforce free limits: 5 AI generations/day (server + client), 10 favorites, 1 active feast
-- Add server-side rate limit check in `generate-toast` edge function using `get_daily_ai_count`
-- Soft upsell modals when limits reached; gold lock icons on Pro features
-- Create `/upgrade` page with feature comparison table and pricing
+**5. Page-Level Animation Consistency**
+- Dashboard and other app pages use basic `staggerContainer`/`staggerChild` from `lib/animations.ts`, but these don't have the entry blur treatment that the hero mockup now uses
+- Page transitions between routes have no animation at all
 
-#### Phase 13 — Stripe & Subscriptions
-- Enable Stripe integration
-- Create `create-checkout-session` edge function
-- Create `stripe-webhook` edge function handling subscription lifecycle events
-- Wire `/upgrade` page CTA to checkout session
-- Add `/profile/subscription` route for managing active subscription
+---
 
-#### Phase 14 — i18n & Polish
-- Set up i18next with `ka` (default) and `en` locales
-- Extract all hardcoded Georgian strings to locale JSON files
-- Add language toggle to sidebar footer and profile settings
-- Persist language choice to `profiles.preferred_language`
-- Toast content displays `_ka` or `_en` based on selected language
+### Execution Strategy
 
-#### Phase 15 — Advanced Features & Hardening
-- `generate-feast-plan` edge function — AI-generated toast schedule based on occasion/duration/formality
-- PDF export of feast plan using jsPDF (Pro only)
-- Dark mode support
-- Keyboard shortcuts in live feast mode (Space = complete, Esc = pause)
-- Additional seed toasts (expand from 11 to 50+)
-- Error boundary components, offline queue for failed writes, optimistic updates throughout
+#### A. Branded Sonner Toast Styling (High Impact)
+
+**File: `src/components/ui/sonner.tsx`**
+
+Completely restyle the Sonner toaster to match the wine/Georgian theme:
+- Custom `toastOptions.classNames` with wine-gradient border-left accent for success, destructive red for errors
+- Add HornIcon or WineGlassIcon as default icon for success toasts
+- Increase padding, use `font-serif` for toast text
+- Add `animate-in slide-in-from-bottom` entry animation override
+- Custom close button styling with wine-muted colors
+- Increase duration to 4s (from default 3s) so users can read Georgian text
+
+#### B. Hero Mockup Scene Layout Polish
+
+**File: `src/components/HeroMockupStory.tsx`**
+
+**Scene 1 (Generator)**:
+- Increase label width from `w-16` to `w-20`, bump to `text-[10px]`
+- Add `gap-2.5` between select rows (from `space-y-2`)
+- Tags: increase from `text-[9px]` to `text-[10px]`, add `gap-2`
+
+**Scene 2 (Result)**:
+- Bump title from `text-[11px]` to `text-[12px]`
+- Body from `text-[10px]` to `text-[11px]`
+- Increase card padding from `p-3` to `p-3.5`
+
+**Scene 3 (Live Feast)**:
+- Toast card body: bump from `text-[10px]` to `text-[11px]`
+- Badge type labels: from `text-[8px]` to `text-[9px]`
+- Replace unicode action buttons ("✓" "⏭") with proper Lucide `Check` and `SkipForward` icons
+- Progress text: from `text-[9px]` to `text-[10px]`
+
+**Scene 4 (Chat)**:
+- Increase AI avatar from `w-6 h-6` to `w-7 h-7`
+- Bubble text from `text-[10px]` to `text-[11px]`
+- Chat spacing from `space-y-2.5` to `space-y-3`
+
+**Scene 5 (Alaverdi)**:
+- Guest card padding from `py-2` to `py-2.5`
+- Name text from `text-[10px]` to `text-[11px]`
+- Role text from `text-[9px]` to `text-[10px]`
+
+**Global mockup**: Increase content area min-height from `min-h-[280px]` to `min-h-[300px]` and padding from `p-4 sm:p-5` to `p-5 sm:p-6`
+
+#### C. Landing Page Spacing & Copy Polish
+
+**File: `src/pages/Index.tsx`**
+
+- Feature bullet lists: increase `space-y-2` to `space-y-3` for readability
+- Timeline step cards: reduce `pl-20` to `pl-16` on mobile with responsive `pl-16 md:pl-20`
+- Testimonial quote text: increase from `text-xs` in the hero mini-testimonial to `text-[13px]`
+- Trust bar stat numbers: add a subtle count-up animation (already have `AnimatedCount` but trust bar uses static text)
+- Feature section descriptions: add `text-base` instead of implicit small sizing
+
+#### D. App Page Animation Consistency
+
+**File: `src/lib/animations.ts`**
+
+Add a `pageStaggerChild` variant that includes the blur treatment:
+```
+pageStaggerChild: {
+  initial: { opacity: 0, y: 8, filter: "blur(3px)" },
+  animate: { opacity: 1, y: 0, filter: "blur(0px)" }
+}
+```
+
+**Files: `src/pages/Dashboard.tsx`, `src/pages/ToastsPage.tsx`, `src/pages/FeastsPage.tsx`**
+- Replace basic `staggerChild` with new blur-enhanced variant for consistent feel across all pages
+
+#### E. Sonner Toast Animation Enhancement
+
+**File: `src/components/ui/sonner.tsx`**
+
+Key styling changes:
+- Wine-accent left border on success: `border-l-[3px] border-l-[hsl(353,41%,32%)]`
+- Rounded corners: `rounded-xl`
+- Subtle wine-light background: `bg-[hsl(350,30%,93%)]` for light mode
+- Custom icon placement using Sonner's `icons` prop with `WineGlassIcon` for success
+- Entry animation: override to use `slide-in-from-bottom-full` with spring easing
+- Proper dark mode support matching the existing dark theme variables
+
+---
+
+### Files to Edit
+
+| File | Changes |
+|------|---------|
+| `src/components/ui/sonner.tsx` | Wine-branded toast styling, custom icons, animation overrides |
+| `src/components/HeroMockupStory.tsx` | Spacing, font sizes, icon replacements across all 5 scenes, content area sizing |
+| `src/pages/Index.tsx` | Feature bullet spacing, timeline responsive padding, testimonial sizing, trust bar animations |
+| `src/lib/animations.ts` | Add blur-enhanced page stagger variant |
+
+### Priority Order
+1. **Sonner toasts** — most visible user-facing issue, every action triggers them
+2. **Hero mockup spacing** — first thing visitors see
+3. **Landing page spacing** — supports conversion
+4. **App page animation consistency** — polish layer
 
